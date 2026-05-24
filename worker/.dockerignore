@@ -1,0 +1,12 @@
+node_modules
+.git
+.gitignore
+.env
+.env.example
+pnpm-lock.yaml
+README.md
+docs
+tests
+public/images
+public/css
+public/js

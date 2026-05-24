@@ -4,100 +4,83 @@ on:
     push:
         branches: [main]
     workflow_dispatch:
-        inputs:
-            environment:
-                description: 'Deployment environment'
-                required: true
-                default: 'production'
-                type: choice
-                options:
-                    - production
-                    - staging
 
 jobs:
-    deploy:
-        name: Deploy to ${{ inputs.environment || 'production' }}
+    deploy-vercel:
+        name: Deploy API to Vercel
         runs-on: ubuntu-latest
-        environment: ${{ inputs.environment || 'production' }}
-
+        environment: production
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: '20'
-
-            - name: Install pnpm
-              uses: pnpm/action-setup@v3
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v3
               with:
                   version: '10'
-
-            - name: Get dependencies
-              run: pnpm install --frozen-lockfile
-
-            - name: Run tests
-              run: pnpm test
-              env:
-                  NODE_ENV: test
-
-            - name: Build application
-              run: pnpm run build:css
-
-            - name: Run deploy script
-              run: |
-                  echo "Deploying to ${{ inputs.environment || 'production' }}..."
-                  # Add your deployment commands here
-                  # Example for Render:
-                  # curl -X POST $RENDER_DEPLOY_HOOK_URL
-
-            - name: Notify deployment
-              if: always()
-              uses: slackapi/slack-github-action@v1.26.0
+            - uses: actions/setup-node@v4
               with:
-                  payload: |
-                      {
-                        "text": "Deployment ${{ job.status }} for Latest-Tech-News to ${{ inputs.environment || 'production' }}",
-                        "blocks": [
-                          {
-                            "type": "section",
-                            "text": {
-                              "type": "mrkdwn",
-                              "text": "*Deployment Status*: ${{ job.status }}"
-                            }
-                          }
-                        ]
-                      }
+                  node-version: '20'
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm build
+            - name: Deploy to Vercel
+              uses: amondnet/vercel-action@v25
+              with:
+                  vercel-token: ${{ secrets.VERCEL_TOKEN }}
+                  vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+                  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+                  vercel-args: '--prod'
+
+    deploy-worker:
+        name: Deploy Worker Container
+        runs-on: ubuntu-latest
+        environment: production
+        steps:
+            - uses: actions/checkout@v4
+            - uses: superfly/flyctl-actions/setup-flyctl@master
+            - name: Deploy to Fly.io
+              run: flyctl deploy --dockerfile worker/Dockerfile --app nook-worker --remote-only
               env:
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-                  SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+                  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
     health-check:
         name: Health Check
         runs-on: ubuntu-latest
-        needs: deploy
-        if: always() && needs.deploy.result == 'success'
-
+        needs: [deploy-vercel, deploy-worker]
+        if: success()
         steps:
-            - name: Check application health
-              run: |
-                  echo "Checking health endpoint..."
-                  sleep 10
+            - run: |
+                  sleep 15
+                  echo "Checking Vercel deployment..."
                   curl -f ${{ secrets.APP_URL }}/api/health || exit 1
                   echo "Health check passed!"
 
-    rollback:
-        name: Rollback on Failure
+    notify:
+        name: Notify
         runs-on: ubuntu-latest
-        needs: health-check
-        if: needs.health-check.result == 'failure'
-
+        needs: [deploy-vercel, deploy-worker, health-check]
+        if: always()
         steps:
-            - name: Trigger rollback
+            - name: Send Discord notification
+              env:
+                  DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+                  STATUS: ${{ job.status }}
+                  ENV: ${{ inputs.environment || 'production' }}
+                  DEPLOY_VERCEL: ${{ needs.deploy-vercel.result }}
+                  DEPLOY_WORKER: ${{ needs.deploy-worker.result }}
+                  HEALTH_CHECK: ${{ needs.health-check.result }}
               run: |
-                  echo "Deployment failed! Initiating rollback..."
-                  # Add rollback commands here
-                  # Example for Render:
-                  # render-cli deploys rollback --id ${{ env.DEPLOYMENT_ID }}
-                  exit 1
+                  COLOR=$([ "$STATUS" = "success" ] && echo "5814783" || echo "15548997")
+                  curl -sf -X POST "$DISCORD_WEBHOOK" \
+                    -H "Content-Type: application/json" \
+                    -d "{
+                      \"embeds\": [{
+                        \"title\": \"Nook Deployment\",
+                        \"color\": $COLOR,
+                        \"fields\": [
+                          {\"name\": \"Status\", \"value\": \"$STATUS\", \"inline\": true},
+                          {\"name\": \"Environment\", \"value\": \"$ENV\", \"inline\": true},
+                          {\"name\": \"Vercel API\", \"value\": \"$DEPLOY_VERCEL\", \"inline\": true},
+                          {\"name\": \"Worker\", \"value\": \"$DEPLOY_WORKER\", \"inline\": true},
+                          {\"name\": \"Health Check\", \"value\": \"$HEALTH_CHECK\", \"inline\": true}
+                        ],
+                        \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+                      }]
+                    }" || echo "Discord notification failed (no webhook?)"

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { isRedisConnected } = require('../config/redis');
+const { isRedisConnected, isUpstashEnabled, getUpstashClient } = require('../config/redis');
 const { getQueueStats } = require('../queue/contentQueue');
 
 const HEALTH_TIMEOUT = 5000;
@@ -36,6 +36,17 @@ async function checkMongoDB() {
 async function checkRedis() {
     const start = Date.now();
     try {
+        if (isUpstashEnabled()) {
+            const redis = getUpstashClient();
+            if (!redis) {
+                return { status: 'disconnected', latency: null, error: 'Upstash not configured' };
+            }
+            const startTime = Date.now();
+            await redis.ping();
+            const latency = Date.now() - startTime;
+            return { status: 'healthy', latency, connected: true };
+        }
+
         if (!isRedisConnected()) {
             return {
                 status: 'disconnected',

@@ -1,0 +1,50 @@
+{
+    "functions": {
+        "api/index.js": {
+            "maxDuration": 30
+        },
+        "api/cron.js": {
+            "maxDuration": 60
+        }
+    },
+    "rewrites": [
+        {
+            "source": "/public/(.*)",
+            "destination": "/$1"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/api/index"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/public/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=3600, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/public/images/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=86400, immutable"
+                }
+            ]
+        }
+    ],
+    "crons": [
+        {
+            "path": "/api/cron?job=reader-pool-sweep",
+            "schedule": "0 0 * * *"
+        }
+    ],
+    "github": {
+        "enabled": true,
+        "silent": true
+    }
+}
