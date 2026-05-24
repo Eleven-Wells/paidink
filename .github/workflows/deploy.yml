@@ -67,8 +67,12 @@ jobs:
                   DEPLOY_WORKER: ${{ needs.deploy-worker.result }}
                   HEALTH_CHECK: ${{ needs.health-check.result }}
               run: |
+                  if [ -z "$DISCORD_WEBHOOK" ]; then
+                    echo "Discord notification skipped: DISCORD_WEBHOOK_URL secret not set"
+                    exit 0
+                  fi
                   COLOR=$([ "$STATUS" = "success" ] && echo "5814783" || echo "15548997")
-                  curl -sf -X POST "$DISCORD_WEBHOOK" \
+                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$DISCORD_WEBHOOK" \
                     -H "Content-Type: application/json" \
                     -d "{
                       \"embeds\": [{
@@ -83,4 +87,8 @@ jobs:
                         ],
                         \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
                       }]
-                    }" || echo "Discord notification failed (no webhook?)"
+                    }")
+                  echo "Discord responded with HTTP $RESPONSE"
+                  if [ "$RESPONSE" != "204" ]; then
+                    echo "Warning: expected 204, got $RESPONSE"
+                  fi

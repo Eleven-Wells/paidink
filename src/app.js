@@ -1,7 +1,7 @@
 const fastify = require('fastify')({
     logger: {
         level: process.env.LOG_LEVEL || 'info',
-        transport: process.env.NODE_ENV !== 'production' ? {
+        transport: !process.env.VERCEL && process.env.NODE_ENV !== 'production' ? {
             targets: [{
                 target: 'pino-pretty',
                 options: {

@@ -5,3 +5,6 @@ temp.html
 
 .env
 # .env.example should be committed as a template
+
+# build artifacts
+public/css/output.css
