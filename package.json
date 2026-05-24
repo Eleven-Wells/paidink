@@ -13,6 +13,8 @@
     "test:e2e:headed": "playwright test --headed",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "dev:serverless": "node scripts/serve-serverless.js",
+    "start:serverless": "node scripts/serve-serverless.js",
     "build": "pnpm run build:css",
     "start:worker": "node worker/index.js",
     "build:css": "postcss public/css/tailwind.css -o public/css/output.css",
