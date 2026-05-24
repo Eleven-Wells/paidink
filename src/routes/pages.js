@@ -1004,10 +1004,9 @@ async function pagesRoutes(fastify) {
             .populate('author', 'displayName avatar role')
             .lean();
 
-        let currentUserId = null;
+        const currentUserId = req.currentUser?.id || null;
         let followedIds = [];
-        if (req.isLoggedIn && req.currentUser) {
-            currentUserId = req.currentUser.id;
+        if (currentUserId) {
             followedIds = await User.distinct('following', { _id: currentUserId });
         }
 
@@ -1054,14 +1053,12 @@ async function pagesRoutes(fastify) {
 
         let feedAds = [];
         let sidebarAd = null;
-        if (req.isLoggedIn && currentUserId) {
-            try {
-                const { getFeedAds, getAdForSlot } = require('../services/ads/AdPlacementService');
-                feedAds = await getFeedAds(currentUserId, null);
-                sidebarAd = await getAdForSlot(currentUserId, 'sidebar', null);
-            } catch (e) {
-                // Ads not available
-            }
+        try {
+            const { getFeedAds, getAdForSlot } = require('../services/ads/AdPlacementService');
+            feedAds = await getFeedAds(currentUserId, null);
+            sidebarAd = await getAdForSlot(currentUserId, 'sidebar', null);
+        } catch (e) {
+            // Ads not available
         }
 
         return reply.view('pages/explore.ejs', {
@@ -1306,14 +1303,12 @@ async function pagesRoutes(fastify) {
 
         let adInline = null;
         let adBanner = null;
-        if (req.isLoggedIn && req.currentUser) {
-            try {
-                const { getAdForSlot } = require('../services/ads/AdPlacementService');
-                adInline = await getAdForSlot(req.currentUser.id, 'article_inline', null);
-                adBanner = await getAdForSlot(req.currentUser.id, 'article_endcap', null);
-            } catch (e) {
-                // Ads not available
-            }
+        try {
+            const { getAdForSlot } = require('../services/ads/AdPlacementService');
+            adInline = await getAdForSlot(req.currentUser?.id || null, 'article_inline', null);
+            adBanner = await getAdForSlot(req.currentUser?.id || null, 'article_endcap', null);
+        } catch (e) {
+            // Ads not available
         }
 
         if (adInline && adInline.served && enhancedContent) {

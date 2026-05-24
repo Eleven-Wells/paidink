@@ -19,7 +19,9 @@ async function getAdForSlot(userId, slotName, sessionId) {
         pageType: slot.pageType
     });
 
-    if (!result.served) return null;
+    if (!result.served) {
+        return getDemoAd(slotName);
+    }
 
     return {
         served: true,
@@ -30,6 +32,21 @@ async function getAdForSlot(userId, slotName, sessionId) {
         adConfigId: result.adConfig?._id?.toString(),
         abTest: result.abTest,
         abVariant: result.abVariant,
+        slot: slotName
+    };
+}
+
+function getDemoAd(slotName) {
+    const imageType = slotName.startsWith('article') ? 'banner' : 'native';
+    return {
+        served: true,
+        adType: imageType,
+        imageUrl: getAdImageUrl(imageType),
+        clickUrl: 'https://nook.com/?utm_source=nook_demo_ad',
+        impressionId: null,
+        adConfigId: null,
+        abTest: null,
+        abVariant: null,
         slot: slotName
     };
 }
