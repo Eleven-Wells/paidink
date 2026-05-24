@@ -20,13 +20,25 @@ jobs:
                   node-version: '20'
             - run: pnpm install --frozen-lockfile
             - run: pnpm build
+            - name: Link Vercel project
+              run: |
+                  mkdir -p .vercel
+                  cat > .vercel/project.json <<'EOF'
+                  {
+                      "orgId": "${{ secrets.VERCEL_ORG_ID }}",
+                      "projectId": "${{ secrets.VERCEL_PROJECT_ID }}"
+                  }
+                  EOF
             - name: Deploy to Vercel
-              uses: amondnet/vercel-action@v25
-              with:
-                  vercel-token: ${{ secrets.VERCEL_TOKEN }}
-                  vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-                  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-                  vercel-args: '--prod'
+              run: |
+                  npx vercel@latest deploy --prod \
+                    --token=${{ secrets.VERCEL_TOKEN }} \
+                    -m githubCommitSha=${{ github.sha }} \
+                    -m githubCommitAuthorName=${{ github.actor }} \
+                    -m githubDeployment=1 \
+                    -m githubOrg=TobeChukwu278 \
+                    -m githubRepo=Nook \
+                    -m githubCommitRef=${{ github.ref_name }}
 
     deploy-worker:
         name: Deploy Worker Container
@@ -55,7 +67,8 @@ jobs:
     notify:
         name: Notify
         runs-on: ubuntu-latest
-        needs: [deploy-vercel, deploy-worker, health-check]
+        environment: production
+        needs: [deploy-vercel, deploy-worker]
         if: always()
         steps:
             - name: Send Discord notification
@@ -65,7 +78,6 @@ jobs:
                   ENV: ${{ inputs.environment || 'production' }}
                   DEPLOY_VERCEL: ${{ needs.deploy-vercel.result }}
                   DEPLOY_WORKER: ${{ needs.deploy-worker.result }}
-                  HEALTH_CHECK: ${{ needs.health-check.result }}
               run: |
                   if [ -z "$DISCORD_WEBHOOK" ]; then
                     echo "Discord notification skipped: DISCORD_WEBHOOK_URL secret not set"
@@ -82,8 +94,7 @@ jobs:
                           {\"name\": \"Status\", \"value\": \"$STATUS\", \"inline\": true},
                           {\"name\": \"Environment\", \"value\": \"$ENV\", \"inline\": true},
                           {\"name\": \"Vercel API\", \"value\": \"$DEPLOY_VERCEL\", \"inline\": true},
-                          {\"name\": \"Worker\", \"value\": \"$DEPLOY_WORKER\", \"inline\": true},
-                          {\"name\": \"Health Check\", \"value\": \"$HEALTH_CHECK\", \"inline\": true}
+                          {\"name\": \"Worker\", \"value\": \"$DEPLOY_WORKER\", \"inline\": true}
                         ],
                         \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
                       }]
