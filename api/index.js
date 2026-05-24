@@ -1,12 +1,14 @@
 const { fastify, buildApp } = require('../src/app');
+const { connectDB } = require('../src/db');
 
-const INIT_TIMEOUT = 15000;
+const INIT_TIMEOUT = 25000;
 let initialized = false;
 let initError = null;
 let initPromise = null;
 
 async function initialize() {
     try {
+        await connectDB();
         await buildApp();
         await fastify.ready();
         initialized = true;

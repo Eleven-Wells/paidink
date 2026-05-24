@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 mongoose.set('bufferTimeoutMS', 3000);
-if (process.env.VERCEL) {
-    mongoose.set('serverSelectionTimeoutMS', 5000);
-}
 
 const fastify = require('fastify')({
     logger: {
