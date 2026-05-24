@@ -1,5 +1,6 @@
 const { fastify, buildApp } = require('./app');
 const { disconnectRedis, getRedisConnection } = require('./config/redis');
+const { isFeatureEnabled } = require('./config/features');
 const cronPlugin = require('./plugins/cron-plugin');
 
 const DEFAULT_PORT = process.env.PORT || 5050;
@@ -48,7 +49,6 @@ async function initializeDatabase() {
         fastify.log.info({ component: 'database' }, 'Database connected successfully');
 
         try {
-            const { isFeatureEnabled } = require('./config/features');
             if (!isFeatureEnabled('content', 'aiGeneration')) {
                 fastify.log.info({ component: 'init' }, 'AI generation disabled, skipping initial fetch');
             } else {
@@ -89,7 +89,6 @@ async function start() {
             fastify.log.error({ component: 'init', error: err.message }, 'Database initialization error');
         });
 
-        const { isFeatureEnabled } = require('./config/features');
         if (!isFeatureEnabled('content', 'aiGeneration')) {
             fastify.log.info({ component: 'worker' }, 'AI generation disabled, worker not started');
         } else {
