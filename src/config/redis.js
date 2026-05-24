@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const { Redis: UpstashRedis } = require('@upstash/redis');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -81,10 +82,38 @@ function isRedisConnected() {
     return redisConnection && redisConnection.status === 'ready';
 }
 
+let upstashClient = null;
+
+function getUpstashClient() {
+    if (!upstashClient && process.env.UPSTASH_REDIS_REST_URL) {
+        upstashClient = new UpstashRedis({
+            url: process.env.UPSTASH_REDIS_REST_URL,
+            token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        });
+    }
+    return upstashClient;
+}
+
+function isUpstashEnabled() {
+    return !!process.env.UPSTASH_REDIS_REST_URL;
+}
+
+function getCacheClient() {
+    if (isUpstashEnabled()) {
+        return getUpstashClient();
+    }
+    const redis = getRedisConnection();
+    if (!redis || redis.status !== 'ready') return null;
+    return redis;
+}
+
 module.exports = {
     getRedisConnection,
     connectRedis,
     disconnectRedis,
     isRedisConnected,
-    createRedisConnection
+    createRedisConnection,
+    getCacheClient,
+    getUpstashClient,
+    isUpstashEnabled
 };

@@ -1,13 +1,20 @@
 const fp = require('fastify-plugin');
-const { getRedisConnection } = require('../config/redis');
+const { getCacheClient, isUpstashEnabled } = require('../config/redis');
+
+const cacheSet = async (client, key, value, ttl) => {
+    if (isUpstashEnabled()) {
+        return client.set(key, value, { ex: ttl });
+    }
+    return client.setex(key, ttl, value);
+};
 
 function createCachePlugin(fastify) {
     let redis = null;
     let cacheEnabled = false;
 
     try {
-        redis = getRedisConnection();
-        cacheEnabled = redis && redis.status === 'ready';
+        redis = getCacheClient();
+        cacheEnabled = !!redis;
     } catch (error) {
         console.warn('[Cache] Redis not available, caching disabled');
     }
@@ -30,7 +37,7 @@ function createCachePlugin(fastify) {
         if (!cacheEnabled || !redis) return false;
 
         try {
-            await redis.setex(key, ttlSeconds, JSON.stringify(value));
+            await cacheSet(redis, key, JSON.stringify(value), ttlSeconds);
             return true;
         } catch (error) {
             console.error('[Cache] Set error:', error.message);

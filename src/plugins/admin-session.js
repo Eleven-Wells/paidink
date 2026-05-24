@@ -1,9 +1,16 @@
 const fp = require('fastify-plugin');
 const crypto = require('crypto');
-const { getRedisConnection } = require('../config/redis');
+const { getCacheClient, isUpstashEnabled } = require('../config/redis');
 
 const SESSION_PREFIX = 'admin_session:';
 const SESSION_TTL = 60 * 60 * 24;
+
+const sessionSet = async (client, key, value, ttl) => {
+    if (isUpstashEnabled()) {
+        return client.set(key, value, { ex: ttl });
+    }
+    return client.setex(key, ttl, value);
+};
 
 function createSessionPlugin(fastify) {
     fastify.decorateRequest('session', null);
@@ -11,9 +18,12 @@ function createSessionPlugin(fastify) {
 
     fastify.decorate('adminSessions', {
         create: async (userId, userData) => {
-            const redis = getRedisConnection();
-            if (!redis || redis.status !== 'ready') {
-                throw new Error('Redis not available');
+            const redis = getCacheClient();
+            if (!redis) {
+                throw new Error('Cache not available');
+            }
+            if (!isUpstashEnabled() && redis.status !== 'ready') {
+                throw new Error('Cache not ready');
             }
 
             const sessionId = crypto.randomBytes(32).toString('hex');
@@ -25,18 +35,22 @@ function createSessionPlugin(fastify) {
                 lastActive: new Date().toISOString()
             };
 
-            await redis.setex(
+            await sessionSet(
+                redis,
                 `${SESSION_PREFIX}${sessionId}`,
-                SESSION_TTL,
-                JSON.stringify(sessionData)
+                JSON.stringify(sessionData),
+                SESSION_TTL
             );
 
             return sessionId;
         },
 
         get: async (sessionId) => {
-            const redis = getRedisConnection();
-            if (!redis || redis.status !== 'ready') {
+            const redis = getCacheClient();
+            if (!redis) {
+                return null;
+            }
+            if (!isUpstashEnabled() && redis.status !== 'ready') {
                 return null;
             }
 
@@ -45,18 +59,22 @@ function createSessionPlugin(fastify) {
 
             const session = JSON.parse(data);
             session.lastActive = new Date().toISOString();
-            await redis.setex(
+            await sessionSet(
+                redis,
                 `${SESSION_PREFIX}${sessionId}`,
-                SESSION_TTL,
-                JSON.stringify(session)
+                JSON.stringify(session),
+                SESSION_TTL
             );
 
             return session;
         },
 
         destroy: async (sessionId) => {
-            const redis = getRedisConnection();
-            if (!redis || redis.status !== 'ready') {
+            const redis = getCacheClient();
+            if (!redis) {
+                return false;
+            }
+            if (!isUpstashEnabled() && redis.status !== 'ready') {
                 return false;
             }
 

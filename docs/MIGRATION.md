@@ -187,17 +187,81 @@ A direct "deploy the same code" approach would fail. This migration requires an 
 
 ---
 
+### Phase 3: Redis — ioredis → @upstash/redis (Completed)
+
+**Problem:** `ioredis` maintains persistent TCP connections. Vercel serverless functions can keep connections alive between invocations, but cold starts create new connections, and connections can drop unexpectedly. Additionally, `ioredis` creates a connection immediately on import (line 53-58: `getRedisConnection()` creates a new `Redis()` client if none exists), which is problematic in serverless where you want lazy initialization.
+
+**Solution:** Added `@upstash/redis` as an HTTP-based Redis client for serverless contexts. The cache and session layers use a unified `getCacheClient()` that returns Upstash when `UPSTASH_REDIS_REST_URL` is set, otherwise falls back to ioredis. The worker service continues using `ioredis` directly (BullMQ requires it for pub/sub and blocking commands).
+
+**Files modified:**
+
+#### `src/config/redis.js`
+**Before:** Only exported ioredis functions: `getRedisConnection`, `connectRedis`, `disconnectRedis`, `isRedisConnected`, `createRedisConnection`.
+
+**After:** Added Upstash support alongside existing ioredis:
+- Imports `@upstash/redis` as `UpstashRedis` alongside `ioredis`
+- `getUpstashClient()` — Lazily creates and returns an Upstash Redis client (only initializes if `UPSTASH_REDIS_REST_URL` env var is set)
+- `isUpstashEnabled()` — Returns `true` when `UPSTASH_REDIS_REST_URL` is present
+- `getCacheClient()` — **Unified entry point**: returns Upstash client if enabled, otherwise returns ioredis connection with ready-state check. Both contexts use `.get()`, `.set()`, `.del()` identically.
+
+**Key difference:** `getCacheClient()` never calls `new Redis()` (ioredis) unless there's no Upstash config. This avoids creating unnecessary TCP connections in serverless where caching uses HTTP.
+
+#### `src/plugins/cache.js`
+**Before:** Used `getRedisConnection()` directly, checked `redis.status === 'ready'`, called `redis.setex()` for TTL sets.
+
+**After:** Uses `getCacheClient()` + `isUpstashEnabled()` helpers from redis config:
+- `getCacheClient()` replaces `getRedisConnection()` — returns the right client automatically
+- Cache enable check: `!!redis` instead of `redis.status === 'ready'` (Upstash has no `.status`)
+- `cacheSet()` helper normalizes the TTL set difference:
+  - **ioredis**: `redis.setex(key, ttl, value)`
+  - **Upstash**: `redis.set(key, value, { ex: ttl })`
+
+#### `src/plugins/admin-session.js`
+**Before:** Used `getRedisConnection()` with `.status !== 'ready'` guards, called `redis.setex()`.
+
+**After:** Same pattern as cache plugin:
+- Uses `getCacheClient()` instead of `getRedisConnection()`
+- Uses `sessionSet()` helper for TTL writes (same normalization as cache)
+- Added `!isUpstashEnabled()` guard before `.status` checks
+
+#### `src/services/HealthService.js`
+**Before:** Only checked `isRedisConnected()` (ioredis-specific), then called `redis.ping()` and returned `redis.status === 'ready'`.
+
+**After:** Checks `isUpstashEnabled()` first:
+- If Upstash: calls `getUpstashClient()`, pings, returns `connected: true`
+- If ioredis: same logic as before
+- Both paths test actual connectivity via `.ping()` rather than assuming from status
+
+#### `package.json` / `pnpm-lock.yaml`
+Added `@upstash/redis@^1.38.0` dependency.
+
+**How it works at runtime:**
+
+| Context | `UPSTASH_REDIS_REST_URL` | Cache/Session uses | BullMQ uses |
+|---------|-------------------------|-------------------|-------------|
+| Local dev | Not set | ioredis (localhost:6379) | ioredis |
+| Worker container | Not set | ioredis (from env) | ioredis |
+| Vercel serverless | **Set** | @upstash/redis (HTTP) | N/A (no worker) |
+
+**Environment variables required for Vercel:**
+```
+UPSTASH_REDIS_REST_URL=https://<id>.upstash.io
+UPSTASH_REDIS_REST_TOKEN=<token>
+```
+
+---
+
 ## What Remains To Be Done
 
-### Phase 3: Redis — ioredis → @upstash/redis
-**Problem:** `ioredis` maintains persistent TCP connections. Vercel serverless functions can keep connections alive between invocations, but cold starts create new connections, and connections can drop unexpectedly.
+### Phase 4: Static Assets — Local FS → Vercel Blob
+**Problem:** `@fastify/static` serves from `public/` on the local filesystem. Vercel serverless functions have read-only filesystem (except `/tmp`).
 
-**Solution:** Use `@upstash/redis` (HTTP-based Redis) in the Vercel serverless function. The worker service continues using `ioredis` (needed by BullMQ).
+**Solution:** Upload static assets to Vercel Blob Storage at deploy time, serve from CDN.
 
 **Files affected:**
-- `src/config/redis.js` — Add Upstash config
-- `src/plugins/cache.js` — Adapt to use Upstash client in serverless
-- `api/index.js` — No changes needed (config move)
+- `src/app.js` — Replace `@fastify/static` with Blob URL generation
+- New: `scripts/upload-static.mjs` — Uploads `public/` to Vercel Blob
+- EJS templates — Update asset URLs to use Blob CDN paths
 
 ### Phase 4: Static Assets — Local FS → Vercel Blob
 **Problem:** `@fastify/static` serves from `public/` on the local filesystem. Vercel serverless functions have read-only filesystem (except `/tmp`).
