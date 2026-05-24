@@ -41,32 +41,8 @@
     ],
     "crons": [
         {
-            "path": "/api/cron?job=tools-update",
-            "schedule": "0 0 */2 * *"
-        },
-        {
-            "path": "/api/cron?job=content-ingestion",
-            "schedule": "0 6 */2 * *"
-        },
-        {
-            "path": "/api/cron?job=feed-update",
-            "schedule": "0 12 */2 * *"
-        },
-        {
-            "path": "/api/cron?job=seo-update",
-            "schedule": "0 3 * * *"
-        },
-        {
-            "path": "/api/cron?job=content-cleanup",
-            "schedule": "0 4 * * 0"
-        },
-        {
             "path": "/api/cron?job=reader-pool-sweep",
             "schedule": "0 0 * * *"
-        },
-        {
-            "path": "/api/cron?job=unfunded-reads-sweep",
-            "schedule": "30 0 * * *"
         }
     ],
     "github": {

@@ -379,15 +379,9 @@ After uploading, set `ASSETS_URL` in Vercel environment variables to the Blob ba
 
 | Job | Schedule | Path |
 |-----|----------|------|
-| tools-update | `0 0 */2 * *` (every 2 days) | `/api/cron?job=tools-update` |
-| content-ingestion | `0 6 */2 * *` (every 2 days) | `/api/cron?job=content-ingestion` |
-| feed-update | `0 12 */2 * *` (every 2 days) | `/api/cron?job=feed-update` |
-| seo-update | `0 3 * * *` (daily 3AM) | `/api/cron?job=seo-update` |
-| content-cleanup | `0 4 * * 0` (weekly Sun) | `/api/cron?job=content-cleanup` |
 | reader-pool-sweep | `0 0 * * *` (daily) | `/api/cron?job=reader-pool-sweep` |
-| unfunded-reads-sweep | `30 0 * * *` (daily) | `/api/cron?job=unfunded-reads-sweep` |
 
-> **Note:** Vercel Hobby plan limits cron jobs to at most one per day. The schedules above that run more frequently (hourly, every 2h, every 6h) have been reduced to every 2 days. Upgrade to Pro for full cron scheduling.
+> **Note:** Vercel Hobby plan only allows 1 cron entry total. The other 6 jobs run exclusively via the worker's internal cron scheduler. Upgrade to Pro to add the rest.
 
 **Environment variables needed for Vercel:**
 ```
@@ -513,8 +507,8 @@ curl "http://localhost:5050/api/cron?job=content-cleanup"
    ```
 
 **Required Plan:**
-- **Hobby (free):** Limited to 1 cron job per day total. The current config has 7 jobs (some every 2 days, some daily, some weekly). This **will not work** on Hobby — you can only have a single cron entry.
-- **Pro ($20/month):** Unlocks all 7 cron jobs with full scheduling. Required for the current config.
+- **Hobby (free):** Limited to 1 cron entry. Currently configured with just `reader-pool-sweep`. Other 6 jobs run on the worker.
+- **Pro ($20/month):** Unlocks all 7 cron entries with full scheduling.
 
 ### Phase 9: DNS Cut-over (Planned)
 
