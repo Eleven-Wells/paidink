@@ -1,12 +1,4 @@
 {
-    "functions": {
-        "api/index.js": {
-            "maxDuration": 30
-        },
-        "api/cron.js": {
-            "maxDuration": 60
-        }
-    },
     "rewrites": [
         {
             "source": "/public/(.*)",
