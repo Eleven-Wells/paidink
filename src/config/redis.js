@@ -162,6 +162,9 @@ function getCacheClient() {
     if (isUpstashEnabled()) {
         return getUpstashClient();
     }
+    if (process.env.VERCEL) {
+        return null;
+    }
     const redis = getRedisConnection();
     if (!redis || redis.status !== 'ready') return null;
     return redis;
