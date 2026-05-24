@@ -62,6 +62,50 @@ function getRedisConnection() {
     return redisConnection;
 }
 
+function createRedisConnectionFromUrl(url, options = {}) {
+    const config = { ...redisConfig, ...options };
+    const connection = new Redis(url, config);
+
+    connection.on('error', (err) => {
+        console.error('[Redis] Connection error:', err.message);
+    });
+
+    connection.on('connect', () => {
+        console.log('[Redis] Connected successfully');
+    });
+
+    connection.on('ready', () => {
+        console.log('[Redis] Ready to accept commands');
+    });
+
+    connection.on('close', () => {
+        console.log('[Redis] Connection closed');
+    });
+
+    connection.on('reconnecting', () => {
+        console.log('[Redis] Reconnecting...');
+    });
+
+    return connection;
+}
+
+function getBullMQRedisUrl() {
+    return process.env.BULLMQ_REDIS_URL || process.env.REDIS_URL || null;
+}
+
+function getBullMQConnection() {
+    const bullUrl = getBullMQRedisUrl();
+    if (bullUrl) {
+        return createRedisConnectionFromUrl(bullUrl);
+    }
+
+    if (isUpstashEnabled()) {
+        return null;
+    }
+
+    return getRedisConnection();
+}
+
 async function connectRedis() {
     if (isUpstashEnabled()) {
         // Upstash REST client doesn't require an explicit persistent connection
@@ -125,6 +169,8 @@ function getCacheClient() {
 
 module.exports = {
     getRedisConnection,
+    getBullMQConnection,
+    getBullMQRedisUrl,
     connectRedis,
     disconnectRedis,
     isRedisConnected,
