@@ -1,0 +1,60 @@
+<nav class="explore-top-nav" aria-labelledby="explore-nav-label" style="display: flex; align-items: center; gap: clamp(8px, 1.5vw, 16px); width: 100%; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; padding: 8px 0;">
+    <span id="explore-nav-label" class="sr-only">Content categories</span>
+    <% var currentTab = typeof activeTab !== 'undefined' && activeTab ? activeTab : 'Explore'; %>
+    <% var exploreTabs = typeof exploreTabs !== 'undefined' && exploreTabs ? exploreTabs : [
+        { label: 'Explore' },
+        { label: 'For you' },
+        { label: 'Trending' },
+        { label: 'Latest' },
+        { label: 'Development' },
+        { label: 'Business' },
+        { label: 'Health' },
+        { label: 'Lifestyle' },
+        { label: 'News' }
+    ]; %>
+    <% exploreTabs.forEach(function(tab) { %>
+        <button type="button" aria-pressed="<%= tab.label === currentTab %>" class="explore-tab-btn" style="display: flex; height: clamp(36px, 5vw, 52px); align-items: center; justify-content: center; gap: 10px; padding: clamp(6px, 1vw, 10px) clamp(12px, 2vw, 20px); border-radius: clamp(18px, 3vw, 58px); border: 1px solid #6d0a0a; background: <%= tab.label === currentTab ? '#6d0a0a' : 'transparent' %>; border-color: <%= tab.label === currentTab ? 'transparent' : '#6d0a0a' %>; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0;">
+            <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(14px, 1.8vw, 20px); text-align: center; white-space: nowrap; color: <%= tab.label === currentTab ? '#fff' : '#000' %>;">
+                <%= tab.label %>
+            </span>
+        </button>
+    <% }); %>
+</nav>
+
+<style>
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    .explore-top-nav {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 4px 0;
+    }
+    .explore-top-nav::-webkit-scrollbar {
+        display: none;
+    }
+    .explore-tab-btn:hover {
+        opacity: 0.85;
+    }
+    @media (max-width: 640px) {
+        .explore-top-nav {
+            gap: 6px !important;
+        }
+        .explore-tab-btn {
+            height: 32px !important;
+            padding: 4px 10px !important;
+        }
+        .explore-tab-btn span {
+            font-size: 13px !important;
+        }
+    }
+</style>

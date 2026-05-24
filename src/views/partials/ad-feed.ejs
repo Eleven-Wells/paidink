@@ -1,0 +1,19 @@
+<% if (typeof ad !== 'undefined' && ad && ad.served) { %>
+<div class="feed-ad-card">
+    <div class="feed-ad-label">Sponsored</div>
+    <div class="feed-ad-content">
+        <div class="feed-ad-image">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="60" height="60" rx="8" fill="#2563eb" fill-opacity="0.1"/>
+                <path d="M30 20v20M20 30h20" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="30" cy="30" r="12" stroke="#2563eb" stroke-width="1.5" fill="none"/>
+            </svg>
+        </div>
+        <div class="feed-ad-body">
+            <p class="feed-ad-title">Sponsored Content</p>
+            <p class="feed-ad-description">Discover what our partners have to offer. Learn more about this opportunity.</p>
+        </div>
+    </div>
+    <a href="<%= ad.clickUrl %>" class="feed-ad-cta" target="_blank" rel="sponsored noopener">Learn More</a>
+</div>
+<% } %>

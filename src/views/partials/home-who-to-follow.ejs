@@ -1,0 +1,164 @@
+<aside class="home-who-follow" aria-labelledby="who-to-follow-heading">
+    <div class="home-who-follow-inner">
+        <h2 id="who-to-follow-heading">
+            Who to follow
+        </h2>
+        
+        <div class="who-follow-list">
+        <% if (typeof suggestedUsers !== 'undefined' && suggestedUsers && suggestedUsers.length > 0) { %>
+            <% suggestedUsers.forEach(function(user) { %>
+                <div class="who-follow-item">
+                    <div>
+                        <%- include('../partials/avatar', { user: user, size: '55px' }) %>
+                        <div>
+                            <div class="who-follow-name"><%= user.displayName %></div>
+                            <div class="who-follow-role"><%= user.role || 'Reader' %></div>
+                        </div>
+                    </div>
+                    <button type="button" aria-label="Follow <%= user.displayName %>" class="follow-user-btn" data-user-id="<%= user._id %>">
+                        <span>Follow</span>
+                    </button>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p class="who-follow-empty">No suggestions yet.</p>
+        <% } %>
+        </div>
+    </div>
+</aside>
+
+<style>
+    .home-who-follow {
+        width: 100%;
+    }
+
+    .home-who-follow-inner {
+        padding: 24px;
+        width: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 24px;
+    }
+
+    .home-who-follow-inner > h2 {
+        margin: 0;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 400;
+        font-size: 32px;
+        color: #000;
+        margin-bottom: 32px;
+    }
+
+    .who-follow-list {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .who-follow-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 47px;
+    }
+
+    .who-follow-item > div {
+        display: inline-flex;
+        align-items: center;
+        gap: 27px;
+    }
+
+    .who-follow-item > div > div {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .who-follow-name {
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 700;
+        font-size: 25px;
+        color: #000;
+    }
+
+    .who-follow-role {
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 400;
+        font-size: 22px;
+        color: #000;
+    }
+
+    .follow-user-btn {
+        display: flex;
+        height: 60px;
+        width: 157px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-radius: 45px;
+        background: #6d0a0a;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .follow-user-btn > span {
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 500;
+        font-size: 20px;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    .who-follow-empty {
+        margin: 0;
+        font-family: 'Abhaya Libre', serif;
+        font-size: 24px;
+        color: rgba(0,0,0,0.5);
+    }
+
+    @media (max-width: 1400px) {
+        .home-who-follow-inner > h2 {
+            font-size: 28px;
+        }
+        .who-follow-name {
+            font-size: 22px;
+        }
+        .who-follow-role {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .home-who-follow {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+(function() {
+    var followBtns = document.querySelectorAll('.follow-user-btn');
+    followBtns.forEach(function(btn) {
+        btn.addEventListener('click', async function() {
+            var userId = this.getAttribute('data-user-id');
+            if (!userId) return;
+            
+            try {
+                var response = await fetch('/api/users/' + userId + '/follow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                var result = await response.json();
+                if (result.success) {
+                    this.innerHTML = '<span style="font-family: \'Abhaya Libre\', serif; font-weight: 500; font-size: 20px; color: #fff; white-space: nowrap;">Following</span>';
+                    this.style.opacity = '0.7';
+                    this.style.pointerEvents = 'none';
+                }
+            } catch (err) {
+                console.error('Follow failed:', err);
+            }
+        });
+    });
+})();
+</script>

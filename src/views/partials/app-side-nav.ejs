@@ -1,0 +1,39 @@
+<aside class="app-side-nav" style="width: 100%; max-width: 335px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; margin: 0; padding: clamp(8px, 1.5vw, 16px) 0 clamp(24px, 3vw, 40px) clamp(24px, 3vw, 40px); position: sticky; top: 0; height: 100vh; overflow-y: auto;">
+    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: clamp(16px, 3vw, 32px); width: 100%; max-width: 266px; margin: 0; padding: 0;">
+        <a href="/" style="font-family: 'Zen Tokyo Zoo', cursive; font-size: clamp(36px, 5vw, 72px); letter-spacing: clamp(-6px, -0.8vw, -12px); color: #6d0a0a; text-decoration: none; white-space: nowrap; margin: 0; padding: 0; display: block; line-height: 1;">
+            nook
+        </a>
+        <nav class="app-side-nav-items" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: clamp(12px, 2vw, 24px);">
+        <% var navItems = typeof sideNavItems !== 'undefined' && sideNavItems ? sideNavItems : [
+            { label: 'Home', href: '/', icon: 'home' },
+            { label: 'Explore', href: '/browse', icon: 'explore' },
+            { label: 'Activity', href: '/activity', icon: 'activity' },
+            { label: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+            { label: 'Profile', href: '/profile', icon: 'profile' }
+        ]; %>
+
+        <% navItems.forEach(function(item) { %>
+            <a href="<%= item.href %>" aria-label="<%= item.label %>" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; color: #000; cursor: pointer;">
+                <% if (item.icon === 'home') { %>
+                    <svg width="clamp(20px, 2.5vw, 28)" height="clamp(20px, 2.5vw, 28)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <% } else if (item.icon === 'explore') { %>
+                    <svg width="clamp(20px, 2.5vw, 28)" height="clamp(20px, 2.5vw, 28)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                <% } else if (item.icon === 'subscription') { %>
+                    <svg width="clamp(20px, 2.5vw, 28)" height="clamp(20px, 2.5vw, 28)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                <% } else if (item.icon === 'chat') { %>
+                    <svg width="clamp(20px, 2.5vw, 28)" height="clamp(20px, 2.5vw, 28)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <% } else if (item.icon === 'activity') { %>
+                    <svg width="clamp(18px, 2.2vw, 26)" height="clamp(18px, 2.2vw, 26)" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <% } %>
+                <% if (item.label === 'Activity' && typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+                    <span class="nav-badge" style="display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: #6d0a0a; color: #fff; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; margin-left: 4px;"><%= unreadCount > 99 ? '99+' : unreadCount %></span>
+                <% } %>
+                <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(18px, 2.5vw, 28px); white-space: nowrap;"><%= item.label %></span>
+            </a>
+        <% }); %>
+        </nav>
+    </div>
+    <a href="<%= typeof ctaHref !== 'undefined' ? ctaHref : '/register' %>" class="app-side-nav-cta" style="display: flex; height: clamp(44px, 6vw, 64px); align-items: center; justify-content: center; gap: 10px; padding: 8px; width: 100%; background: #6d0a0a; border-radius: clamp(20px, 3vw, 36px); text-decoration: none; color: #fff; font-family: 'Abhaya Libre', serif; font-weight: 500; font-size: clamp(16px, 2vw, 24px); white-space: nowrap; cursor: pointer;">
+        <%= typeof ctaText !== 'undefined' ? ctaText : 'Start Earning' %>
+    </a>
+</aside>

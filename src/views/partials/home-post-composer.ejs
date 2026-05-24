@@ -1,0 +1,155 @@
+<section class="home-composer" aria-label="Post composer">
+    <form id="postComposerForm">
+        <label for="post-composer" class="sr-only">What's on your mind ?</label>
+        <textarea id="post-composer" name="content" placeholder="What's on your mind ?" onfocus="this.style.color='#000'" onblur="if(!this.value)this.style.color='rgba(0,0,0,0.5)'"></textarea>
+        <button type="submit" id="postComposerBtn">
+            <span>Post</span>
+        </button>
+    </form>
+</section>
+
+<style>
+    .home-composer {
+        grid-area: composer;
+        padding: 0 48px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .home-composer > form {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 58px;
+        border: 2px solid #6d0a0a;
+        padding: 10px;
+        background: #fff;
+        width: 100%;
+        max-width: 100%;
+        height: 80px;
+        min-width: 0;
+    }
+
+    .home-composer textarea {
+        flex: 1;
+        min-width: 0;
+        resize: none;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 400;
+        font-size: 32px;
+        color: rgba(0,0,0,0.5);
+        outline: none;
+    }
+
+    .home-composer textarea:focus {
+        color: #000;
+    }
+
+    .home-composer textarea::placeholder {
+        color: rgba(0,0,0,0.5);
+    }
+
+    #postComposerBtn {
+        display: flex;
+        height: 60px;
+        width: 120px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border-radius: 45px;
+        background: #6d0a0a;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    #postComposerBtn > span {
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 500;
+        font-size: 32px;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    #postComposerBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 1400px) {
+        .home-composer textarea {
+            font-size: 24px;
+        }
+        #postComposerBtn {
+            height: 70px;
+            width: 120px;
+        }
+        #postComposerBtn > span {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .home-composer > form {
+            flex-direction: column;
+            height: auto;
+            padding: 16px;
+            border-radius: 24px;
+        }
+        .home-composer textarea {
+            font-size: 18px;
+            min-height: 80px;
+        }
+        #postComposerBtn {
+            width: 100%;
+            height: 50px;
+        }
+        #postComposerBtn > span {
+            font-size: 20px;
+        }
+    }
+</style>
+
+<script>
+(function() {
+    var form = document.getElementById('postComposerForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        var textarea = document.getElementById('post-composer');
+        var btn = document.getElementById('postComposerBtn');
+        var content = textarea.value.trim();
+        
+        if (!content) return;
+        
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        
+        try {
+            var response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: content })
+            });
+            
+            var result = await response.json();
+            
+            if (result.success) {
+                textarea.value = '';
+                textarea.style.color = 'rgba(0,0,0,0.5)';
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error('Post creation failed:', err);
+        }
+        
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    });
+})();
+</script>

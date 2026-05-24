@@ -1,0 +1,269 @@
+<section class="min-h-screen pt-32 pb-20 px-6">
+    <style>
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .custom-select-trigger:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .custom-select-trigger:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+        .custom-select-trigger .selected-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .custom-select-trigger .chevron {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s ease;
+            opacity: 0.5;
+        }
+        .custom-select.open .custom-select-trigger .chevron {
+            transform: rotate(180deg);
+        }
+        .custom-select-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 15, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            max-height: 280px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+        .custom-select.open .custom-select-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .custom-select-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+        .custom-select-option.selected {
+            background: rgba(139, 92, 246, 0.15);
+            color: #ffffff;
+        }
+        .custom-select-option.selected::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #8b5cf6;
+            border-radius: 50%;
+        }
+        select[data-custom-select] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+    </style>
+    
+    <div class="max-w-4xl mx-auto">
+        <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl mb-4">Contact Us</h1>
+        <p class="text-muted text-lg mb-12">Have questions or feedback? We'd love to hear from you.</p>
+        
+        <div class="grid md:grid-cols-2 gap-12">
+            <div class="space-y-8">
+                <div class="glass-card rounded-2xl p-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Email</h3>
+                            <p class="text-muted text-sm">hello@techmedia.com</p>
+                            <p class="text-muted text-sm">support@techmedia.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Location</h3>
+                            <p class="text-muted text-sm">Lagos, Nigeria</p>
+                            <p class="text-muted text-sm">Serving developers worldwide</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold mb-1">Response Time</h3>
+                            <p class="text-muted text-sm">We typically respond within 24-48 hours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-8">
+                <h2 class="font-heading text-xl text-white mb-6">Send us a Message</h2>
+                <form class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Name</label>
+                        <input type="text" class="input-dark w-full" placeholder="Your name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Email</label>
+                        <input type="email" class="input-dark w-full" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Subject</label>
+                        <div class="custom-select">
+                            <select data-custom-select>
+                                <option value="">Select a subject</option>
+                                <option>General Inquiry</option>
+                                <option>Technical Support</option>
+                                <option>Partnership</option>
+                                <option>Feedback</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Message</label>
+                        <textarea rows="5" class="input-dark w-full" placeholder="How can we help?"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary-dark w-full py-3 px-6 rounded-full">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('select[data-custom-select]').forEach(select => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-select';
+                select.parentNode.insertBefore(wrapper, select);
+                wrapper.appendChild(select);
+                
+                const trigger = document.createElement('div');
+                trigger.className = 'custom-select-trigger';
+                trigger.tabIndex = 0;
+                
+                const selectedText = document.createElement('span');
+                selectedText.className = 'selected-text';
+                selectedText.textContent = select.querySelector('option')?.textContent || 'Select a subject';
+                
+                const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                chevron.setAttribute('width', '16');
+                chevron.setAttribute('height', '16');
+                chevron.setAttribute('viewBox', '0 0 24 24');
+                chevron.setAttribute('fill', 'none');
+                chevron.setAttribute('stroke', 'currentColor');
+                chevron.setAttribute('stroke-width', '2');
+                chevron.classList.add('chevron');
+                chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+                
+                trigger.appendChild(selectedText);
+                trigger.appendChild(chevron);
+                
+                const dropdown = document.createElement('div');
+                dropdown.className = 'custom-select-dropdown';
+                
+                const options = select.querySelectorAll('option');
+                options.forEach(option => {
+                    const opt = document.createElement('div');
+                    opt.className = 'custom-select-option';
+                    if (option.value === select.value || option.selected) {
+                        opt.classList.add('selected');
+                        selectedText.textContent = option.textContent;
+                        selectedText.classList.remove('text-white/60');
+                    }
+                    opt.textContent = option.textContent;
+                    opt.dataset.value = option.value;
+                    opt.addEventListener('click', () => {
+                        select.value = option.value;
+                        dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        selectedText.textContent = option.textContent;
+                        selectedText.classList.remove('text-white/60');
+                        select.dispatchEvent(new Event('change'));
+                        wrapper.classList.remove('open');
+                    });
+                    dropdown.appendChild(opt);
+                });
+                
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.custom-select.open').forEach(s => {
+                        if (s !== wrapper) s.classList.remove('open');
+                    });
+                    wrapper.classList.toggle('open');
+                });
+                
+                trigger.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        wrapper.classList.toggle('open');
+                    }
+                });
+                
+                document.addEventListener('click', () => {
+                    wrapper.classList.remove('open');
+                });
+                
+                wrapper.appendChild(trigger);
+                wrapper.appendChild(dropdown);
+            });
+        });
+    </script>
+</section>

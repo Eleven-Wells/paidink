@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'My Reads | NOOK' %></title>
+    <meta name="description" content="<%= description || 'Review your reading history and track articles you have explored on NOOK.' %>">
+    <link rel="canonical" href="<%= canonical || '' %>">
+    <meta name="theme-color" content="#6d0a0a">
+    <meta property="og:title" content="<%= title || 'My Reads | NOOK' %>">
+    <meta property="og:description" content="<%= description || 'Review your reading history and track articles you have explored on NOOK.' %>">
+    <meta property="og:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title || 'My Reads | NOOK' %>">
+    <meta name="twitter:description" content="<%= description || 'Review your reading history and track articles you have explored on NOOK.' %>">
+    <meta name="twitter:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <%- include('../partials/dashboard-css') %>
+    <style>
+        .reads-shell {
+            color: var(--dash-text);
+        }
+
+        .reads-hero,
+        .reads-stat-card,
+        .reads-panel {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reads-hero {
+            background:
+                radial-gradient(circle at top right, rgba(109, 10, 10, 0.12), transparent 30%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 246, 239, 0.98));
+        }
+
+        .reads-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .reads-stat-card::before,
+        .reads-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+            pointer-events: none;
+        }
+
+        .reads-kicker,
+        .reads-panel-link {
+            color: var(--dash-accent);
+            letter-spacing: 0.16em;
+        }
+
+        .reads-title,
+        .reads-stat-title,
+        .reads-stat-value,
+        .reads-panel-title,
+        .reads-session-title,
+        .reads-empty-title {
+            color: var(--dash-text);
+        }
+
+        .reads-title,
+        .reads-stat-value {
+            letter-spacing: -0.035em;
+        }
+
+        .reads-copy,
+        .reads-stat-copy,
+        .reads-session-meta,
+        .reads-empty-copy,
+        .reads-session-date {
+            color: var(--dash-muted);
+        }
+
+        .reads-trend-positive {
+            color: var(--dash-success);
+            font-weight: 700;
+        }
+
+        .reads-trend-pending {
+            color: var(--dash-warning);
+            font-weight: 700;
+        }
+
+        .reads-trend-neutral {
+            color: var(--dash-muted);
+            font-weight: 600;
+        }
+
+        .reads-stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .reads-stat-icon.is-blue {
+            background: rgba(37, 99, 235, 0.12);
+            color: #2563eb;
+            border: 1px solid rgba(37, 99, 235, 0.14);
+        }
+
+        .reads-stat-icon.is-green {
+            background: rgba(21, 128, 61, 0.12);
+            color: var(--dash-success);
+            border: 1px solid rgba(21, 128, 61, 0.14);
+        }
+
+        .reads-stat-icon.is-amber {
+            background: rgba(180, 83, 9, 0.12);
+            color: var(--dash-warning);
+            border: 1px solid rgba(180, 83, 9, 0.14);
+        }
+
+        .reads-session-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 1.1rem;
+            text-decoration: none;
+            background: rgba(109, 10, 10, 0.03);
+            border: 1px solid rgba(109, 10, 10, 0.08);
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .reads-session-item:hover {
+            transform: translateY(-1px);
+            background: rgba(109, 10, 10, 0.055);
+            border-color: rgba(109, 10, 10, 0.14);
+            box-shadow: 0 18px 36px rgba(109, 10, 10, 0.08);
+        }
+
+        .reads-session-thumb {
+            width: 4.25rem;
+            height: 4.25rem;
+            border-radius: 0.95rem;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 12px 28px rgba(109, 10, 10, 0.1);
+        }
+
+        .reads-session-placeholder {
+            width: 4.25rem;
+            height: 4.25rem;
+            border-radius: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(109, 10, 10, 0.08), rgba(191, 86, 55, 0.08));
+            color: var(--dash-accent);
+            border: 1px solid rgba(109, 10, 10, 0.08);
+        }
+
+        .reads-session-title {
+            line-height: 1.35;
+        }
+
+        .reads-session-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.7rem;
+            padding: 0.38rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .reads-session-status.is-rewarded {
+            background: rgba(21, 128, 61, 0.1);
+            color: var(--dash-success);
+            border-color: rgba(21, 128, 61, 0.14);
+        }
+
+        .reads-session-status.is-pending {
+            background: rgba(180, 83, 9, 0.1);
+            color: var(--dash-warning);
+            border-color: rgba(180, 83, 9, 0.14);
+        }
+
+        .reads-session-status.is-neutral {
+            background: rgba(109, 10, 10, 0.06);
+            color: var(--dash-muted);
+            border-color: rgba(109, 10, 10, 0.1);
+        }
+
+        .reads-session-arrow {
+            color: rgba(109, 10, 10, 0.45);
+            flex-shrink: 0;
+            margin-top: 0.2rem;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .reads-session-item:hover .reads-session-arrow {
+            transform: translateX(2px);
+            color: var(--dash-accent);
+        }
+
+        .reads-empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .reads-empty-icon {
+            width: 4.5rem;
+            height: 4.5rem;
+            margin: 0 auto 1rem;
+            border-radius: 1.35rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(109, 10, 10, 0.08), rgba(191, 86, 55, 0.08));
+            color: var(--dash-accent);
+            border: 1px solid rgba(109, 10, 10, 0.08);
+        }
+
+        .reads-empty-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.95rem;
+            color: var(--dash-accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .reads-empty-link:hover {
+            color: var(--dash-accent-strong);
+        }
+
+        .reads-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(109, 10, 10, 0.12);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            color: var(--dash-accent);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .reads-back-link:hover {
+            transform: translateY(-1px);
+            background: var(--dash-accent);
+            border-color: var(--dash-accent);
+            color: #ffffff;
+            box-shadow: 0 14px 30px rgba(109, 10, 10, 0.12);
+        }
+
+        .reads-focus-ring:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
+        }
+
+        @media (max-width: 640px) {
+            .reads-hero,
+            .reads-panel,
+            .reads-stat-card {
+                padding: 1.2rem;
+            }
+
+            .reads-session-item {
+                gap: 0.85rem;
+                padding: 0.9rem;
+            }
+
+            .reads-session-thumb,
+            .reads-session-placeholder {
+                width: 3.85rem;
+                height: 3.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen dashboard-page">
+    <%
+        const sessions = reads || [];
+        const rewardedSessions = sessions.filter((session) => session.rewardAwarded).length;
+        const inProgressSessions = sessions.filter((session) => !session.completed).length;
+    %>
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <%- include('../partials/dashboard-header') %>
+
+    <main class="reads-shell relative z-10 pt-24 pb-16">
+        <div class="max-w-5xl mx-auto px-6">
+            <section class="glass-card reads-hero rounded-2xl p-6 md:p-8 mb-8">
+                <div class="relative z-10">
+                    <div class="mb-5">
+                        <button type="button" id="readsBackBtn" class="reads-back-link reads-focus-ring" aria-label="Go back to previous page">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Back
+                        </button>
+                    </div>
+                    <p class="reads-kicker font-mono text-xs uppercase mb-2">Reader Archive</p>
+                    <h1 class="reads-title font-heading text-3xl md:text-4xl font-bold mb-3">Reading History</h1>
+                    <p class="reads-copy max-w-2xl">
+                        Review your completed sessions, track pending rewards, and keep an eye on the reading streak you are building over time.
+                    </p>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <article class="glass-card reads-stat-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                            <p class="reads-stat-copy text-sm mb-1">Total Reads</p>
+                            <p class="reads-stat-value font-heading text-3xl font-bold"><%= stats?.totalReads || 0 %></p>
+                        </div>
+                        <div class="reads-stat-icon is-blue">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="reads-stat-copy text-xs">Completed reading sessions recorded on your account.</p>
+                </article>
+
+                <article class="glass-card reads-stat-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                            <p class="reads-stat-copy text-sm mb-1">Total Earned</p>
+                            <p class="reads-stat-value font-heading text-3xl font-bold reads-trend-positive">₦<%= user?.wallet?.lifetimeEarned?.toFixed(2) || '0.00' %></p>
+                        </div>
+                        <div class="reads-stat-icon is-green">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="reads-stat-copy text-xs"><%= rewardedSessions %> sessions have already turned into rewards.</p>
+                </article>
+
+                <article class="glass-card reads-stat-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                            <p class="reads-stat-copy text-sm mb-1">Day Streak</p>
+                            <p class="reads-stat-value font-heading text-3xl font-bold"><%= user?.stats?.streak || 0 %></p>
+                        </div>
+                        <div class="reads-stat-icon is-amber">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="reads-stat-copy text-xs">
+                        <%= inProgressSessions > 0 ? `${inProgressSessions} session${inProgressSessions === 1 ? '' : 's'} still in progress.` : 'Keep the streak alive with your next read.' %>
+                    </p>
+                </article>
+            </section>
+
+            <section class="glass-card reads-panel rounded-2xl p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div>
+                        <h2 class="reads-panel-title font-heading text-xl font-semibold">All Reading Sessions</h2>
+                        <p class="reads-copy text-sm mt-1">Your 50 most recent reading sessions across completed and in-progress posts.</p>
+                    </div>
+                    <a href="/dashboard" class="reads-panel-link text-xs font-mono uppercase">Back to dashboard</a>
+                </div>
+
+                <% if (sessions.length > 0) { %>
+                    <div class="space-y-4">
+                        <% sessions.forEach(function(session) { %>
+                            <a href="/post/<%= session.post?.slug || '#' %>" class="reads-session-item reads-focus-ring">
+                                <% if (session.post?.image) { %>
+                                    <img src="<%= session.post.image %>" alt="" loading="lazy" decoding="async" class="reads-session-thumb">
+                                <% } else { %>
+                                    <div class="reads-session-placeholder">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                <% } %>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="reads-session-title font-semibold text-lg truncate"><%= session.post?.title || 'Unknown Article' %></h3>
+                                    <p class="reads-session-meta text-sm mt-1">
+                                        <% if (session.timeSpentSeconds > 0) { %>
+                                            <% if (session.timeSpentSeconds < 60) { %>
+                                                <%= session.timeSpentSeconds %> sec read
+                                            <% } else { %>
+                                                <%= Math.floor(session.timeSpentSeconds / 60) %> min read
+                                            <% } %>
+                                        <% } else { %>
+                                            In progress
+                                        <% } %>
+                                    </p>
+                                    <p class="reads-session-date text-xs mt-1">
+                                        <%= session.completed ? 'Completed' : 'Incomplete' %> • <%= new Date(session.startedAt).toLocaleDateString() %>
+                                    </p>
+                                    <div>
+                                        <% if (session.rewardAwarded) { %>
+                                            <span class="reads-session-status is-rewarded">+₦<%= session.rewardAmount %> earned</span>
+                                        <% } else if (session.completed) { %>
+                                            <span class="reads-session-status is-pending">Pending reward</span>
+                                        <% } else { %>
+                                            <span class="reads-session-status is-neutral">No reward yet</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                <svg class="reads-session-arrow w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div class="reads-empty-state">
+                        <div class="reads-empty-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <h3 class="reads-empty-title font-heading text-2xl font-semibold mb-2">No reading history yet</h3>
+                        <p class="reads-empty-copy max-w-md mx-auto">Once you start reading articles, your progress and rewards will appear here.</p>
+                        <a href="/browse" class="reads-empty-link">
+                            Start reading
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+                <% } %>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <%- include('../partials/dashboard-scripts') %>
+
+    <script>
+        const readsBackBtn = document.getElementById('readsBackBtn');
+        if (readsBackBtn) {
+            readsBackBtn.addEventListener('click', function() {
+                const fallbackUrl = document.referrer && document.referrer.startsWith(window.location.origin)
+                    ? document.referrer
+                    : '/dashboard';
+
+                if (window.history.length > 1) {
+                    window.history.back();
+
+                    window.setTimeout(function() {
+                        if (document.visibilityState === 'visible') {
+                            window.location.href = fallbackUrl;
+                        }
+                    }, 400);
+
+                    return;
+                }
+
+                window.location.href = fallbackUrl;
+            });
+        }
+    </script>
+
+    <%- include('../partials/mobile-bottom-nav', { currentPage: 'reads', theme: 'light' }) %>
+</body>
+
+</html>

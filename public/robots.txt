@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Sitemap: http://localhost:5050/sitemap.xml
+
+Crawl-delay: 1
+
+Disallow: /api/private/
+Disallow: /admin/

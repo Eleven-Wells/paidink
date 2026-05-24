@@ -1,0 +1,89 @@
+<%- include('../../partials/publisher-shell-open') %>
+
+<div class="publisher-panel" style="margin-bottom:1rem;">
+    <div class="publisher-seg" role="tablist" aria-label="Filter posts">
+        <a href="/publisher/posts" class="<%= !pagination.status ? 'is-on' : '' %>">All · <%= stats.totalPosts || 0 %></a>
+        <a href="/publisher/posts?status=published" class="<%= pagination.status === 'published' ? 'is-on' : '' %>">Live</a>
+        <a href="/publisher/posts?status=draft" class="<%= pagination.status === 'draft' ? 'is-on' : '' %>">Drafts</a>
+    </div>
+</div>
+
+<% if (!posts || posts.length === 0) { %>
+    <div class="publisher-panel">
+        <div class="publisher-empty">
+            <div class="publisher-empty-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <p style="font-weight:600;margin-bottom:0.5rem;color:var(--pub-text)">Nothing here</p>
+            <p style="font-size:0.875rem;color:var(--pub-muted);margin-bottom:1.5rem;max-width:28rem;margin-left:auto;margin-right:auto">
+                <%= pagination.status === 'published' ? 'No published posts in this filter.' : pagination.status === 'draft' ? 'No drafts yet.' : 'Create your first article from the editor.' %>
+            </p>
+            <a href="/publisher/create-post" class="publisher-btn-primary">New post</a>
+        </div>
+    </div>
+<% } else { %>
+    <div class="publisher-table-wrap">
+        <table class="publisher-table">
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th>Topic</th>
+                    <th>Views</th>
+                    <th>Reads</th>
+                    <th>₦</th>
+                    <th>State</th>
+                    <th>Updated</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% posts.forEach(function(post) { %>
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:0.75rem;">
+                                <% var thumb = post.image || 'https://via.placeholder.com/120x80/f5f0eb/6f6560?text=TM'; %>
+                                <img src="<%= thumb %>" alt="" class="publisher-thumb" width="48" height="48" loading="lazy" onerror="this.src='https://via.placeholder.com/120x80/f5f0eb/6f6560?text=TM'">
+                                <div style="min-width:0;">
+                                    <a href="/publisher/posts/<%= post._id %>" class="publisher-row-title line-clamp-2"><%= post.title %></a>
+                                    <div class="publisher-row-meta font-mono">/<%= post.slug %></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="publisher-cat-pill"><%= categoryNames[post.category] || post.category %></span></td>
+                        <td class="font-mono text-sm" style="color:var(--pub-muted)"><%= post.stats?.views || 0 %></td>
+                        <td class="font-mono text-sm" style="color:var(--pub-muted)"><%= post.stats?.reads || 0 %></td>
+                        <td class="font-mono text-sm" style="color:var(--pub-success)">₦<%= (post.stats?.earnings || 0).toLocaleString() %></td>
+                        <td>
+                            <% if (post.publishedAt) { %>
+                                <span class="publisher-cat-pill status-live">Live</span>
+                            <% } else { %>
+                                <span class="publisher-cat-pill status-draft">Draft</span>
+                            <% } %>
+                        </td>
+                        <td class="text-sm" style="color:var(--pub-muted);white-space:nowrap"><%= formatRelativeTime(post.updatedAt || post.createdAt) %></td>
+                        <td>
+                            <div class="publisher-actions">
+                                <a href="/publisher/posts/<%= post._id %>">Edit</a>
+                                <a href="/post/<%= post.slug %>" target="_blank" rel="noopener">View</a>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <% if (pagination.totalPages > 1) { %>
+        <div class="publisher-pagination">
+            <% if (pagination.page > 1) { %>
+                <a href="/publisher/posts?page=<%= pagination.page - 1 %><%= pagination.status ? '&status=' + pagination.status : '' %>" class="publisher-btn-ghost">Previous</a>
+            <% } else { %><span></span><% } %>
+            <span style="font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--pub-muted-strong)">Page <%= pagination.page %> / <%= pagination.totalPages %></span>
+            <% if (pagination.page < pagination.totalPages) { %>
+                <a href="/publisher/posts?page=<%= pagination.page + 1 %><%= pagination.status ? '&status=' + pagination.status : '' %>" class="publisher-btn-ghost">Next</a>
+            <% } else { %><span></span><% } %>
+        </div>
+    <% } %>
+<% } %>
+
+<%- include('../../partials/publisher-shell-close') %>

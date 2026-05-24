@@ -1,0 +1,156 @@
+<div class="flex flex-col sm:flex-row gap-4 mb-6">
+    <div class="flex-1">
+        <div class="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="absolute" style="left: 16px; top: 50%; transform: translateY(-50%);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="searchInput" placeholder="Search posts..." class="w-full pl-14 pr-4 py-3 rounded-xl focus:outline-none transition-all" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;" value="<%= search || '' %>" onfocus="this.style.borderColor='rgba(139,92,246,0.5)'; this.style.boxShadow='0 0 0 3px rgba(139,92,246,0.15)';" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';">
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <select id="categoryFilter" class="input-dark" data-custom-select>
+            <option value="">All Categories</option>
+            <option value="javascript" <%= category === 'javascript' ? 'selected' : '' %>>JavaScript</option>
+            <option value="backend" <%= category === 'backend' ? 'selected' : '' %>>Backend</option>
+            <option value="ai-tools" <%= category === 'ai-tools' ? 'selected' : '' %>>AI Tools</option>
+            <option value="devops" <%= category === 'devops' ? 'selected' : '' %>>DevOps</option>
+            <option value="performance" <%= category === 'performance' ? 'selected' : '' %>>Performance</option>
+            <option value="career" <%= category === 'career' ? 'selected' : '' %>>Career</option>
+        </select>
+        <a href="/admin/create-post" class="btn-primary flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            New Post
+        </a>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Post</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Category</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Status</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Date</th>
+                    <th class="text-right p-4 text-xs uppercase tracking-wider text-muted font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                <% posts.forEach(post => { %>
+                    <tr class="table-row">
+                        <td class="p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-12 rounded-lg bg-white/5 overflow-hidden flex-shrink-0">
+                                    <img src="<%= post.image || '/public/images/placeholder.jpg' %>" alt="" class="w-full h-full object-cover">
+                                </div>
+                                <div class="min-w-0">
+                                    <a href="/admin/posts/<%= post._id %>" class="font-medium hover:text-white transition-colors line-clamp-1"><%= post.title %></a>
+                                    <p class="text-xs text-muted mt-1 line-clamp-1"><%= post.summary %></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="badge badge-info"><%= post.category %></span>
+                        </td>
+                        <td class="p-4">
+                            <% const isPublished = post.publishedAt && new Date(post.publishedAt) <= new Date(); %>
+                            <% if (isPublished) { %>
+                                <span class="badge badge-success">Published</span>
+                            <% } else { %>
+                                <span class="badge badge-warning">Draft</span>
+                            <% } %>
+                        </td>
+                        <td class="p-4">
+                            <span class="text-sm text-muted"><%= new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="/admin/posts/<%= post._id %>" class="action-btn text-muted hover:text-white" title="Edit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                                </a>
+                                <a href="/post/<%= post.slug %>" target="_blank" class="action-btn text-muted hover:text-white" title="View">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                                </a>
+                                <button onclick="confirmDelete('<%= post._id %>', '<%= post.title.replace(/'/g, "\\'") %>')" class="action-btn text-muted hover:text-red-500" title="Delete">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+    
+    <% if (pagination && pagination.totalPages > 1) { %>
+        <div class="p-4 border-t border-white/10 flex items-center justify-between">
+            <p class="text-sm text-muted">Showing <%= pagination.start %> to <%= pagination.end %> of <%= pagination.total %> posts</p>
+            <div class="flex gap-2">
+                <% if (pagination.hasPrev) { %>
+                    <a href="?page=<%= pagination.page - 1 %><%= category ? '&category=' + category : '' %><%= search ? '&search=' + search : '' %>" class="btn-secondary px-4 py-2 text-sm">Previous</a>
+                <% } %>
+                <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                    <a href="?page=<%= i %><%= category ? '&category=' + category : '' %><%= search ? '&search=' + search : '' %>" class="btn-secondary px-4 py-2 text-sm <%= pagination.page === i ? 'bg-white/20' : '' %>"><%= i %></a>
+                <% } %>
+                <% if (pagination.hasNext) { %>
+                    <a href="?page=<%= pagination.page + 1 %><%= category ? '&category=' + category : '' %><%= search ? '&search=' + search : '' %>" class="btn-secondary px-4 py-2 text-sm">Next</a>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-heading text-xl font-semibold">Delete Post</h3>
+            <button onclick="closeDeleteModal()" class="action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <p class="text-muted mb-6">Are you sure you want to delete "<span id="deletePostTitle" class="text-white"></span>"? This action cannot be undone.</p>
+        <div class="flex gap-3 justify-end">
+            <button onclick="closeDeleteModal()" class="btn-secondary">Cancel</button>
+            <form id="deleteForm" method="POST" action="/admin/posts/delete">
+                <input type="hidden" name="_method" value="DELETE">
+                <input type="hidden" name="id" id="deletePostId">
+                <button type="submit" class="px-6 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(id, title) {
+        document.getElementById('deletePostId').value = id;
+        document.getElementById('deletePostTitle').textContent = title;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+    }
+    
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        const url = new URL(window.location);
+        if (this.value) {
+            url.searchParams.set('category', this.value);
+        } else {
+            url.searchParams.delete('category');
+        }
+        url.searchParams.delete('page');
+        window.location = url;
+    });
+    
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const url = new URL(window.location);
+            if (this.value) {
+                url.searchParams.set('search', this.value);
+            } else {
+                url.searchParams.delete('search');
+            }
+            url.searchParams.delete('page');
+            window.location = url;
+        }
+    });
+</script>

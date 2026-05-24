@@ -1,0 +1,56 @@
+<nav class="glass-nav fixed top-0 w-full z-50 transition-all duration-500">
+    <div class="max-w-7xl mx-auto px-6 py-5 relative">
+        <div class="flex items-center justify-between">
+            <a href="/" aria-label="Nook home" class="dashboard-logo" style="font-family: 'Zen Tokyo Zoo', cursive; font-size: 48px; line-height: 1; letter-spacing: -8px; white-space: nowrap; color: #6d0a0a; text-decoration: none;">
+                nook
+            </a>
+
+            <div class="desktop-nav hidden md:flex items-center gap-8">
+                <a href="/" class="dash-nav-link">Home</a>
+
+                <div class="dashboard-nav-divider flex items-center gap-4 ml-4 pl-8">
+                    <a href="/dashboard" class="dash-nav-link flex items-center gap-2">
+                        <div class="dashboard-user-badge w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold">
+                            <%= user?.displayName?.charAt(0).toUpperCase() || 'U' %>
+                        </div>
+                        <span class="text-sm">Dashboard</span>
+                    </a>
+                    <a href="/logout" class="dashboard-logout-link dash-nav-link text-sm transition-colors">Logout</a>
+                </div>
+            </div>
+
+            <button id="hamburgerBtn" class="dashboard-mobile-toggle md:hidden absolute right-4 top-5 p-2 w-12 h-12 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 5h16"></path>
+                    <path d="M4 12h16"></path>
+                    <path d="M4 19h16"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="dashboard-mobile-footer flex justify-between items-center p-6 border-b">
+            <span class="dashboard-mobile-title font-heading text-xl tracking-widest">MENU</span>
+            <button id="closeMenuBtn" class="dashboard-mobile-toggle p-2 cursor-pointer" aria-label="Close menu">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-6">
+            <a href="/" class="dashboard-mobile-link block text-lg transition-colors">Home</a>
+            <a href="/dashboard" class="dashboard-mobile-link block text-lg transition-colors">Dashboard</a>
+            <a href="/reads" class="dashboard-mobile-link block text-lg transition-colors">Reading History</a>
+            <a href="/profile" class="dashboard-mobile-link block text-lg transition-colors">Profile</a>
+            <a href="/withdraw" class="dashboard-mobile-link block text-lg transition-colors">Withdraw</a>
+
+            <div class="dashboard-mobile-footer pt-6 border-t">
+                <a href="/logout" class="dashboard-mobile-link dashboard-logout-link block w-full py-2 text-sm transition-colors text-center">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>

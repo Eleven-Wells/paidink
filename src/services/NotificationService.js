@@ -1,0 +1,105 @@
+const Notification = require('../models/Notification');
+
+async function createNotification(userId, type, title, message, data = {}) {
+    return await Notification.create({
+        user: userId,
+        type,
+        title,
+        message,
+        data
+    });
+}
+
+async function getNotifications(userId, options = {}) {
+    const { limit = 50, unreadOnly = false } = options;
+
+    const query = { user: userId };
+    if (unreadOnly) {
+        query.read = false;
+    }
+
+    return await Notification.find(query)
+        .sort({ createdAt: -1 })
+        .limit(limit);
+}
+
+async function markAsRead(notificationId, userId) {
+    return await Notification.findOneAndUpdate(
+        { _id: notificationId, user: userId },
+        { read: true }
+    );
+}
+
+async function markAllAsRead(userId) {
+    return await Notification.updateMany(
+        { user: userId, read: false },
+        { read: true }
+    );
+}
+
+async function getUnreadCount(userId) {
+    return await Notification.countDocuments({ user: userId, read: false });
+}
+
+async function notifyReward(userId, amount, source = 'reading') {
+    const titles = {
+        reading: 'Reward Earned!',
+        referral: 'Referral Bonus!',
+        signup_bonus: 'Welcome Bonus!'
+    };
+
+    const messages = {
+        reading: `You earned ₦${amount} for reading articles`,
+        referral: `You earned ₦${amount} for referring a friend`,
+        signup_bonus: `Welcome bonus of ₦${amount} credited to your account`
+    };
+
+    return await createNotification(
+        userId,
+        'reward',
+        titles[source] || 'Reward Earned!',
+        messages[source] || `You earned ₦${amount}`,
+        { amount, source }
+    );
+}
+
+async function notifyReferral(userId, referrerName, refereeEmail) {
+    const message = `${refereeEmail} used your referral code to sign up! You earned ₦50 reward.`;
+
+    return await createNotification(
+        userId,
+        'referral',
+        'New Referral!',
+        message,
+        { referrerName, refereeEmail }
+    );
+}
+
+async function notifyWithdrawal(userId, amount, method) {
+    const methodNames = {
+        bank: 'bank transfer',
+        mpesa: 'M-Pesa',
+        airtime: 'airtime'
+    };
+
+    const message = `Your withdrawal request of ₦${amount} via ${methodNames[method] || method} is being processed.`;
+
+    return await createNotification(
+        userId,
+        'withdrawal',
+        'Withdrawal Requested',
+        message,
+        { amount, method }
+    );
+}
+
+module.exports = {
+    createNotification,
+    getNotifications,
+    markAsRead,
+    markAllAsRead,
+    getUnreadCount,
+    notifyReward,
+    notifyReferral,
+    notifyWithdrawal
+};

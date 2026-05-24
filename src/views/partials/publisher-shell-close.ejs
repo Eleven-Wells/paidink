@@ -1,0 +1,32 @@
+    </div>
+</div>
+<script>
+(function () {
+    var btn = document.getElementById('publisherMenuBtn');
+    var side = document.getElementById('publisherSidebar');
+    var overlay = document.getElementById('publisherSidebarOverlay');
+    function close() {
+        if (!side) return;
+        side.classList.remove('is-open');
+        overlay && overlay.classList.remove('is-open');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+    function open() {
+        if (!side) return;
+        side.classList.add('is-open');
+        overlay && overlay.classList.add('is-open');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+    function toggle() {
+        if (side && side.classList.contains('is-open')) close();
+        else open();
+    }
+    if (btn) btn.addEventListener('click', function (e) { e.stopPropagation(); toggle(); });
+    if (overlay) overlay.addEventListener('click', close);
+    window.addEventListener('resize', function () {
+        if (window.innerWidth >= 1024) close();
+    });
+})();
+</script>

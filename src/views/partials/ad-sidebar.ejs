@@ -1,0 +1,18 @@
+<% if (typeof ad !== 'undefined' && ad && ad.served) { %>
+<div class="sidebar-ad-widget">
+    <div class="sidebar-ad-header">
+        <span class="sidebar-ad-label">Sponsored</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+    </div>
+    <div class="sidebar-ad-banner">
+        <svg width="100%" height="120" viewBox="0 0 300 120" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="300" height="120" fill="#2563eb" fill-opacity="0.05"/>
+            <text x="150" y="60" text-anchor="middle" dominant-baseline="middle" fill="#2563eb" font-size="14" font-family="system-ui">Advertisement</text>
+            <text x="150" y="80" text-anchor="middle" dominant-baseline="middle" fill="#6b7280" font-size="11" font-family="system-ui">300 x 120</text>
+        </svg>
+    </div>
+    <a href="<%= ad.clickUrl %>" class="sidebar-ad-cta" target="_blank" rel="sponsored noopener">Learn More</a>
+</div>
+<% } %>

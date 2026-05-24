@@ -1,0 +1,96 @@
+<% var categoriesList = (typeof CATEGORY_ENUM !== 'undefined') ? CATEGORY_ENUM : ['tech', 'news', 'sports', 'entertainment', 'politics', 'business', 'health', 'lifestyle']; %>
+<section class="relative min-h-[60vh] flex items-center justify-center px-6 pt-28 pb-16 overflow-hidden">
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+        <div class="fade-up mb-6">
+            <span class="font-mono text-xs uppercase tracking-[0.2em] text-muted mb-4 block">Discover</span>
+            <h1 class="font-heading text-[3.5rem] sm:text-[5rem] md:text-[7rem] leading-[0.9] tracking-tight mb-4">
+                BROWSE
+            </h1>
+        </div>
+
+        <p class="text-lg sm:text-xl text-muted max-w-2xl mx-auto leading-relaxed mb-10 fade-up" style="animation-delay: 0.1s">
+            Explore content across all categories. Find stories that matter to you.
+        </p>
+
+        <div class="flex items-center justify-center gap-3 text-muted fade-up" style="animation-delay: 0.2s">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+            <span class="font-mono text-sm"><%= categoriesList.length %> categories</span>
+        </div>
+    </div>
+<% var categoriesList = (typeof CATEGORY_ENUM !== 'undefined') ? CATEGORY_ENUM : ['tech', 'news', 'sports', 'entertainment', 'politics', 'business', 'health', 'lifestyle']; %>
+</section>
+
+<% categoriesList.forEach(function(category) { %>
+<% var posts = categoryPosts[category] || []; %>
+<% var categoryName = (categoryNames && categoryNames[category]) ? categoryNames[category] : category; %>
+<section id="<%= category %>" class="relative z-10 py-12">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="font-heading text-2xl md:text-3xl">
+                <a href="/?category=<%= category %>" class="hover:text-white/80 transition-colors">
+                    <%= categoryName %>
+                </a>
+            </h2>
+            <a href="/?category=<%= category %>" class="text-sm text-muted hover:text-white transition-colors">
+                View all
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline ml-1"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+        </div>
+
+        <% if (posts && posts.length > 0) { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <% posts.forEach(function(blog, index) { %>
+            <a href="/post/<%= blog.slug %>" class="block animate-on-scroll" style="opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease <%= index * 0.1 %>s, transform 0.6s ease <%= index * 0.1 %>s;">
+                <article class="glass-card rounded-[1.5rem] overflow-hidden h-full transition-all duration-500 card-hover group">
+                    <div class="relative overflow-hidden aspect-[16/10]">
+                        <img src="<%= blog.image || '/public/images/placeholder.jpg' %>" alt="<%= blog.title %>" loading="lazy" decoding="async" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                        <div class="absolute top-4 left-4">
+                            <span class="category-badge px-3 py-1.5 rounded-full text-white"><%= categoryName %></span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 text-muted text-xs font-mono mb-3">
+                            <span><%= Math.ceil((blog.content || '').length / 1000) || 5 %> min read</span>
+                            <span class="w-1 h-1 rounded-full bg-white/30"></span>
+                            <span><%= formatDate ? formatDate(blog.publishedAt) : new Date(blog.publishedAt).toLocaleDateString() %></span>
+                        </div>
+                        <h3 class="font-heading text-xl mb-3 leading-snug group-hover:text-white/90 transition-colors"><%= blog.title %></h3>
+                        <p class="text-muted text-sm leading-relaxed line-clamp-2 mb-4"><%= blog.summary || (blog.content || '').substring(0, 150) + '...' %></p>
+                        <% if (blog.tags && blog.tags.length > 0) { %>
+                        <div class="flex flex-wrap gap-2">
+                            <% blog.tags.slice(0, 3).forEach(function(tag) { %>
+                            <span class="text-[10px] uppercase tracking-wider text-muted bg-white/5 px-2 py-1 rounded"><%= tag %></span>
+                            <% }); %>
+                        </div>
+                        <% } %>
+                    </div>
+                </article>
+            </a>
+            <% }); %>
+        </div>
+        <% } else { %>
+        <div class="text-center py-12 text-muted">
+            <p>No posts in <%= categoryName %> yet.</p>
+        </div>
+        <% } %>
+    </div>
+</section>
+<% }); %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-on-scroll').forEach(function(el) {
+        observer.observe(el);
+    });
+});
+</script>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join NOOK</title>
+    <meta name="description"
+        content="Create your NOOK account and start earning rewards by reading and writing blog content. Get a ₦100 welcome bonus.">
+    <link rel="canonical" href="<%= process.env.BASE_URL || '' %>/register">
+    <meta name="theme-color" content="#6d0a0a">
+    <meta property="og:title" content="Join NOOK">
+    <meta property="og:description"
+        content="Create your NOOK account and start earning rewards by reading and writing blog content.">
+    <meta property="og:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Join NOOK">
+    <meta name="twitter:description"
+        content="Create your NOOK account and start earning rewards by reading and writingblog content.">
+    <meta name="twitter:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #040404;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .font-heading {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .text-muted {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .bg-noise {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160%22 xmlns='http://www.w3.org/2000/svg%22%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23noise)' opacity='0.95'/%3E%3C/svg%3E");
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.05;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 120px 120px;
+            mask-image: radial-gradient(circle at center, black 42%, transparent 86%);
+        }
+
+        .bg-blobs {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            position: absolute;
+            left: -8%;
+            top: -6%;
+            height: 34rem;
+            width: 34rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.07);
+            filter: blur(120px);
+            animation: blob 20s ease-in-out infinite;
+        }
+
+        .blob-2 {
+            position: absolute;
+            right: -12%;
+            top: 18%;
+            height: 38rem;
+            width: 38rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.055);
+            filter: blur(150px);
+            animation: blob 20s ease-in-out infinite reverse;
+            animation-delay: -5s;
+        }
+
+        @keyframes blob {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            25% {
+                transform: translate(20px, -30px) scale(1.05);
+            }
+
+            50% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+
+            75% {
+                transform: translate(30px, 10px) scale(1.02);
+            }
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(16, 16, 16, 0.96), rgba(5, 5, 5, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+        }
+
+        .glass-nav {
+            background: rgba(4, 4, 4, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-primary-dark {
+            background: #ffffff;
+            color: #000000;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-primary-dark:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.15);
+        }
+
+        .input-dark {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            padding: 12px 0;
+            font-size: 0.875rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-dark:focus {
+            outline: none;
+            border-color: #ffffff;
+        }
+
+        .input-dark::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-link-dark {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link-dark:hover,
+        .nav-link-dark.active {
+            color: #ffffff;
+        }
+
+        .desktop-nav {
+            display: flex;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-nav {
+                display: none !important;
+            }
+        }
+
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            background: #0a0a0a;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100vh;
+            z-index: 70;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-blobs">
+        <div class="blob-1"></div>
+        <div class="blob-2"></div>
+    </div>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <nav class="glass-nav fixed top-0 w-full z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 py-5 relative">
+            <div class="flex items-center justify-between">
+                <a href="/" class="font-heading text-2xl tracking-[0.2em] hover:text-white transition-colors">
+                    <svg width="100" height="32" viewBox="0 0 100 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <text x="0" y="26" font-family="inherit" font-size="24" font-weight="700" letter-spacing="0.2em"
+                            fill="currentColor" class="text-white">N</text>
+                        <text x="24" y="26" font-family="inherit" font-size="24" font-weight="700"
+                            letter-spacing="0.2em" fill="currentColor" class="text-muted">O</text>
+                        <text x="48" y="26" font-family="inherit" font-size="24" font-weight="700"
+                            letter-spacing="0.2em" fill="currentColor" class="text-muted">O</text>
+                        <text x="72" y="26" font-family="inherit" font-size="24" font-weight="700"
+                            letter-spacing="0.2em" fill="currentColor" class="text-white">K</text>
+                    </svg>
+                </a>
+
+                <div class="desktop-nav hidden md:flex items-center gap-8">
+                    <a href="/" class="nav-link-dark">Home</a>
+
+                    <div class="flex items-center gap-4 ml-4 pl-8 border-l border-white/10">
+                        <a href="/login" class="nav-link-dark text-sm">Sign In</a>
+                        <a href="/register"
+                            class="btn-primary-dark px-5 py-2 rounded-full text-xs flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Earn Rewards
+                        </a>
+                    </div>
+                </div>
+
+                <button id="hamburgerBtn"
+                    class="md:hidden absolute right-4 top-5 p-2 w-12 h-12 flex items-center justify-center text-white"
+                    style="z-index:60; cursor:pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 5h16"></path>
+                        <path d="M4 12h16"></path>
+                        <path d="M4 19h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="flex justify-between items-center p-6 border-b border-white/10">
+                <span class="font-heading text-xl tracking-widest">MENU</span>
+                <button id="closeMenuBtn" class="p-2 text-white cursor-pointer" aria-label="Close menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <a href="/" class="block text-lg text-white/80 hover:text-white transition-colors">Home</a>
+
+                <div class="pt-6 border-t border-white/10">
+                    <a href="/login" class="block text-center text-sm text-white/60 hover:text-white mb-3">
+                        Sign In
+                    </a>
+                    <a href="/register"
+                        class="btn-primary-dark w-full py-3 rounded-full text-xs flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Join & Earn Rewards
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="relative z-10 flex-1 pt-24 pb-16">
+        <div class="max-w-md mx-auto px-6">
+            <div class="text-center mb-8">
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10 mb-6">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h1 class="font-heading text-4xl font-bold mb-3">Create Your Account</h1>
+                <p class="text-muted">Start earning rewards by reading blog content</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-8">
+                <div id="errorAlert"
+                    class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                    <span id="errorMessage"></span>
+                </div>
+
+                <form id="registerForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Email</label>
+                        <input type="email" name="email" required class="input-dark w-full"
+                            placeholder="you@example.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Username</label>
+                        <input type="text" name="username" class="input-dark w-full" placeholder="your_username">
+                        <p class="text-xs text-white/40 mt-1">Optional. Leave blank for auto-generated username.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Password</label>
+                        <input type="password" name="password" required minlength="6" class="input-dark w-full"
+                            placeholder="Minimum 6 characters">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-white/70 mb-2">Referral Code (Optional)</label>
+                        <input type="text" name="referralCode" class="input-dark w-full" placeholder="ABC123"
+                            value="<%= referralCode || '' %>">
+                    </div>
+
+                    <button type="submit" id="submitBtn"
+                        class="btn-primary-dark w-full py-3 px-6 rounded-full flex items-center justify-center gap-2">
+                        <span id="btnText">Create Account</span>
+                        <svg id="btnSpinner" class="hidden w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-white/50">
+                        Already have an account?
+                        <a href="/login" class="text-white hover:text-white/80 font-medium ml-1">Sign in</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 glass-card rounded-xl p-4">
+                <div class="flex items-center gap-3 text-sm text-white/60">
+                    <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <span>Get <span class="text-green-400 font-semibold">₦100</span> welcome bonus just for signing
+                        up!</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileOverlay');
+            if (menu && overlay) {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const closeMenuBtn = document.getElementById('closeMenuBtn');
+            const overlay = document.getElementById('mobileOverlay');
+
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', toggleMobileMenu);
+            }
+            if (closeMenuBtn) {
+                closeMenuBtn.addEventListener('click', toggleMobileMenu);
+            }
+            if (overlay) {
+                overlay.addEventListener('click', toggleMobileMenu);
+            }
+        });
+
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorAlert.classList.add('hidden');
+        }
+
+        function setLoading(loading) {
+            submitBtn.disabled = loading;
+            btnText.textContent = loading ? 'Creating account...' : 'Create Account';
+            btnSpinner.classList.toggle('hidden', !loading);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const formData = new FormData(form);
+            const data = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                username: formData.get('username') || undefined,
+                referralCode: formData.get('referralCode') || undefined
+            };
+
+            setLoading(true);
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    showError(result.error || 'Registration failed. Please try again.');
+                }
+            } catch (error) {
+                showError('Network error. Please check your connection and try again.');
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+
+</html>

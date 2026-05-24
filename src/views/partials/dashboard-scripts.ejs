@@ -1,0 +1,110 @@
+<script>
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileMenu');
+        const overlay = document.getElementById('mobileOverlay');
+        if (menu && overlay) {
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = 'toast ' + type + ' show';
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    function initCustomSelects() {
+        document.querySelectorAll('select[data-custom-select]').forEach(select => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-select';
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+
+            const trigger = document.createElement('div');
+            trigger.className = 'custom-select-trigger';
+            trigger.tabIndex = 0;
+
+            const selectedText = document.createElement('span');
+            selectedText.className = 'selected-text';
+
+            const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            chevron.setAttribute('width', '16');
+            chevron.setAttribute('height', '16');
+            chevron.setAttribute('viewBox', '0 0 24 24');
+            chevron.setAttribute('fill', 'none');
+            chevron.setAttribute('stroke', 'currentColor');
+            chevron.setAttribute('stroke-width', '2');
+            chevron.setAttribute('stroke-linecap', 'round');
+            chevron.setAttribute('stroke-linejoin', 'round');
+            chevron.classList.add('chevron');
+            chevron.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+
+            trigger.appendChild(selectedText);
+            trigger.appendChild(chevron);
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'custom-select-dropdown';
+
+            const options = select.querySelectorAll('option');
+            options.forEach(option => {
+                const opt = document.createElement('div');
+                opt.className = 'custom-select-option';
+                if (option.value === select.value) {
+                    opt.classList.add('selected');
+                    selectedText.textContent = option.textContent;
+                }
+                opt.textContent = option.textContent;
+                opt.dataset.value = option.value;
+                opt.addEventListener('click', () => {
+                    select.value = option.value;
+                    dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    selectedText.textContent = option.textContent;
+                    select.dispatchEvent(new Event('change'));
+                    wrapper.classList.remove('open');
+                });
+                dropdown.appendChild(opt);
+            });
+
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.custom-select.open').forEach(s => {
+                    if (s !== wrapper) s.classList.remove('open');
+                });
+                wrapper.classList.toggle('open');
+            });
+
+            trigger.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    wrapper.classList.toggle('open');
+                }
+            });
+
+            document.addEventListener('click', () => {
+                wrapper.classList.remove('open');
+            });
+
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(dropdown);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        const overlay = document.getElementById('mobileOverlay');
+
+        if (hamburgerBtn) hamburgerBtn.addEventListener('click', toggleMobileMenu);
+        if (closeMenuBtn) closeMenuBtn.addEventListener('click', toggleMobileMenu);
+        if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+
+        initCustomSelects();
+    });
+</script>

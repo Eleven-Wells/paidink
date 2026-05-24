@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Achievements | NOOK' %></title>
+    <meta name="description" content="<%= description || 'Explore your achievements and milestones earned through reading and engagement on NOOK.' %>">
+    <link rel="canonical" href="<%= canonical || '' %>">
+    <meta name="theme-color" content="#6d0a0a">
+    <meta property="og:title" content="<%= title || 'Achievements | NOOK' %>">
+    <meta property="og:description" content="<%= description || 'Explore your achievements and milestones earned through reading and engagement on NOOK.' %>">
+    <meta property="og:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title || 'Achievements | NOOK' %>">
+    <meta name="twitter:description" content="<%= description || 'Explore your achievements and milestones earned through reading and engagement on NOOK.' %>">
+    <meta name="twitter:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <%- include('../partials/dashboard-css') %>
+    <style>
+        .achievements-page {
+            color: var(--dash-text);
+        }
+
+        .achievements-hero {
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top right, rgba(109, 10, 10, 0.12), transparent 30%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 246, 239, 0.98));
+        }
+
+        .achievements-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .achievements-kicker {
+            color: var(--dash-accent);
+            letter-spacing: 0.2em;
+        }
+
+        .achievements-title {
+            color: var(--dash-text);
+            letter-spacing: -0.035em;
+        }
+
+        .achievements-copy {
+            color: var(--dash-muted);
+        }
+
+        .achievements-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(109, 10, 10, 0.12);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            color: var(--dash-accent);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .achievements-back-link:hover {
+            transform: translateY(-1px);
+            background: var(--dash-accent);
+            border-color: var(--dash-accent);
+            color: #ffffff;
+            box-shadow: 0 14px 30px rgba(109, 10, 10, 0.12);
+        }
+
+        .achievements-summary {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievements-summary::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+            pointer-events: none;
+        }
+
+        .achievements-summary-value {
+            color: var(--dash-text);
+        }
+
+        .achievements-summary-label {
+            color: var(--dash-muted);
+        }
+
+        .achievements-summary-percent {
+            color: var(--dash-success);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .achievements-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .achievement-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.15rem;
+            border: 1px solid var(--dash-card-border);
+            background: var(--dash-card-bg);
+            backdrop-filter: blur(12px);
+            box-shadow: var(--dash-card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--dash-card-border-strong);
+            box-shadow: 0 28px 64px rgba(109, 10, 10, 0.1);
+        }
+
+        .achievement-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+            pointer-events: none;
+        }
+
+        .achievement-icon-wrap {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .achievement-icon-wrap.is-earned--common {
+            background: rgba(156, 163, 175, 0.14);
+            color: #9ca3af;
+        }
+
+        .achievement-icon-wrap.is-earned--rare {
+            background: rgba(59, 130, 246, 0.14);
+            color: #3b82f6;
+        }
+
+        .achievement-icon-wrap.is-earned--epic {
+            background: rgba(168, 85, 247, 0.14);
+            color: #a855f7;
+        }
+
+        .achievement-icon-wrap.is-earned--legendary {
+            background: rgba(245, 158, 11, 0.14);
+            color: #f59e0b;
+        }
+
+        .achievement-icon-wrap.is-locked {
+            background: rgba(109, 10, 10, 0.06);
+            color: var(--dash-muted);
+        }
+
+        .achievement-name {
+            color: var(--dash-text);
+        }
+
+        .achievement-description {
+            color: var(--dash-muted);
+        }
+
+        .achievement-rarity-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .achievement-rarity-badge--common {
+            background: rgba(156, 163, 175, 0.12);
+            color: #9ca3af;
+        }
+
+        .achievement-rarity-badge--rare {
+            background: rgba(59, 130, 246, 0.12);
+            color: #3b82f6;
+        }
+
+        .achievement-rarity-badge--epic {
+            background: rgba(168, 85, 247, 0.12);
+            color: #a855f7;
+        }
+
+        .achievement-rarity-badge--legendary {
+            background: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+        }
+
+        .achievement-progress-track {
+            width: 100%;
+            height: 0.5rem;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(109, 10, 10, 0.08);
+        }
+
+        .achievement-progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--dash-accent), #ba4a28);
+            box-shadow: 0 4px 12px rgba(109, 10, 10, 0.15);
+            transition: width 0.4s ease;
+        }
+
+        .achievement-progress-fill--common {
+            background: linear-gradient(90deg, #9ca3af, #d1d5db);
+            box-shadow: 0 4px 12px rgba(156, 163, 175, 0.12);
+        }
+
+        .achievement-progress-fill--rare {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .achievement-progress-fill--epic {
+            background: linear-gradient(90deg, #a855f7, #c084fc);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+        }
+
+        .achievement-progress-fill--legendary {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+        }
+
+        .achievement-meta {
+            color: var(--dash-muted);
+        }
+
+        .achievement-reward {
+            color: var(--dash-success);
+        }
+
+        .achievement-status--earned {
+            color: var(--dash-success);
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .achievement-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 1rem;
+            border-radius: 1.25rem;
+            border: 1px dashed rgba(109, 10, 10, 0.15);
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--dash-muted);
+        }
+
+        .achievement-focus-ring:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
+        }
+
+        @media (max-width: 640px) {
+            .achievements-hero {
+                padding: 1.35rem;
+            }
+
+            .achievement-card {
+                padding: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen dashboard-page">
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <%- include('../partials/dashboard-header') %>
+
+    <main class="achievements-page relative z-10 pt-24 pb-16">
+        <div class="max-w-4xl mx-auto px-6">
+            <section class="glass-card achievements-hero rounded-2xl p-6 md:p-8 mb-8">
+                <div class="relative z-10">
+                    <div class="mb-6">
+                        <button type="button" id="achievementsBackBtn" class="achievements-back-link achievement-focus-ring" aria-label="Go back to previous page">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            Back
+                        </button>
+                    </div>
+                    <p class="achievements-kicker font-mono text-xs uppercase mb-2">Milestones & Badges</p>
+                    <h1 class="achievements-title font-heading text-3xl font-bold mb-2">Achievements</h1>
+                    <p class="achievements-copy">Earn rewards by completing milestones</p>
+                </div>
+            </section>
+
+            <% if (unlockedCount > 0) { %>
+                <div class="glass-card achievements-summary rounded-2xl p-4 mb-6">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div>
+                            <span class="achievements-summary-value text-2xl font-bold"><%= unlockedCount %></span>
+                            <span class="achievements-summary-label"> / <%= totalAchievements %> Unlocked</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="achievements-summary-percent text-lg font-bold"><%= Math.round((unlockedCount / totalAchievements) * 100) %>%</span>
+                            <span class="achievements-summary-label block text-sm">Complete</span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <div class="achievements-grid">
+                <% if (!achievements || achievements.length === 0) { %>
+                    <div class="achievement-empty">
+                        <p>No achievements found. Start reading to earn achievements!</p>
+                    </div>
+                <% } else { achievements.forEach(function(a) { %>
+                    <div class="achievement-card p-5 <%= a.earned ? 'is-earned is-earned--' + a.rarity : '' %>">
+                        <div class="flex items-start gap-4 relative z-10">
+                            <div class="achievement-icon-wrap <%= a.earned ? 'is-earned--' + a.rarity : 'is-locked' %>">
+                                <% if (a.earned) { %>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                <% } else { %>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                <% } %>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1 gap-2 flex-wrap">
+                                    <h3 class="achievement-name font-semibold"><%= a.title %></h3>
+                                    <span class="achievement-rarity-badge achievement-rarity-badge--<%= a.rarity %>"><%= a.rarity %></span>
+                                </div>
+                                <p class="achievement-description text-sm mb-3"><%= a.description %></p>
+                                <% if (!a.earned) { %>
+                                    <div class="achievement-progress-track mb-2">
+                                        <div class="achievement-progress-fill achievement-progress-fill--<%= a.rarity %>" style="width: <%= a.progress %>%"></div>
+                                    </div>
+                                <% } %>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="achievement-meta">
+                                        <%= a.current %>/<%= a.requirement %> <%= a.category %>
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <% if (a.reward > 0) { %>
+                                            <span class="achievement-reward font-medium">
+                                                <%= a.earned ? '+' : '' %>₦<%= a.reward %>
+                                            </span>
+                                        <% } %>
+                                        <% if (a.earned) { %>
+                                            <span class="achievement-status--earned">Earned</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); } %>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <%- include('../partials/dashboard-scripts') %>
+
+    <script>
+        const achievementsBackBtn = document.getElementById('achievementsBackBtn');
+        if (achievementsBackBtn) {
+            achievementsBackBtn.addEventListener('click', function() {
+                const fallbackUrl = document.referrer && document.referrer.startsWith(window.location.origin)
+                    ? document.referrer
+                    : '/dashboard';
+
+                if (window.history.length > 1) {
+                    window.history.back();
+
+                    window.setTimeout(function() {
+                        if (document.visibilityState === 'visible') {
+                            window.location.href = fallbackUrl;
+                        }
+                    }, 400);
+
+                    return;
+                }
+
+                window.location.href = fallbackUrl;
+            });
+        }
+    </script>
+
+    <%- include('../partials/mobile-bottom-nav', { currentPage: 'achievements', theme: 'light' }) %>
+</body>
+</html>

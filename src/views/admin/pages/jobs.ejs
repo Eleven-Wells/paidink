@@ -1,0 +1,182 @@
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="stat-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div>
+            <h4 class="font-heading text-2xl font-bold"><%= queueStats.waiting %></h4>
+            <p class="text-sm text-muted">Waiting</p>
+        </div>
+    </div>
+    
+    <div class="stat-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+        </div>
+        <div>
+            <h4 class="font-heading text-2xl font-bold"><%= queueStats.active %></h4>
+            <p class="text-sm text-muted">Active</p>
+        </div>
+    </div>
+    
+    <div class="stat-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+            <h4 class="font-heading text-2xl font-bold"><%= queueStats.completed %></h4>
+            <p class="text-sm text-muted">Completed</p>
+        </div>
+    </div>
+    
+    <div class="stat-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+        </div>
+        <div>
+            <h4 class="font-heading text-2xl font-bold"><%= queueStats.failed %></h4>
+            <p class="text-sm text-muted">Failed</p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="chart-container lg:col-span-2">
+        <h3 class="font-heading text-lg font-semibold mb-6">Queue Timeline</h3>
+        <div class="h-48 flex items-end justify-between gap-1">
+            <% const timeline = hourlyData || []; %>
+            <% timeline.forEach((d) => { %>
+                <div class="flex-1 flex flex-col items-center gap-2">
+                    <div class="w-full rounded-t-lg relative group" style="height: <%= d.percentage * 1.5 %>px; background: linear-gradient(to top, rgba(59, 130, 246, 0.5), rgba(59, 130, 246, 0.2));">
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            <%= d.count %> jobs
+                        </div>
+                    </div>
+                    <span class="text-xs text-muted"><%= d.hour %></span>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <h3 class="font-heading text-lg font-semibold mb-6">Job Types</h3>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span>Content Generation</span>
+                </div>
+                <span class="font-mono text-sm"><%= queueStats.waiting %></span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span>Image Fetch</span>
+                </div>
+                <span class="font-mono text-sm"><%= Math.floor(queueStats.waiting / 3) %></span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-purple-500"></div>
+                    <span>SEO Optimization</span>
+                </div>
+                <span class="font-mono text-sm"><%= Math.floor(queueStats.waiting / 5) %></span>
+            </div>
+        </div>
+        
+        <div class="mt-6 pt-6 border-t border-white/10">
+            <button onclick="clearCompleted()" class="btn-secondary w-full text-sm">Clear Completed Jobs</button>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="p-6 border-b border-white/10 flex items-center justify-between">
+        <h3 class="font-heading text-lg font-semibold">Recent Jobs</h3>
+        <div class="flex gap-2">
+            <button class="btn-secondary text-sm px-4 py-2" onclick="filterJobs('all')">All</button>
+            <button class="btn-secondary text-sm px-4 py-2" onclick="filterJobs('waiting')">Waiting</button>
+            <button class="btn-secondary text-sm px-4 py-2" onclick="filterJobs('active')">Active</button>
+            <button class="btn-secondary text-sm px-4 py-2" onclick="filterJobs('failed')">Failed</button>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Job ID</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Type</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Status</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Progress</th>
+                    <th class="text-left p-4 text-xs uppercase tracking-wider text-muted font-semibold">Added</th>
+                    <th class="text-right p-4 text-xs uppercase tracking-wider text-muted font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                <% jobs.forEach(job => { %>
+                    <tr class="table-row">
+                        <td class="p-4">
+                            <code class="font-mono text-sm text-muted"><%= job.id %></code>
+                        </td>
+                        <td class="p-4">
+                            <span class="text-sm"><%= job.postTitle || job.name %></span>
+                        </td>
+                        <td class="p-4">
+                            <% if (job.status === 'completed') { %>
+                                <span class="badge badge-success">Completed</span>
+                            <% } else if (job.status === 'active') { %>
+                                <span class="badge badge-info">Active</span>
+                            <% } else if (job.status === 'failed') { %>
+                                <span class="badge badge-error">Failed</span>
+                            <% } else { %>
+                                <span class="badge badge-warning">Waiting</span>
+                            <% } %>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="progress-bar w-24">
+                                    <div class="progress-fill bg-blue-500" style="width: <%= job.progress || 0 %>%"></div>
+                                </div>
+                                <span class="text-xs text-muted font-mono"><%= job.progress || 0 %>%</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="text-sm text-muted"><%= new Date(job.timestamp).toLocaleString() %></span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center justify-end gap-2">
+                                <% if (job.status === 'failed') { %>
+                                    <button class="action-btn text-muted hover:text-green-500" title="Retry">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                                    </button>
+                                <% } %>
+                                <button class="action-btn text-muted hover:text-white" title="View Details">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filterJobs(status) {
+        const url = new URL(window.location);
+        if (status !== 'all') {
+            url.searchParams.set('status', status);
+        } else {
+            url.searchParams.delete('status');
+        }
+        window.location = url;
+    }
+    
+    function clearCompleted() {
+        if (confirm('Clear all completed jobs?')) {
+            fetch('/admin/api/jobs/clear-completed', { method: 'POST' })
+                .then(() => window.location.reload());
+        }
+    }
+</script>

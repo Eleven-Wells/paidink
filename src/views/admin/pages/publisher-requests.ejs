@@ -1,0 +1,324 @@
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><%= pageTitle %></h1>
+        <p class="text-muted mt-1"><%= pageSubtitle %></p>
+    </div>
+    <div class="flex gap-3 mb-3">
+        <a href="/admin/publisher-requests?status=pending" class="btn-secondary <%= !status ? 'bg-slate-100' : '' %>">
+            Pending (<%= pendingCount || 0 %>)
+        </a>
+    </div>
+</div>
+
+<% if (!users || users.length === 0) { %>
+    <div class="glass-card">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h3 class="font-semibold text-slate-900 mb-2">No pending requests</h3>
+            <p class="text-muted">There are no publisher applications to review.</p>
+        </div>
+    </div>
+<% } else { %>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Applied</th>
+                    <th>Stats</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(function(user) { %>
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
+                                    <% if (user.avatar) { %>
+                                        <img src="<%= user.avatar %>" class="w-10 h-10 rounded-full object-cover">
+                                    <% } else { %>
+                                        <span class="text-sm font-medium text-slate-600"><%= user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase() %></span>
+                                    <% } %>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-slate-900"><%= user.displayName || user.username || 'N/A' %></div>
+                                    <% if (user.username) { %>
+                                        <div class="text-xs text-muted">@<%= user.username %></div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-muted"><%= user.email %></td>
+                        <td class="text-muted">
+                            <%= user.publisherAppliedAt ? new Date(user.publisherAppliedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' %>
+                        </td>
+                        <td>
+                            <div class="text-xs text-muted">
+                                <div>Reads: <%= user.stats?.totalReads || 0 %></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <button type="button" data-action="view" data-id="<%= user._id %>" class="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer">
+                                    View
+                                </button>
+                                <form method="POST" action="/admin/publisher-requests/<%= user._id %>/approve" class="inline">
+                                    <button type="submit" class="text-sm text-green-600 hover:text-green-700 font-medium">
+                                        Approve
+                                    </button>
+                                </form>
+                                <button type="button" data-action="reject" data-id="<%= user._id %>" class="text-sm text-red-600 hover:text-red-700 font-medium cursor-pointer">
+                                    Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+    
+    <% if (pagination.totalPages > 1) { %>
+        <div class="flex items-center justify-between mt-6">
+            <% if (pagination.page > 1) { %>
+                <a href="/admin/publisher-requests?page=<%= pagination.page - 1 %>" class="btn-secondary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Previous
+                </a>
+            <% } else { %>
+                <div></div>
+            <% } %>
+            
+            <span class="text-sm text-muted">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+            
+            <% if (pagination.page < pagination.totalPages) { %>
+                <a href="/admin/publisher-requests?page=<%= pagination.page + 1 %>" class="btn-secondary">
+                    Next
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            <% } else { %>
+                <div></div>
+            <% } %>
+        </div>
+    <% } %>
+<% } %>
+
+<div id="rejectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(12px);" data-modal="reject">
+    <div style="background:linear-gradient(145deg, rgba(20,20,20,0.98), rgba(5,5,5,0.98)); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:24px; width:100%; max-width:400px; box-shadow:0 25px 80px -12px rgba(0,0,0,0.5);" data-modal-content>
+        <h3 style="font-size:18px; font-weight:600; margin:0 0 16px 0; color:#fff;">Reject Application</h3>
+        <form id="rejectForm" method="POST">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:14px; font-weight:500; color:rgba(255,255,255,0.7); margin-bottom:8px;">Reason (optional)</label>
+                <textarea name="notes" style="width:100%; padding:12px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; font-size:14px; min-height:80px; box-sizing:border-box; background:rgba(255,255,255,0.05); color:#fff;" placeholder="Reason for rejection"></textarea>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button type="button" data-action="close-reject" style="flex:1; padding:12px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:8px; cursor:pointer; font-weight:500; color:#fff;">Cancel</button>
+                <button type="submit" style="flex:1; padding:12px 16px; background:#dc2626; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:500;">Reject</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="userProfileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(12px);" data-modal="profile">
+    <div style="background:linear-gradient(145deg, rgba(20,20,20,0.98), rgba(5,5,5,0.98)); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:24px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; box-shadow:0 25px 80px -12px rgba(0,0,0,0.5);" data-modal-content>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1);">
+            <h3 style="font-size:18px; font-weight:600; margin:0; color:#fff;">User Profile</h3>
+            <button type="button" data-action="close-profile" style="background:none; border:none; cursor:pointer; padding:4px; color:rgba(255,255,255,0.5);">
+                <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div id="userProfileContent" style="display:flex; flex-direction:column; gap:16px;">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #16a34a, #059669); display:flex; align-items:center; justify-content:center;">
+                    <span id="userAvatarInitial" style="font-size:24px; font-weight:600; color:#fff;">-</span>
+                </div>
+                <div>
+                    <h4 id="userDisplayName" style="font-size:18px; font-weight:600; margin:0 0 4px 0; color:#fff;"></h4>
+                    <p id="userEmail" style="font-size:14px; color:rgba(255,255,255,0.5); margin:0;"></p>
+                    <p id="userUsername" style="font-size:14px; color:rgba(255,255,255,0.5); margin:0;"></p>
+                </div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+                <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:16px; border:1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.05em;">Total Reads</div>
+                    <div id="totalReads" style="font-size:24px; font-weight:700; color:#fff;">-</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:16px; border:1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.05em;">Today's Reads</div>
+                    <div id="todayReads" style="font-size:24px; font-weight:700; color:#fff;">-</div>
+                </div>
+                <div style="background:rgba(22,163,74,0.15); border-radius:8px; padding:16px; border:1px solid rgba(22,163,74,0.3);">
+                    <div style="font-size:11px; color:#4ade80; text-transform:uppercase; letter-spacing:0.05em;">Total Earned</div>
+                    <div id="totalEarned" style="font-size:24px; font-weight:700; color:#4ade80;">-</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:16px; border:1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.05em;">Achievements</div>
+                    <div id="achievementsCount" style="font-size:24px; font-weight:700; color:#fff;">-</div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="font-weight:600; color:#fff; margin:0 0 10px 0; font-size:14px;">Wallet</h4>
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+                    <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:14px; border:1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; margin-bottom:4px;">Available</div>
+                        <div id="availableBalance" style="font-size:18px; font-weight:700; color:#fff;">-</div>
+                    </div>
+                    <div style="background:rgba(217,119,6,0.15); border-radius:8px; padding:14px; border:1px solid rgba(217,119,6,0.3);">
+                        <div style="font-size:11px; color:#fbbf24; text-transform:uppercase; margin-bottom:4px;">Pending</div>
+                        <div id="pendingBalance" style="font-size:18px; font-weight:700; color:#fbbf24;">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="font-weight:600; color:#fff; margin:0 0 10px 0; font-size:14px;">Achievements</h4>
+                <div id="achievementsList" style="display:flex; flex-direction:column; gap:8px;">
+                    <p style="font-size:14px; color:rgba(255,255,255,0.5);">Loading...</p>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="font-weight:600; color:#fff; margin:0 0 10px 0; font-size:14px;">Account Info</h4>
+                <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:14px; font-size:14px; border:1px solid rgba(255,255,255,0.1);">
+                    <div style="display:grid; grid-template-columns:140px 1fr; gap:8px; align-items:center;">
+                        <div style="color:rgba(255,255,255,0.5);">Member Since:</div>
+                        <div id="createdAt" style="color:#fff; font-weight:500;">-</div>
+                        <div style="color:rgba(255,255,255,0.5);">Last Active:</div>
+                        <div id="lastActive" style="color:#fff; font-weight:500;">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.addEventListener('click', function(e) {
+            var action = e.target.getAttribute('data-action');
+            var id = e.target.getAttribute('data-id');
+            
+            if (action === 'view' && id) {
+                viewUserProfile(id);
+            } else if (action === 'reject' && id) {
+                showRejectModal(id);
+            } else if (action === 'close-reject') {
+                hideRejectModal();
+            } else if (action === 'close-profile') {
+                hideUserProfileModal();
+            } else if (e.target.hasAttribute('data-modal')) {
+                var modalType = e.target.getAttribute('data-modal');
+                if (modalType === 'reject') hideRejectModal();
+                if (modalType === 'profile') hideUserProfileModal();
+            }
+        });
+        
+        var userModal = document.getElementById('userProfileModal');
+        if (userModal) {
+            userModal.addEventListener('click', function(e) {
+                if (e.target === userModal) {
+                    hideUserProfileModal();
+                }
+            });
+        }
+        
+        var rejectModal = document.getElementById('rejectModal');
+        if (rejectModal) {
+            rejectModal.addEventListener('click', function(e) {
+                if (e.target === rejectModal) {
+                    hideRejectModal();
+                }
+            });
+        }
+        
+        function showRejectModal(userId) {
+            document.getElementById('rejectForm').action = '/admin/publisher-requests/' + userId + '/reject';
+            document.getElementById('rejectModal').style.display = 'flex';
+        }
+        
+        function hideRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+        }
+        
+        function hideUserProfileModal() {
+            document.getElementById('userProfileModal').style.display = 'none';
+        }
+        
+        async function viewUserProfile(userId) {
+            document.getElementById('userProfileModal').style.display = 'flex';
+            
+            document.getElementById('userAvatarInitial').textContent = '-';
+            document.getElementById('userDisplayName').textContent = 'Loading...';
+            document.getElementById('userEmail').textContent = '';
+            document.getElementById('userUsername').textContent = '';
+            document.getElementById('totalReads').textContent = '-';
+            document.getElementById('todayReads').textContent = '-';
+            document.getElementById('totalEarned').textContent = '-';
+            document.getElementById('achievementsCount').textContent = '-';
+            document.getElementById('availableBalance').textContent = '-';
+            document.getElementById('pendingBalance').textContent = '-';
+            document.getElementById('achievementsList').innerHTML = '<p class="text-sm text-muted">Loading...</p>';
+            document.getElementById('createdAt').textContent = '-';
+            document.getElementById('lastActive').textContent = '-';
+            
+            try {
+                var res = await fetch('/admin/api/user/' + userId);
+                var data = await res.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                var user = data.user;
+                var stats = data.stats;
+                
+                document.getElementById('userAvatarInitial').textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+                document.getElementById('userDisplayName').textContent = user.displayName || 'N/A';
+                document.getElementById('userEmail').textContent = user.email || '';
+                document.getElementById('userUsername').textContent = user.username ? '@' + user.username : '';
+                
+                document.getElementById('totalReads').textContent = stats.totalReads || 0;
+                document.getElementById('todayReads').textContent = stats.todayReads || 0;
+                document.getElementById('totalEarned').textContent = '₦' + (stats.totalEarned || 0).toLocaleString();
+                document.getElementById('achievementsCount').textContent = data.achievements ? data.achievements.length : 0;
+                
+                document.getElementById('availableBalance').textContent = '₦' + (stats.availableBalance || 0).toLocaleString();
+                document.getElementById('pendingBalance').textContent = '₦' + (stats.pendingBalance || 0).toLocaleString();
+                
+                var achievementsEl = document.getElementById('achievementsList');
+                if (data.achievements && data.achievements.length > 0) {
+                    achievementsEl.innerHTML = data.achievements.map(function(a) { 
+                        return '<div class="flex items-center justify-between bg-slate-50 rounded-lg p-3">' +
+                            '<span class="text-sm text-slate-700">' + a.title + '</span>' +
+                            '<span class="text-xs text-green-600">' + (a.earned ? '✓ Earned' : 'Locked') + '</span>' +
+                        '</div>';
+                    }).join('');
+                } else {
+                    achievementsEl.innerHTML = '<p class="text-sm text-muted">No achievements yet</p>';
+                }
+                
+                document.getElementById('createdAt').textContent = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+                document.getElementById('lastActive').textContent = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A';
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load user profile');
+            }
+        }
+    });
+</script>

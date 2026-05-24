@@ -1,0 +1,136 @@
+<% var pubTheme = typeof publisherTheme !== 'undefined' ? publisherTheme : 'dark'; %>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Zen+Tokyo+Zoo&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="/css/publisher-workspace.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+    <% if (pubTheme === 'light') { %>
+    body.publisher-mode {
+        --pub-accent: #6d0a0a;
+        --pub-accent-strong: #4c0707;
+        --pub-accent-soft: rgba(109, 10, 10, 0.08);
+        --pub-success: #15803d;
+        --pub-danger: #b91c1c;
+        --pub-warning: #b45309;
+        --pub-bg: #fcf7f2;
+        --pub-bg-alt: #fffdfb;
+        --pub-text: #181211;
+        --pub-muted: #4a4240;
+        --pub-muted-strong: #3a3332;
+        --pub-border: rgba(109, 10, 10, 0.12);
+        --pub-border-strong: rgba(109, 10, 10, 0.45);
+        --pub-card-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 241, 0.98));
+        --pub-card-shadow: 0 24px 60px rgba(109, 10, 10, 0.08);
+        --pub-sidebar-bg: linear-gradient(160deg, rgba(255, 250, 245, 0.98), rgba(255, 247, 241, 0.98));
+        --pub-sidebar-border: rgba(109, 10, 10, 0.08);
+        --pub-nav-color: #5f5a58;
+        --pub-nav-hover: #181211;
+        --pub-nav-hover-bg: rgba(109, 10, 10, 0.05);
+        --pub-nav-active: #6d0a0a;
+        --pub-nav-active-bg: rgba(109, 10, 10, 0.08);
+        --pub-nav-active-border: rgba(109, 10, 10, 0.12);
+        --pub-panel-bg: linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 241, 0.98));
+        --pub-panel-border: rgba(109, 10, 10, 0.12);
+        --pub-panel-shadow: 0 24px 60px rgba(109, 10, 10, 0.06);
+        --pub-btn-primary-bg: #6d0a0a;
+        --pub-btn-primary-text: #ffffff;
+        --pub-btn-primary-hover: #520808;
+        --pub-btn-ghost-border: rgba(109, 10, 10, 0.18);
+        --pub-btn-ghost-text: #6d0a0a;
+        --pub-btn-ghost-hover: rgba(109, 10, 10, 0.06);
+        --pub-table-bg: rgba(255, 255, 255, 0.7);
+        --pub-table-border: rgba(109, 10, 10, 0.08);
+        --pub-table-header-bg: rgba(255, 247, 241, 0.6);
+        --pub-table-hover: rgba(109, 10, 10, 0.03);
+        --pub-overlay: rgba(53, 33, 28, 0.22);
+        --pub-input-bg: transparent;
+        --pub-input-border: rgba(109, 10, 10, 0.14);
+        --pub-input-text: #181211;
+        --pub-input-placeholder: #8a7d77;
+        --pub-chart-grid: rgba(109, 10, 10, 0.06);
+        --pub-chart-tick: rgba(24, 18, 17, 0.55);
+        --pub-chart-line: rgba(109, 10, 10, 0.85);
+        --pub-chart-fill: rgba(109, 10, 10, 0.06);
+        --pub-chart-line-2: rgba(26, 115, 232, 0.85);
+        --pub-chart-fill-2: rgba(26, 115, 232, 0.06);
+    }
+    <% } else { %>
+    body.publisher-mode {
+        --pub-accent: #6d0a0a;
+        --pub-accent-strong: #4c0707;
+        --pub-accent-soft: rgba(109, 10, 10, 0.08);
+        --pub-success: #15803d;
+        --pub-danger: #b91c1c;
+        --pub-warning: #b45309;
+        --pub-bg: #040404;
+        --pub-bg-alt: #040404;
+        --pub-text: #ffffff;
+        --pub-muted: rgba(255, 255, 255, 0.5);
+        --pub-muted-strong: rgba(255, 255, 255, 0.35);
+        --pub-border: rgba(255, 255, 255, 0.08);
+        --pub-border-strong: rgba(255, 255, 255, 0.16);
+        --pub-card-bg: linear-gradient(155deg, rgba(22, 22, 22, 0.92), rgba(10, 10, 10, 0.96));
+        --pub-card-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+        --pub-sidebar-bg: linear-gradient(160deg, rgba(18, 18, 18, 0.95), rgba(8, 8, 8, 0.98));
+        --pub-sidebar-border: rgba(255, 255, 255, 0.08);
+        --pub-nav-color: rgba(255, 255, 255, 0.55);
+        --pub-nav-hover: #fff;
+        --pub-nav-hover-bg: rgba(255, 255, 255, 0.05);
+        --pub-nav-active: #fff;
+        --pub-nav-active-bg: rgba(255, 255, 255, 0.08);
+        --pub-nav-active-border: rgba(255, 255, 255, 0.1);
+        --pub-panel-bg: linear-gradient(150deg, rgba(18, 18, 18, 0.94), rgba(6, 6, 6, 0.98));
+        --pub-panel-border: rgba(255, 255, 255, 0.08);
+        --pub-panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+        --pub-btn-primary-bg: #ffffff;
+        --pub-btn-primary-text: #000000;
+        --pub-btn-primary-hover: #f3f3f3;
+        --pub-btn-ghost-border: rgba(255, 255, 255, 0.18);
+        --pub-btn-ghost-text: rgba(255, 255, 255, 0.85);
+        --pub-btn-ghost-hover: rgba(255, 255, 255, 0.06);
+        --pub-table-bg: rgba(0, 0, 0, 0.25);
+        --pub-table-border: rgba(255, 255, 255, 0.05);
+        --pub-table-header-bg: rgba(255, 255, 255, 0.03);
+        --pub-table-hover: rgba(255, 255, 255, 0.03);
+        --pub-overlay: rgba(0, 0, 0, 0.65);
+        --pub-input-bg: rgba(0, 0, 0, 0.35);
+        --pub-input-border: rgba(255, 255, 255, 0.1);
+        --pub-input-text: #ffffff;
+        --pub-input-placeholder: rgba(255, 255, 255, 0.28);
+        --pub-chart-grid: rgba(255, 255, 255, 0.06);
+        --pub-chart-tick: rgba(255, 255, 255, 0.35);
+        --pub-chart-line: rgba(255, 255, 255, 0.85);
+        --pub-chart-fill: rgba(255, 255, 255, 0.06);
+        --pub-chart-line-2: rgba(167, 139, 250, 0.95);
+        --pub-chart-fill-2: rgba(167, 139, 250, 0.08);
+    }
+    <% } %>
+
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    .font-heading { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    body.publisher-mode {
+        color: var(--pub-text) !important;
+        background-color: var(--pub-bg) !important;
+        padding-bottom: 5rem;
+    }
+
+    body.publisher-mode footer {
+        display: none;
+    }
+
+    body.publisher-mode .bg-noise,
+    body.publisher-mode .bg-grid,
+    body.publisher-mode .bg-blobs {
+        display: none !important;
+    }
+</style>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title || 'Profile | NOOK' %>
+    </title>
+    <meta name="description" content="<%= description || 'Manage your NOOK profile, settings, and public page.' %>">
+    <link rel="canonical" href="<%= canonical || '' %>">
+    <meta name="theme-color" content="#6d0a0a">
+    <meta property="og:title" content="<%= title || 'Profile | NOOK' %>">
+    <meta property="og:description"
+        content="<%= description || 'Manage your NOOK profile, settings, and public page.' %>">
+    <meta property="og:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title || 'Profile | NOOK' %>">
+    <meta name="twitter:description"
+        content="<%= description || 'Manage your NOOK profile, settings, and public page.' %>">
+    <meta name="twitter:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <%- include('../partials/dashboard-css') %>
+        <style>
+            .profile-page {
+                color: var(--dash-text);
+            }
+
+            .profile-hero {
+                position: relative;
+                overflow: hidden;
+                background:
+                    radial-gradient(circle at top right, rgba(109, 10, 10, 0.12), transparent 30%),
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 246, 239, 0.98));
+            }
+
+            .profile-hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background-image:
+                    linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
+                background-size: 72px 72px;
+                mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
+                pointer-events: none;
+            }
+
+            .profile-kicker {
+                color: var(--dash-accent);
+                letter-spacing: 0.2em;
+            }
+
+            .profile-title {
+                color: var(--dash-text);
+                letter-spacing: -0.035em;
+            }
+
+            .profile-copy {
+                color: var(--dash-muted);
+            }
+
+            .profile-card {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .profile-card::before {
+                content: "";
+                position: absolute;
+                inset: 0 auto auto 0;
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+                pointer-events: none;
+            }
+
+            .profile-avatar-wrap {
+                width: 5rem;
+                height: 5rem;
+                border-radius: 999px;
+                background: linear-gradient(135deg, rgba(109, 10, 10, 0.92), rgba(191, 86, 55, 0.88));
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                font-weight: 700;
+                font-family: 'Space Grotesk', sans-serif;
+                flex-shrink: 0;
+                box-shadow: 0 14px 36px rgba(109, 10, 10, 0.18);
+            }
+
+            .profile-header-name {
+                color: var(--dash-text);
+            }
+
+            .profile-header-email {
+                color: var(--dash-muted);
+            }
+
+            .profile-divider {
+                border-color: rgba(109, 10, 10, 0.1);
+            }
+
+            .profile-label {
+                color: var(--dash-muted-strong);
+            }
+
+            .profile-input {
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid var(--dash-input-border);
+                color: var(--dash-input-text);
+                padding: 0.75rem 0;
+                font-size: 0.875rem;
+                font-family: 'Inter', sans-serif;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                width: 100%;
+            }
+
+            .profile-input:focus {
+                outline: none;
+                border-bottom-color: var(--dash-accent);
+            }
+
+            .profile-input::placeholder {
+                color: var(--dash-input-placeholder);
+            }
+
+            .profile-field-note {
+                color: var(--dash-muted);
+            }
+
+            .profile-submit-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.85rem 1.5rem;
+                border-radius: 999px;
+                border: none;
+                background: var(--dash-primary-bg);
+                color: var(--dash-primary-text);
+                cursor: pointer;
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            }
+
+            .profile-submit-btn:hover {
+                transform: translateY(-1px);
+                background: var(--dash-primary-hover);
+                box-shadow: var(--dash-primary-shadow);
+            }
+
+            .profile-info-label {
+                color: var(--dash-muted);
+            }
+
+            .profile-info-value {
+                color: var(--dash-text);
+            }
+
+            .profile-info-value--earned {
+                color: var(--dash-success);
+            }
+
+            .profile-info-value--mono {
+                color: var(--dash-text);
+            }
+
+            .profile-focus-ring:focus-visible,
+            .profile-submit-btn:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
+            }
+
+            @media (max-width: 640px) {
+                .profile-hero {
+                    padding: 1.35rem;
+                }
+
+                .profile-card {
+                    padding: 1.35rem;
+                }
+            }
+        </style>
+</head>
+
+<body class="min-h-screen dashboard-page">
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <%- include('../partials/dashboard-header') %>
+
+        <main class="profile-page relative z-10 pt-24 pb-16">
+            <div class="max-w-2xl mx-auto px-6">
+                <section class="glass-card profile-hero rounded-2xl p-6 md:p-8 mb-8">
+                    <div class="relative z-10">
+                        <p class="profile-kicker font-mono text-xs uppercase mb-2">Personal Details</p>
+                        <h1 class="profile-title font-heading text-3xl font-bold mb-2">My Profile</h1>
+                        <p class="profile-copy">Update your personal information</p>
+                    </div>
+                </section>
+
+                <div class="glass-card profile-card rounded-2xl p-6 mb-6">
+                    <div class="flex items-center gap-6 mb-8 pb-6 profile-divider border-b">
+                        <div class="profile-avatar-wrap">
+                            <%= user?.displayName?.charAt(0).toUpperCase() || 'U' %>
+                        </div>
+                        <div>
+                            <h2 class="profile-header-name text-xl font-semibold">
+                                <%= user?.displayName || 'User' %>
+                            </h2>
+                            <p class="profile-header-email">
+                                <%= user?.email || '' %>
+                            </p>
+                        </div>
+                    </div>
+
+                    <form id="profileForm" class="space-y-6">
+                        <div>
+                            <label class="block text-sm profile-label mb-2">Display Name</label>
+                            <input type="text" name="displayName" class="profile-input profile-focus-ring"
+                                value="<%= user?.displayName || '' %>" placeholder="Enter your display name">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm profile-label mb-2">Username</label>
+                            <input type="text" name="username" class="profile-input profile-focus-ring"
+                                value="<%= user?.username || '' %>" placeholder="Choose a username">
+                            <p class="profile-field-note text-xs mt-1">This will be used for your public profile</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm profile-label mb-2">Bio</label>
+                            <textarea name="bio" rows="3" class="profile-input profile-focus-ring w-full"
+                                placeholder="Tell us about yourself"><%= user?.bio || '' %></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm profile-label mb-2">Phone Number</label>
+                            <input type="tel" name="phone" class="profile-input profile-focus-ring"
+                                value="<%= user?.phone || '' %>" placeholder="+2348012345678">
+                            <p class="profile-field-note text-xs mt-1">Required for mobile money withdrawals</p>
+                        </div>
+
+                        <div class="custom-select">
+                            <select name="country" data-custom-select>
+                                <option value="Nigeria" <%=user?.country==='Nigeria' ? 'selected' : '' %>>Nigeria
+                                </option>
+                                <option value="Kenya" <%=user?.country==='Kenya' ? 'selected' : '' %>>Kenya</option>
+                                <option value="Ghana" <%=user?.country==='Ghana' ? 'selected' : '' %>>Ghana</option>
+                                <option value="South Africa" <%=user?.country==='South Africa' ? 'selected' : '' %>
+                                    >South Africa</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="profile-submit-btn profile-focus-ring w-full">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <div class="glass-card profile-card rounded-2xl p-6">
+                    <h3 class="profile-title font-heading text-lg font-semibold mb-4">Account Info</h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex justify-between">
+                            <span class="profile-info-label">Member since</span>
+                            <span class="profile-info-value">
+                                <%= user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' %>
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="profile-info-label">Total earned</span>
+                            <span class="profile-info-value profile-info-value--earned">₦<%=
+                                    user?.wallet?.lifetimeEarned?.toFixed(2) || '0.00' %></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="profile-info-label">Referral code</span>
+                            <span class="profile-info-value profile-info-value--mono">
+                                <%= user?.referralCode || 'N/A' %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="toast" class="toast"></div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('profileForm');
+
+                if (form) {
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        showToast('Profile update feature coming soon!', 'success');
+                    });
+                }
+            });
+        </script>
+
+        <%- include('../partials/dashboard-scripts') %>
+
+            <%- include('../partials/mobile-bottom-nav', { currentPage: 'profile' , theme: 'light' , unreadCount:
+                unreadCount }) %>
+</body>
+
+</html>

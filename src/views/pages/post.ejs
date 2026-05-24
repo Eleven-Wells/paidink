@@ -1,0 +1,1476 @@
+<script type="application/ld+json">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": post.title,
+  "description": post.metaDescription || post.summary || '',
+  "image": {
+    "@type": "ImageObject",
+    "url": post.image || (process.env.BASE_URL || '') + '/public/images/og-default.png',
+    "width": 1200,
+    "height": 630
+  },
+  "datePublished": post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString(),
+  "dateModified": post.updatedAt ? new Date(post.updatedAt).toISOString() : new Date().toISOString(),
+  "author": {
+    "@type": "Organization",
+    "name": "NOOK",
+    "url": process.env.BASE_URL || ''
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "NOOK",
+    "url": process.env.BASE_URL || ''
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": (process.env.BASE_URL || '') + '/post/' + post.slug
+  },
+  "keywords": (post.tags || []).join(', '),
+  "articleSection": post.category || ''
+}) %>
+</script>
+<script type="application/ld+json">
+<%- JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": process.env.BASE_URL || ''
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": typeof categoryNames !== 'undefined' && categoryNames[post.category] ? categoryNames[post.category] : post.category,
+      "item": (process.env.BASE_URL || '') + '/category/' + post.category
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": post.title,
+      "item": (process.env.BASE_URL || '') + '/post/' + post.slug
+    }
+  ]
+}) %>
+</script>
+
+<div class="post-page">
+    <header class="post-hero">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
+            <div class="post-back-row fade-up">
+                <button type="button" id="postBackButton" class="post-back-btn" aria-label="Go back to previous page">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M21 12H9"/></svg>
+                    <span>Back</span>
+                </button>
+            </div>
+
+            <div class="fade-up mb-6">
+                <span class="post-category-pill"><%= typeof categoryNames !== 'undefined' && categoryNames[post.category] ? categoryNames[post.category] : (post.category || '') %></span>
+            </div>
+
+            <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight mb-6 fade-up post-hero-title" style="animation-delay: 0.1s;">
+                <%= post.title %>
+            </h1>
+
+            <% if (post.summary) { %>
+                <p class="text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed mb-8 fade-up post-hero-summary" style="animation-delay: 0.2s;">
+                    <%= post.summary %>
+                </p>
+            <% } %>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6 fade-up post-meta-row" style="animation-delay: 0.3s;">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    <span class="font-mono text-xs"><%= formatDate ? formatDate(post.publishedAt) : new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                </div>
+                <span class="post-meta-dot"></span>
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span class="font-mono text-xs"><%= Math.ceil((post.content || '').length / 1000) || 5 %> min read</span>
+                </div>
+                <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+                    <span class="post-meta-dot"></span>
+                    <div class="flex items-center gap-2 post-meta-earn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="font-mono text-xs">Earn ₦5</span>
+                    </div>
+                <% } %>
+            </div>
+
+            <% if (post.tags && post.tags.length > 0) { %>
+                <div class="mt-8 flex flex-wrap justify-center gap-2 fade-up" style="animation-delay: 0.4s;">
+                    <% post.tags.forEach(tag => { %>
+                        <span class="post-tag-chip">#<%= tag %></span>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+    </header>
+
+    <div id="scrollProgressPost" class="post-progress-bar"></div>
+
+    <main class="post-main" id="article-main">
+        <div class="max-w-5xl mx-auto px-6 py-12 sm:py-16">
+            <% if (post.image) { %>
+                <div class="post-media-wrap mb-12 -mt-4 relative">
+                    <div class="post-media-frame">
+                        <img src="<%= post.image %>" alt="<%= post.title %>" loading="eager" fetchpriority="high" decoding="async" class="post-hero-image">
+                    </div>
+                </div>
+            <% } %>
+
+            <article class="post-article-shell">
+                <div class="article-content" id="article-content">
+                    <% if (typeof adInline !== 'undefined' && adInline && adInline.served && post.contentBeforeAd) { %>
+                        <%- post.contentBeforeAd %>
+                        <%- include('../partials/ad-inline', { ad: adInline }) %>
+                        <%- post.contentAfterAd %>
+                    <% } else { %>
+                        <%- post.content %>
+                    <% } %>
+                </div>
+            </article>
+
+            <footer class="post-endcap mt-16 pt-8">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="post-author-card flex items-center gap-4">
+                        <div class="post-author-avatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-medium post-author-name">NOOK</p>
+                            <p class="text-sm post-author-copy">Curated tech insights for developers</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <button type="button" class="post-share-btn share-btn" data-platform="twitter" aria-label="Share this post on Twitter">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                        </button>
+                        <button type="button" class="post-share-btn share-btn" data-platform="linkedin" aria-label="Share this post on LinkedIn">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </button>
+                        <button type="button" class="post-share-btn share-btn" data-platform="copy" aria-label="Copy this post link">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <section id="comments" class="post-comments-section">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="post-section-heading">
+                <span class="post-section-kicker">Conversation</span>
+                <h2 class="font-heading text-3xl sm:text-4xl post-section-title">
+                    <span id="commentCount">0</span> Comments
+                </h2>
+            </div>
+
+            <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+            <div class="post-comment-composer">
+                <form id="commentForm" class="space-y-4">
+                    <textarea
+                        id="commentContent"
+                        name="content"
+                        rows="3"
+                        class="post-comment-input w-full resize-none"
+                        placeholder="Share your thoughts..."
+                        maxlength="2000"
+                        required
+                    ></textarea>
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <span id="charCount" class="post-helper-text">0 / 2000</span>
+                        <button type="submit" id="submitComment" class="post-primary-btn">
+                            Post Comment
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <% } else { %>
+            <div class="post-signin-card">
+                <p class="post-signin-copy">Sign in to join the conversation</p>
+                <a href="/login" class="post-primary-btn post-primary-link">Sign In</a>
+            </div>
+            <% } %>
+
+            <div id="commentsList" class="post-comments-list space-y-4">
+                <div class="post-comments-status">Loading comments...</div>
+            </div>
+        </div>
+    </section>
+
+    <% if (typeof adBanner !== 'undefined' && adBanner && adBanner.served) { %>
+        <div class="max-w-5xl mx-auto px-6 py-8">
+            <%- include('../partials/ad-banner', { ad: adBanner }) %>
+        </div>
+    <% } %>
+
+    <div id="rewardToast" class="post-reward-toast fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-500 pointer-events-none">
+        <div class="flex items-center gap-3">
+            <div class="post-reward-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div>
+                <p class="font-medium post-reward-title" id="rewardMessage">You earned ₦5!</p>
+                <p class="text-sm post-reward-copy">Added to your wallet</p>
+            </div>
+        </div>
+    </div>
+
+    <section class="post-related-section">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <span class="post-section-kicker">More Reading</span>
+                <h2 class="font-heading text-3xl sm:text-4xl post-section-title">RELATED ARTICLES</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <% if (relatedPosts && relatedPosts.length > 0) { %>
+                    <% relatedPosts.forEach(relatedPost => { %>
+                        <% const relatedPlain = ((relatedPost.content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()); %>
+                        <% const relatedPreview = relatedPost.summary || (relatedPlain ? relatedPlain.substring(0, 120) + (relatedPlain.length > 120 ? '...' : '') : 'Continue reading this story on Nook.'); %>
+                        <a href="/post/<%= relatedPost.slug %>" class="post-related-link block h-full">
+                            <article class="post-related-card group h-full">
+                                <div class="post-related-media">
+                                    <img src="<%= relatedPost.image || '/public/images/placeholder.jpg' %>" alt="<%= relatedPost.title %>" loading="lazy" decoding="async" class="post-related-image">
+                                    <div class="post-related-overlay"></div>
+                                    <div class="absolute top-4 left-4">
+                                        <span class="post-category-pill post-category-pill--small"><%= { 'ai-tools': 'AI', 'javascript': 'JavaScript', 'backend': 'Backend', 'devops': 'DevOps', 'performance': 'Performance', 'career': 'Career' }[relatedPost.category] || relatedPost.category %></span>
+                                    </div>
+                                </div>
+                                <div class="post-related-content">
+                                    <div class="flex items-center gap-3 text-xs font-mono post-related-meta">
+                                        <span><%= formatDate ? formatDate(relatedPost.publishedAt) : new Date(relatedPost.publishedAt).toLocaleDateString() %></span>
+                                        <span class="post-meta-dot"></span>
+                                        <span><%= Math.ceil((relatedPost.content || '').length / 1000) || 5 %> min read</span>
+                                    </div>
+                                    <h3 class="font-heading text-lg leading-snug line-clamp-2 post-related-title"><%= relatedPost.title %></h3>
+                                    <p class="post-related-summary"><%= relatedPreview %></p>
+                                    <div class="post-related-footer">
+                                        <span class="post-related-readmore">Read article</span>
+                                        <span class="post-related-arrow" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
+                    <% }); %>
+                <% } else { %>
+                    <div class="md:col-span-3 post-empty-card">
+                        <p>No related articles found.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/mobile-bottom-nav', { currentPage: 'post', theme: 'light' }) %>
+</div>
+
+<style>
+    .post-page {
+        --post-accent: #6d0a0a;
+        --post-accent-deep: #4c0707;
+        --post-accent-soft: rgba(109, 10, 10, 0.08);
+        --post-border: rgba(109, 10, 10, 0.12);
+        --post-border-strong: rgba(109, 10, 10, 0.18);
+        --post-copy: #2f2725;
+        --post-copy-soft: #6c625f;
+        --post-heading: #130f0e;
+        --post-surface: #ffffff;
+        --post-surface-soft: #fdf8f5;
+        --post-shadow: 0 24px 80px rgba(109, 10, 10, 0.08);
+        color: var(--post-heading);
+        background: #ffffff;
+    }
+
+    .post-page .post-hero {
+        position: relative;
+        overflow: hidden;
+        padding-top: 8rem;
+        padding-bottom: 5rem;
+        background:
+            radial-gradient(circle at top center, rgba(109, 10, 10, 0.12), transparent 38%),
+            linear-gradient(180deg, #fffdfb 0%, #ffffff 58%, #faf6f2 100%);
+        border-bottom: 1px solid rgba(109, 10, 10, 0.08);
+    }
+
+    .post-page .post-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(109, 10, 10, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(109, 10, 10, 0.03) 1px, transparent 1px);
+        background-size: 120px 120px;
+        mask-image: radial-gradient(circle at top center, black 18%, transparent 74%);
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
+    .post-page .post-hero-title {
+        color: var(--post-heading);
+        letter-spacing: -0.03em;
+    }
+
+    .post-page .post-back-row {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 2.25rem;
+    }
+
+    .post-page .post-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.75rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--post-accent);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 14px 34px rgba(109, 10, 10, 0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .post-page .post-back-btn:hover {
+        transform: translateY(-1px);
+        background: var(--post-accent);
+        border-color: var(--post-accent);
+        color: #ffffff;
+        box-shadow: 0 18px 36px rgba(109, 10, 10, 0.18);
+    }
+
+    .post-page .post-hero-summary {
+        color: var(--post-copy);
+    }
+
+    .post-page .post-category-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.7rem 1.1rem;
+        border-radius: 999px;
+        background: var(--post-accent);
+        color: #ffffff;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        box-shadow: 0 12px 35px rgba(109, 10, 10, 0.18);
+    }
+
+    .post-page .post-category-pill--small {
+        padding: 0.45rem 0.8rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        box-shadow: none;
+    }
+
+    .post-page .post-meta-row {
+        color: var(--post-copy-soft);
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .post-page .post-meta-dot {
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 999px;
+        background: rgba(109, 10, 10, 0.22);
+        flex-shrink: 0;
+    }
+
+    .post-page .post-meta-earn {
+        color: #15803d;
+    }
+
+    .post-page .post-tag-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 0.85rem;
+        border-radius: 999px;
+        background: var(--post-accent-soft);
+        border: 1px solid rgba(109, 10, 10, 0.09);
+        color: var(--post-accent);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+    }
+
+    .post-page .post-tag-chip:hover {
+        background: rgba(109, 10, 10, 0.12);
+        transform: translateY(-1px);
+    }
+
+    .post-page .post-progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 2px;
+        z-index: 60;
+        background: linear-gradient(90deg, var(--post-accent), #b91c1c);
+        box-shadow: 0 0 16px rgba(109, 10, 10, 0.35);
+        transition: width 0.3s ease;
+    }
+
+    .post-page .post-main,
+    .post-page .post-comments-section {
+        position: relative;
+        z-index: 10;
+        background: #ffffff;
+    }
+
+    .post-page .post-comments-section {
+        padding: 5rem 0;
+        background:
+            radial-gradient(circle at top left, rgba(109, 10, 10, 0.06), transparent 26%),
+            linear-gradient(180deg, #fffaf7 0%, #fff3ec 100%);
+        border-top: 1px solid rgba(109, 10, 10, 0.06);
+        border-bottom: 1px solid rgba(109, 10, 10, 0.06);
+    }
+
+    .post-page .post-related-section {
+        position: relative;
+        z-index: 10;
+        padding: 6rem 0;
+        background:
+            linear-gradient(180deg, #fff7f1 0%, #fdf0e7 100%);
+    }
+
+    .post-page .post-media-frame {
+        overflow: hidden;
+        border-radius: 1.75rem;
+        border: 1px solid rgba(109, 10, 10, 0.1);
+        box-shadow: var(--post-shadow);
+        background: #f5eeea;
+    }
+
+    .post-page .post-hero-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .post-page .post-article-shell {
+        max-width: 46rem;
+        margin: 0 auto;
+    }
+
+    .post-page .article-content {
+        font-size: 1.125rem;
+        line-height: 1.85;
+        color: var(--post-copy);
+    }
+
+    .post-page .article-content > *:first-child {
+        margin-top: 0;
+    }
+
+    .post-page .article-content > *:last-child {
+        margin-bottom: 0;
+    }
+
+    .post-page .article-content h1,
+    .post-page .article-content h2,
+    .post-page .article-content h3,
+    .post-page .article-content h4 {
+        color: var(--post-heading);
+        font-weight: 700;
+        margin-top: 2.75rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+        letter-spacing: -0.03em;
+        font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .post-page .article-content h1 { font-size: 2.25rem; }
+    .post-page .article-content h2 { font-size: 1.9rem; }
+    .post-page .article-content h3 { font-size: 1.55rem; }
+    .post-page .article-content h4 { font-size: 1.25rem; }
+
+    .post-page .article-content p,
+    .post-page .article-content ul,
+    .post-page .article-content ol,
+    .post-page .article-content table,
+    .post-page .article-content pre,
+    .post-page .article-content blockquote {
+        margin-bottom: 1.6rem;
+    }
+
+    .post-page .article-content strong {
+        color: var(--post-heading);
+        font-weight: 700;
+    }
+
+    .post-page .article-content a {
+        color: var(--post-accent);
+        text-decoration: underline;
+        text-decoration-color: rgba(109, 10, 10, 0.22);
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 0.18em;
+        transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    }
+
+    .post-page .article-content a:hover {
+        color: var(--post-accent-deep);
+        text-decoration-color: rgba(109, 10, 10, 0.45);
+    }
+
+    .post-page .article-content ul,
+    .post-page .article-content ol {
+        padding-left: 1.4rem;
+    }
+
+    .post-page .article-content li {
+        margin-bottom: 0.8rem;
+        color: var(--post-copy);
+    }
+
+    .post-page .article-content li::marker {
+        color: var(--post-accent);
+    }
+
+    .post-page .article-content blockquote {
+        padding: 1.4rem 1.5rem;
+        border-left: 4px solid var(--post-accent);
+        border-radius: 1rem;
+        background: var(--post-surface-soft);
+        color: #564c48;
+        font-style: italic;
+    }
+
+    .post-page .article-content code {
+        background: #f6efeb;
+        padding: 0.18rem 0.42rem;
+        border-radius: 0.45rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        color: var(--post-accent);
+    }
+
+    .post-page .article-content pre {
+        background: linear-gradient(180deg, #201515 0%, #110c0c 100%);
+        color: #f6f3f2;
+        padding: 1.4rem 1.5rem;
+        border-radius: 1.1rem;
+        overflow-x: auto;
+        border: 1px solid rgba(109, 10, 10, 0.28);
+        box-shadow: 0 24px 50px rgba(17, 12, 12, 0.18);
+    }
+
+    .post-page .article-content pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+    }
+
+    .post-page .article-content img,
+    .post-page .article-content iframe {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 1.2rem;
+        margin: 2rem 0;
+    }
+
+    .post-page .article-content img {
+        height: auto;
+        border: 1px solid rgba(109, 10, 10, 0.1);
+        box-shadow: var(--post-shadow);
+    }
+
+    .post-page .article-content iframe {
+        min-height: 320px;
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        background: #ffffff;
+    }
+
+    .post-page .article-content table {
+        width: 100%;
+        border-collapse: collapse;
+        display: block;
+        overflow-x: auto;
+    }
+
+    .post-page .article-content th,
+    .post-page .article-content td {
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        padding: 0.85rem;
+        text-align: left;
+    }
+
+    .post-page .article-content th {
+        background: #fdf7f4;
+        color: var(--post-heading);
+        font-weight: 600;
+    }
+
+    .post-page .article-content hr {
+        border: none;
+        border-top: 1px solid rgba(109, 10, 10, 0.12);
+        margin: 2.5rem 0;
+    }
+
+    .post-page .post-endcap {
+        border-top: 1px solid rgba(109, 10, 10, 0.12);
+    }
+
+    .post-page .post-author-card {
+        padding: 1rem 1.15rem;
+        border-radius: 1.2rem;
+        background: linear-gradient(180deg, #fffaf7 0%, #ffffff 100%);
+        border: 1px solid rgba(109, 10, 10, 0.1);
+    }
+
+    .post-page .post-author-avatar {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(109, 10, 10, 0.1);
+        background: rgba(109, 10, 10, 0.05);
+        color: var(--post-copy-soft);
+        flex-shrink: 0;
+    }
+
+    .post-page .post-author-name,
+    .post-page .post-reward-title {
+        color: var(--post-heading);
+    }
+
+    .post-page .post-author-copy,
+    .post-page .post-reward-copy,
+    .post-page .post-helper-text,
+    .post-page .post-comments-status,
+    .post-page .post-related-meta {
+        color: var(--post-copy-soft);
+    }
+
+    .post-page .post-share-btn {
+        width: 3rem;
+        height: 3rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        background: rgba(109, 10, 10, 0.04);
+        color: #6a615d;
+        transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-page .post-share-btn:hover {
+        transform: translateY(-2px);
+        background: var(--post-accent);
+        border-color: var(--post-accent);
+        color: #ffffff;
+        box-shadow: 0 16px 34px rgba(109, 10, 10, 0.2);
+    }
+
+    .post-page .post-share-btn:focus-visible,
+    .post-page .post-back-btn:focus-visible,
+    .post-page .post-comment-input:focus,
+    .post-page .post-primary-btn:focus-visible,
+    .post-page .comment-like-btn:focus-visible,
+    .post-page .comment-delete-btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
+    }
+
+    .post-page .post-section-heading {
+        margin-bottom: 2rem;
+    }
+
+    .post-page .post-section-kicker {
+        display: block;
+        margin-bottom: 0.9rem;
+        color: var(--post-copy-soft);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .post-page .post-section-title {
+        color: var(--post-heading);
+        letter-spacing: -0.03em;
+    }
+
+    .post-page .post-comment-composer,
+    .post-page .post-signin-card {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 241, 0.98) 100%);
+        box-shadow: 0 24px 48px rgba(109, 10, 10, 0.06);
+        backdrop-filter: blur(10px);
+    }
+
+    .post-page .post-comment-input {
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(109, 10, 10, 0.14);
+        color: var(--post-heading);
+        padding: 0.8rem 0;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-page .post-comment-input::placeholder {
+        color: #908682;
+    }
+
+    .post-page .post-comment-input:focus {
+        border-bottom-color: var(--post-accent);
+    }
+
+    .post-page .post-primary-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.4rem;
+        border-radius: 999px;
+        border: none;
+        background: var(--post-accent);
+        color: #ffffff;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .post-page .post-primary-btn:hover {
+        transform: translateY(-1px);
+        background: var(--post-accent-deep);
+        box-shadow: 0 16px 34px rgba(109, 10, 10, 0.18);
+    }
+
+    .post-page .post-primary-btn[disabled] {
+        opacity: 0.72;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .post-page .post-primary-link {
+        min-width: 8rem;
+    }
+
+    .post-page .post-comments-list {
+        position: relative;
+    }
+
+    .post-page .post-signin-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .post-page .post-signin-copy {
+        color: var(--post-copy);
+        margin: 0;
+    }
+
+    .post-page .post-comments-status,
+    .post-page .post-empty-card {
+        padding: 2.25rem;
+        border-radius: 1.4rem;
+        border: 1px solid rgba(109, 10, 10, 0.1);
+        background: linear-gradient(180deg, #ffffff 0%, #fff8f4 100%);
+        text-align: center;
+        box-shadow: 0 18px 36px rgba(109, 10, 10, 0.04);
+    }
+
+    .post-page .post-comments-status p,
+    .post-page .post-empty-card p {
+        margin: 0;
+    }
+
+    .post-page .post-comment-card {
+        padding: 1.1rem;
+        border-radius: 1.2rem;
+        border: 1px solid rgba(109, 10, 10, 0.1);
+        background: linear-gradient(180deg, #ffffff 0%, #fff9f5 100%);
+        box-shadow: 0 16px 34px rgba(109, 10, 10, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .post-page .post-comment-card:hover {
+        transform: translateY(-1px);
+        border-color: rgba(109, 10, 10, 0.16);
+        box-shadow: 0 24px 42px rgba(109, 10, 10, 0.08);
+    }
+
+    .post-page .post-comment-avatar {
+        width: 2.6rem;
+        height: 2.6rem;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, rgba(109, 10, 10, 0.12) 0%, rgba(238, 223, 213, 0.9) 100%);
+        border: 1px solid rgba(109, 10, 10, 0.08);
+        color: var(--post-accent);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .post-page .post-comment-author {
+        color: var(--post-heading);
+    }
+
+    .post-page .post-comment-time,
+    .post-page .post-comment-action {
+        color: var(--post-copy-soft);
+    }
+
+    .post-page .post-comment-text {
+        color: var(--post-copy);
+        margin-top: 0.55rem;
+    }
+
+    .post-page .post-comment-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.9rem;
+    }
+
+    .post-page .post-comment-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.32rem;
+        border: 1px solid rgba(109, 10, 10, 0.08);
+        background: rgba(109, 10, 10, 0.04);
+        padding: 0.42rem 0.75rem;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        font-weight: 600;
+    }
+
+    .post-page .post-comment-action:hover {
+        color: var(--post-accent);
+        background: rgba(109, 10, 10, 0.08);
+        border-color: rgba(109, 10, 10, 0.14);
+        transform: translateY(-1px);
+    }
+
+    .post-page .post-comment-action-delete:hover {
+        color: #dc2626;
+        background: rgba(220, 38, 38, 0.07);
+        border-color: rgba(220, 38, 38, 0.14);
+    }
+
+    .post-page .post-comment-like-icon-active {
+        color: var(--post-accent);
+    }
+
+    .post-page .post-reward-toast {
+        z-index: 220;
+        padding: 1rem 1.1rem;
+        border-radius: 1.4rem;
+        border: 1px solid rgba(109, 10, 10, 0.1);
+        background: #ffffff;
+        box-shadow: 0 24px 80px rgba(109, 10, 10, 0.14);
+    }
+
+    .post-page .post-reward-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(22, 163, 74, 0.1);
+        color: #16a34a;
+    }
+
+    .post-page .post-related-link {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .post-page .post-related-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 1.65rem;
+        border: 1px solid rgba(109, 10, 10, 0.11);
+        background: linear-gradient(180deg, #fffdfb 0%, #fff7f2 100%);
+        box-shadow: 0 22px 52px rgba(109, 10, 10, 0.06);
+        transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.25s ease;
+    }
+
+    .post-page .post-related-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(109, 10, 10, 0.16);
+        box-shadow: 0 30px 66px rgba(109, 10, 10, 0.12);
+    }
+
+    .post-page .post-related-card:hover .post-related-title {
+        color: var(--post-accent);
+    }
+
+    .post-page .post-related-card:hover .post-related-image {
+        transform: scale(1.05);
+    }
+
+    .post-page .post-related-media {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 16 / 10;
+        background: #f1ebe7;
+        margin: 0.9rem 0.9rem 0;
+        border-radius: 1.2rem;
+    }
+
+    .post-page .post-related-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.7s ease;
+    }
+
+    .post-page .post-related-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 10%, rgba(30, 14, 14, 0.42) 100%);
+    }
+
+    .post-page .post-related-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 1.15rem 1.15rem 1.25rem;
+    }
+
+    .post-page .post-related-title {
+        color: var(--post-heading);
+        transition: color 0.25s ease;
+        margin-top: 0.55rem;
+    }
+
+    .post-page .post-related-summary {
+        margin-top: 0.75rem;
+        color: var(--post-copy-soft);
+        font-size: 0.95rem;
+        line-height: 1.65;
+        flex: 1;
+    }
+
+    .post-page .post-related-footer {
+        margin-top: 1.15rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(109, 10, 10, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .post-page .post-related-readmore {
+        color: var(--post-accent);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .post-page .post-related-arrow {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(109, 10, 10, 0.06);
+        color: var(--post-accent);
+        transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease;
+    }
+
+    .post-page .post-related-card:hover .post-related-arrow {
+        transform: translateX(2px);
+        background: var(--post-accent);
+        color: #ffffff;
+    }
+
+    @media (max-width: 640px) {
+        .post-page .post-hero {
+            padding-top: 7rem;
+            padding-bottom: 4rem;
+        }
+
+        .post-page .post-back-row {
+            margin-bottom: 1.6rem;
+        }
+
+        .post-page .post-back-btn {
+            padding: 0.68rem 0.9rem;
+            font-size: 0.76rem;
+        }
+
+        .post-page .post-hero-image {
+            height: 280px;
+        }
+
+        .post-page .article-content {
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .post-page .article-content h1 { font-size: 1.9rem; }
+        .post-page .article-content h2 { font-size: 1.65rem; }
+        .post-page .article-content h3 { font-size: 1.35rem; }
+
+        .post-page .post-comment-composer,
+        .post-page .post-signin-card {
+            padding: 1.15rem;
+        }
+
+        .post-page .post-comments-section,
+        .post-page .post-related-section {
+            padding: 4rem 0;
+        }
+
+        .post-page .post-reward-toast {
+            right: 1rem;
+            bottom: 5.5rem;
+            max-width: calc(100vw - 2rem);
+        }
+
+        .post-page .post-related-media {
+            margin: 0.75rem 0.75rem 0;
+        }
+
+        .post-page .post-related-content {
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 641px) {
+        .post-page .post-hero-image {
+            height: 500px;
+        }
+    }
+</style>
+
+<script>
+    <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+    let readSessionId = null;
+    let sessionStarted = false;
+    let hasCompleted = false;
+    let scrollUpdateTimer = null;
+    let sessionStartTime = null;
+    let isTabVisible = true;
+
+    const MIN_READ_TIME_SECONDS = 30;
+    const MIN_SCROLL_PERCENT = 90;
+
+    function getAuthHeaders() {
+        return {
+            'Content-Type': 'application/json'
+        };
+    }
+
+    async function startReadSession() {
+        try {
+            const response = await fetch('/api/reads/start', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ postId: '<%= post._id %>' })
+            });
+            const result = await response.json();
+            if (result.success) {
+                readSessionId = result.data.sessionId;
+                sessionStarted = true;
+                sessionStartTime = Date.now();
+            }
+        } catch (error) {
+            console.error('Failed to start read session:', error);
+        }
+    }
+
+    async function updateProgress(progress) {
+        if (!readSessionId || !sessionStarted) return;
+
+        clearTimeout(scrollUpdateTimer);
+        scrollUpdateTimer = setTimeout(async () => {
+            try {
+                await fetch('/api/reads/update-progress', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ sessionId: readSessionId, progress })
+                });
+            } catch (error) {
+                console.error('Failed to update progress:', error);
+            }
+        }, 500);
+    }
+
+    function canCompleteRead() {
+        if (!sessionStartTime) return false;
+
+        const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+        const scrollPercent = getScrollPercent();
+
+        return timeSpent >= MIN_READ_TIME_SECONDS && scrollPercent >= MIN_SCROLL_PERCENT;
+    }
+
+    function getScrollPercent() {
+        const articleElement = document.getElementById('article-content');
+        if (!articleElement) return 0;
+
+        const articleRect = articleElement.getBoundingClientRect();
+        const articleHeight = articleRect.height;
+        const articleTop = articleRect.top;
+
+        let scrolledThrough = 0;
+        if (articleTop < 0) {
+            scrolledThrough = Math.abs(articleTop) + window.innerHeight;
+        } else {
+            scrolledThrough = window.innerHeight - articleTop;
+        }
+
+        let articlePercent = 0;
+        if (articleHeight > 0) {
+            articlePercent = (scrolledThrough / articleHeight) * 100;
+        }
+
+        return Math.min(100, Math.max(0, articlePercent));
+    }
+
+    async function completeReadSession() {
+        if (!readSessionId || hasCompleted || !canCompleteRead()) return;
+
+        hasCompleted = true;
+
+        try {
+            const response = await fetch('/api/reads/complete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ sessionId: readSessionId })
+            });
+            const result = await response.json();
+            if (result.success && result.data.rewardAwarded) {
+                showRewardToast(result.data.rewardAmount);
+            }
+        } catch (error) {
+            console.error('Failed to complete read session:', error);
+            hasCompleted = false;
+        }
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        isTabVisible = !document.hidden;
+    });
+
+    function showRewardToast(amount) {
+        const toast = document.getElementById('rewardToast');
+        const message = document.getElementById('rewardMessage');
+        if (toast && message) {
+            message.textContent = `You earned ₦${amount}!`;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 4000);
+        }
+    }
+
+    window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        const progressBar = document.getElementById('scrollProgressPost');
+        if (progressBar) progressBar.style.width = scrollPercent + '%';
+        
+        if (sessionStarted && !hasCompleted) {
+            updateProgress(Math.round(scrollPercent));
+
+            if (scrollPercent >= MIN_SCROLL_PERCENT && canCompleteRead()) {
+                completeReadSession();
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        startReadSession();
+
+        setInterval(function() {
+            if (sessionStarted && !hasCompleted) {
+                const scrollPercent = getScrollPercent();
+                if (scrollPercent >= MIN_SCROLL_PERCENT && canCompleteRead()) {
+                    completeReadSession();
+                }
+            }
+        }, 1000);
+    });
+    <% } else { %>
+    window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        const progressBar = document.getElementById('scrollProgressPost');
+        if (progressBar) progressBar.style.width = scrollPercent + '%';
+    });
+    <% } %>
+
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const platform = this.dataset.platform;
+            const url = window.location.href;
+            const title = document.title;
+            let shareUrl = '';
+            switch (platform) {
+                case 'twitter':
+                    shareUrl = 'https://twitter.com/intent/tweet?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(title);
+                    break;
+                case 'linkedin':
+                    shareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
+                    break;
+                case 'copy':
+                    navigator.clipboard.writeText(url).then(() => {
+                        this.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                        setTimeout(() => {
+                            this.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+                        }, 2000);
+                    });
+                    return;
+            }
+            if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
+        });
+    });
+
+    const postBackButton = document.getElementById('postBackButton');
+    if (postBackButton) {
+        postBackButton.addEventListener('click', function() {
+            const fallbackUrl = document.referrer && document.referrer.startsWith(window.location.origin)
+                ? document.referrer
+                : '/browse';
+
+            if (window.history.length > 1) {
+                window.history.back();
+
+                window.setTimeout(function() {
+                    if (document.visibilityState === 'visible') {
+                        window.location.href = fallbackUrl;
+                    }
+                }, 400);
+
+                return;
+            }
+
+            window.location.href = fallbackUrl;
+        });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        (function() {
+            var postId = '<%= String(post._id) %>';
+            var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>;
+            var currentUser = null;
+            try { currentUser = <%- typeof user !== 'undefined' && user ? JSON.stringify(typeof user.toJSON === 'function' ? user.toJSON() : user) : 'null' %>; } catch(e) {}
+
+            function escapeHtml(text) {
+                var div = document.createElement('div');
+                div.appendChild(document.createTextNode(text));
+                return div.innerHTML;
+            }
+
+            function formatTime(dateStr) {
+                var now = new Date();
+                var date = new Date(dateStr);
+                var diff = Math.floor((now - date) / 1000);
+                if (diff < 60) return 'just now';
+                if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+                return date.toLocaleDateString();
+            }
+
+            function renderComment(comment) {
+                var author = comment.author || {};
+                var authorId = typeof author === 'object' ? (author._id || '') : author;
+                var authorName = typeof author === 'object' ? (author.displayName || 'Unknown') : 'User';
+                var isOwner = currentUser && authorId === currentUser._id;
+                var initials = authorName.charAt(0).toUpperCase();
+                var likesCount = comment.likes ? comment.likes.length : 0;
+                var userLiked = currentUser && comment.likes && comment.likes.some(function(uid) { return String(uid) === String(currentUser._id); });
+
+                return '<div class="post-comment-card" id="comment-' + comment._id + '">' +
+                    '<div class="flex items-start gap-3">' +
+                        '<div class="post-comment-avatar">' + initials + '</div>' +
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="flex items-center gap-2 flex-wrap">' +
+                                '<span class="font-medium text-sm post-comment-author">' + escapeHtml(comment.author ? comment.author.displayName : 'Unknown') + '</span>' +
+                                '<span class="text-xs post-comment-time">' + formatTime(comment.createdAt) + '</span>' +
+                            '</div>' +
+                            '<p class="text-sm leading-relaxed post-comment-text">' + escapeHtml(comment.content) + '</p>' +
+                            '<div class="post-comment-actions">' +
+                                '<button type="button" class="comment-like-btn post-comment-action" data-comment-id="' + comment._id + '">' +
+                                    (userLiked ? '<svg class="w-4 h-4 post-comment-like-icon-active" fill="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>') +
+                                    '<span class="comment-likes">' + likesCount + '</span>' +
+                                '</button>' +
+                                (isOwner ? '<button type="button" class="comment-delete-btn post-comment-action post-comment-action-delete" data-comment-id="' + comment._id + '">Delete</button>' : '') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            async function loadComments() {
+                var listEl = document.getElementById('commentsList');
+                var countEl = document.getElementById('commentCount');
+                console.log('Loading comments for post:', postId);
+                try {
+                    var res = await fetch('/api/posts/' + postId + '/comments');
+                    var text = await res.text();
+                    console.log('Comments response:', res.status, text);
+                    var data = JSON.parse(text);
+
+                    if (!listEl) return;
+
+                    if (!data.success || !data.data || data.data.length === 0) {
+                        listEl.innerHTML = '<div class="post-comments-status">No comments yet. Be the first!</div>';
+                        if (countEl) countEl.textContent = '0';
+                        return;
+                    }
+
+                    if (countEl) countEl.textContent = data.total;
+                    listEl.innerHTML = data.data.map(renderComment).join('');
+                    attachCommentActions(listEl);
+                } catch (e) {
+                    console.error('Failed to load comments:', e);
+                    var listEl = document.getElementById('commentsList');
+                    if (listEl) listEl.innerHTML = '<div class="post-comments-status">Failed to load comments</div>';
+                }
+            }
+
+            function attachCommentActions(listEl) {
+                listEl.querySelectorAll('.comment-like-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function() {
+                        if (!isLoggedIn) return;
+                        var cid = this.getAttribute('data-comment-id');
+                        try {
+                            var r = await fetch('/api/posts/' + postId + '/comments/' + cid + '/like', { method: 'POST' });
+                            var d = await r.json();
+                            if (d.success) {
+                                this.querySelector('.comment-likes').textContent = d.likesCount;
+                                if (d.liked) {
+                                    this.querySelector('svg').outerHTML = '<svg class="w-4 h-4 post-comment-like-icon-active" fill="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+                                } else {
+                                    this.querySelector('svg').outerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+                                }
+                            }
+                        } catch (e) { console.error('Like failed:', e); }
+                    });
+                });
+
+                listEl.querySelectorAll('.comment-delete-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function() {
+                        var cid = this.getAttribute('data-comment-id');
+                        if (!confirm('Delete this comment?')) return;
+                        try {
+                            var r = await fetch('/api/posts/' + postId + '/comments/' + cid, { method: 'DELETE' });
+                            var d = await r.json();
+                            if (d.success) {
+                                var el = document.getElementById('comment-' + cid);
+                                if (el) el.remove();
+                                var cnt = document.getElementById('commentCount');
+                                if (cnt) cnt.textContent = Math.max(0, parseInt(cnt.textContent) - 1);
+                            }
+                        } catch (e) { console.error('Delete failed:', e); }
+                    });
+                });
+            }
+
+            var form = document.getElementById('commentForm');
+            var textarea = document.getElementById('commentContent');
+            var charCount = document.getElementById('charCount');
+
+            if (textarea && charCount) {
+                textarea.addEventListener('input', function() {
+                    charCount.textContent = this.value.length + ' / 2000';
+                });
+            }
+
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    var btn = document.getElementById('submitComment');
+                    var content = textarea.value.trim();
+                    if (!content || btn.disabled) return;
+
+                    btn.disabled = true;
+                    btn.textContent = 'Posting...';
+
+                    try {
+                        var res = await fetch('/api/posts/' + postId + '/comments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: content })
+                        });
+                        var data = await res.json();
+                        if (data.success) {
+                            textarea.value = '';
+                            if (charCount) charCount.textContent = '0 / 2000';
+                            var listEl = document.getElementById('commentsList');
+                            var countEl = document.getElementById('commentCount');
+                            if (listEl && listEl.querySelector('.post-comments-status')) {
+                                listEl.innerHTML = renderComment(data.data);
+                            } else if (listEl) {
+                                listEl.insertAdjacentHTML('afterbegin', renderComment(data.data));
+                            }
+                            if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+                            attachCommentActions(listEl);
+                        }
+                    } catch (e) {
+                        console.error('Comment failed:', e);
+                    }
+
+                    btn.disabled = false;
+                    btn.textContent = 'Post Comment';
+                });
+            }
+
+            loadComments();
+        })();
+    });
+</script>

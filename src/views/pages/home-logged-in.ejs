@@ -1,0 +1,331 @@
+<div class="home-layout">
+    <!-- Brand header -->
+    <header class="home-brand" style="grid-area: brand;">
+        <a href="/"
+            style="font-family: 'Zen Tokyo Zoo', cursive; font-size: 90px; letter-spacing: -14.4px; color: #6d0a0a; text-decoration: none; white-space: nowrap;">
+            nook
+        </a>
+    </header>
+
+    <!-- Side Navigation -->
+    <%- include('../partials/home-side-nav') %>
+
+        <!-- Search bar -->
+        <section class="home-search" style="grid-area: search;" aria-label="Search">
+            <form role="search">
+                <label for="global-search" class="sr-only">Search</label>
+                <div>
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input id="global-search" name="search" type="search" placeholder="Search" aria-label="Search" />
+                </div>
+            </form>
+        </section>
+
+        <!-- Divider -->
+        <div class="home-divider" style="grid-area: divider;"></div>
+
+        <!-- Post Composer -->
+        <%- include('../partials/home-post-composer') %>
+
+            <!-- Activity Feed -->
+            <%- include('../partials/home-activity-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds:
+                feedAds }) %>
+
+                <!-- Sidebar -->
+                <aside class="home-sidebar" style="grid-area: sidebar;">
+                    <%- include('../partials/home-trending', { trendingPosts: trendingPosts }) %>
+                        <% if (typeof sidebarAd !=='undefined' && sidebarAd) { %>
+                            <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
+                                <% } %>
+                                    <%- include('../partials/home-who-to-follow', { suggestedUsers: suggestedUsers }) %>
+                </aside>
+</div>
+
+<%- include('../partials/mobile-bottom-nav', { currentPage: 'home' , unreadCount: unreadCount }) %>
+
+    <style>
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        .home-layout {
+            display: grid;
+            grid-template-columns: minmax(240px, 466px) 1fr minmax(200px, 360px);
+            grid-template-rows: auto auto auto auto 1fr;
+            grid-template-areas:
+                "brand brand brand"
+                "nav . search"
+                "nav composer composer"
+                "nav feed sidebar"
+                "nav feed sidebar";
+            min-height: 100vh;
+            background: #fff;
+            gap: 0;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .home-brand {
+            padding: 0 40px;
+            background: #fff;
+            position: relative;
+            z-index: 2;
+        }
+
+        .home-search {
+            padding: 0 24px 0 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .home-search form {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            height: 80px;
+            padding: 10px;
+            border-radius: 36px;
+            border: 1px solid #000;
+            box-sizing: border-box;
+        }
+
+        .home-search>form>div {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            width: 100%;
+        }
+
+        .home-search input {
+            width: 100%;
+            font-family: 'Abhaya Libre', serif;
+            font-weight: 500;
+            font-size: 32px;
+            color: #000;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+        }
+
+        .home-divider {
+            grid-area: divider;
+            position: absolute;
+            top: 0;
+            left: 466px;
+            width: 1px;
+            height: 100%;
+            background: url('/public/images/line-2.svg') repeat-y;
+            pointer-events: none;
+        }
+
+        .home-side-nav {
+            grid-area: nav;
+        }
+
+        .home-activity-feed {
+            grid-area: feed;
+            padding-top: 40px;
+        }
+
+        .home-composer {
+            grid-area: composer;
+        }
+
+        .home-sidebar {
+            grid-area: sidebar;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            padding: 140px 24px 40px 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .home-sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .home-sidebar .home-trending,
+        .home-sidebar .home-who-follow {
+            grid-area: unset;
+        }
+
+        @media (max-width: 1400px) {
+            .home-layout {
+                grid-template-columns: 320px 1fr 300px;
+            }
+
+            .home-divider {
+                left: 320px;
+            }
+
+            .home-search {
+                padding: 0 24px 0 0;
+            }
+
+            .home-search form {
+                max-width: 100%;
+            }
+
+            .home-search input {
+                font-size: 24px;
+            }
+
+            .home-search svg {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .home-layout {
+                grid-template-columns: 1fr 300px;
+                grid-template-rows: auto auto auto 1fr;
+                grid-template-areas:
+                    "brand brand"
+                    "search search"
+                    "composer composer"
+                    "feed sidebar";
+            }
+
+            .home-brand {
+                padding: 0 24px;
+            }
+
+            .home-search {
+                padding: 0 24px;
+            }
+
+            .home-search form {
+                max-width: 100%;
+                height: 60px;
+                border-radius: 24px;
+            }
+
+            .home-search input {
+                font-size: 20px;
+            }
+
+            .home-search svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .home-divider {
+                display: none;
+            }
+
+            .home-activity-feed {
+                padding: 24px;
+            }
+
+            .home-sidebar {
+                padding: 160px 0 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .home-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto 1fr;
+                grid-template-areas:
+                    "brand"
+                    "search"
+                    "composer"
+                    "feed";
+                width: 100%;
+            }
+
+            .home-brand {
+                padding: 16px 20px;
+            }
+
+            .home-brand a {
+                font-size: 48px !important;
+                letter-spacing: -8px !important;
+            }
+
+            .home-search {
+                padding: 0 20px 16px;
+                max-width: 100%;
+            }
+
+            .home-search form {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .home-activity-feed {
+                padding: 0 16px;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .home-composer {
+                padding: 0 16px 24px;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .home-composer>form {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .feed-post {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .feed-post-header,
+            .feed-post-body,
+            .feed-post-meta,
+            .feed-post-actions,
+            .feed-post-interactions {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            .feed-post-image {
+                max-width: 100%;
+                height: auto;
+                aspect-ratio: 481 / 188;
+            }
+
+            .home-activity-feed {
+                padding-bottom: 80px;
+            }
+
+            .home-sidebar {
+                display: none;
+            }
+        }
+    </style>

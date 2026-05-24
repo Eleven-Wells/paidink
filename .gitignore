@@ -1,0 +1,7 @@
+# module
+node_modules/
+/.pnp
+temp.html
+
+.env
+# .env.example should be committed as a template

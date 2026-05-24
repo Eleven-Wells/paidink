@@ -1,0 +1,79 @@
+const { triggerAdForUser } = require('./AdSimulationService');
+
+const AD_SLOT_MAP = {
+    article_inline: { placement: 'article_inline', pageType: 'post', fallbackSlot: 'banner' },
+    article_endcap: { placement: 'article_endcap', pageType: 'post', fallbackSlot: 'banner' },
+    post_sidebar: { placement: 'post_sidebar', pageType: 'post', fallbackSlot: 'sidebar' },
+    feed_native: { placement: 'feed_native', pageType: 'feed', fallbackSlot: 'feed' },
+    feed_banner: { placement: 'feed_banner', pageType: 'feed', fallbackSlot: 'banner' },
+    sidebar: { placement: 'sidebar', pageType: 'feed', fallbackSlot: 'sidebar' },
+    interstitial: { placement: 'interstitial', pageType: 'feed', fallbackSlot: 'interstitial' },
+    reward_wall: { placement: 'reward_wall', pageType: 'feed', fallbackSlot: 'rewarded' }
+};
+
+async function getAdForSlot(userId, slotName, sessionId) {
+    const slot = AD_SLOT_MAP[slotName];
+    if (!slot) return null;
+
+    const result = await triggerAdForUser(userId, slot.placement, sessionId, {
+        pageType: slot.pageType
+    });
+
+    if (!result.served) return null;
+
+    return {
+        served: true,
+        adType: result.adConfig?.type || 'banner',
+        imageUrl: getAdImageUrl(result.adConfig?.type),
+        clickUrl: result.impression?._id ? `/api/ads/click/${result.impression._id}` : '#',
+        impressionId: result.impression?._id?.toString(),
+        adConfigId: result.adConfig?._id?.toString(),
+        abTest: result.abTest,
+        abVariant: result.abVariant,
+        slot: slotName
+    };
+}
+
+async function getFeedAds(userId, sessionId, count = 2) {
+    const ads = [];
+    for (let i = 0; i < count; i++) {
+        const ad = await getAdForSlot(userId, 'feed_native', sessionId);
+        if (ad) ads.push(ad);
+    }
+    return ads;
+}
+
+function getAdImageUrl(adType) {
+    const images = {
+        banner: '/public/images/ads/banner-placeholder.svg',
+        native: '/public/images/ads/native-placeholder.svg',
+        video: '/public/images/ads/video-placeholder.svg',
+        interstitial: '/public/images/ads/interstitial-placeholder.svg',
+        rewarded: '/public/images/ads/rewarded-placeholder.svg'
+    };
+    return images[adType] || images.banner;
+}
+
+function getAdStyle(adData) {
+    if (!adData) return '';
+    switch (adData.slot) {
+        case 'feed_native':
+            return 'feed-ad-card';
+        case 'sidebar':
+            return 'sidebar-ad-widget';
+        case 'article_inline':
+            return 'inline-ad-container';
+        case 'article_endcap':
+            return 'endcap-ad-container';
+        default:
+            return 'generic-ad-container';
+    }
+}
+
+module.exports = {
+    getAdForSlot,
+    getFeedAds,
+    getAdImageUrl,
+    getAdStyle,
+    AD_SLOT_MAP
+};

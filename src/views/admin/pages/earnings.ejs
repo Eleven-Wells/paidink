@@ -1,0 +1,356 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+        </div>
+        <h3 class="font-heading text-3xl font-bold mb-1">₦<%= (typeof stats !== 'undefined' ? stats.totalRevenue : 0).toLocaleString() %></h3>
+        <p class="text-muted text-sm">Total Revenue (Est.)</p>
+    </div>
+    
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+        </div>
+        <h3 class="font-heading text-3xl font-bold mb-1">₦<%= (typeof stats !== 'undefined' ? stats.contributorPool : 0).toLocaleString() %></h3>
+        <p class="text-muted text-sm">Contributors Pool (60%)</p>
+    </div>
+    
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+        </div>
+        <h3 class="font-heading text-3xl font-bold mb-1">₦<%= (typeof stats !== 'undefined' ? stats.orgShare : 0).toLocaleString() %></h3>
+        <p class="text-muted text-sm">Org Share (40%)</p>
+    </div>
+    
+    <div class="stat-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </div>
+        </div>
+        <h3 class="font-heading text-3xl font-bold mb-1"><%= (typeof stats !== 'undefined' ? stats.totalCredits : 0).toLocaleString() %></h3>
+        <p class="text-muted text-sm">Total Credits</p>
+    </div>
+</div>
+
+<% if (typeof readerPoolBalance !== 'undefined') { %>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="stat-card border-l-4 border-l-emerald-500">
+        <p class="text-xs uppercase tracking-widest text-muted mb-1">Reader Pool</p>
+        <h3 class="font-heading text-2xl font-bold">₦<%= readerPoolBalance.toLocaleString() %></h3>
+        <p class="text-xs text-muted mt-1">Available for reader rewards</p>
+    </div>
+
+    <div class="stat-card border-l-4 border-l-blue-500">
+        <p class="text-xs uppercase tracking-widest text-muted mb-1">Publisher Pool</p>
+        <h3 class="font-heading text-2xl font-bold">
+            ₦<%= (typeof publisherBalances !== 'undefined' ? publisherBalances.reduce((s, p) => s + p.balance, 0) : 0).toLocaleString() %>
+        </h3>
+        <p class="text-xs text-muted mt-1">Across <%= (typeof publisherBalances !== 'undefined' ? publisherBalances.length : 0) %> publishers</p>
+    </div>
+
+    <div class="stat-card border-l-4 border-l-amber-500">
+        <p class="text-xs uppercase tracking-widest text-muted mb-1">Org Reserve (Locked)</p>
+        <h3 class="font-heading text-2xl font-bold">₦<%= (typeof reserveStatus !== 'undefined' ? reserveStatus.lockedBalance : 0).toLocaleString() %></h3>
+        <p class="text-xs text-muted mt-1">Total deposited: ₦<%= (typeof reserveStatus !== 'undefined' ? reserveStatus.totalDeposited : 0).toLocaleString() %></p>
+    </div>
+
+    <div class="stat-card border-l-4 border-l-violet-500">
+        <p class="text-xs uppercase tracking-widest text-muted mb-1">Org Operational</p>
+        <h3 class="font-heading text-2xl font-bold">₦<%= (typeof reserveStatus !== 'undefined' ? reserveStatus.totalUnlocked : 0).toLocaleString() %></h3>
+        <p class="text-xs text-muted mt-1">Unlocked from reserve</p>
+    </div>
+</div>
+<% } %>
+
+<% if (typeof reserveStatus !== 'undefined' && reserveStatus.criteria) { %>
+<div class="card mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="font-heading text-xl font-semibold">Org Reserve Unlock Criteria</h2>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-muted">Status:</span>
+            <span class="px-2 py-1 rounded text-xs font-medium <%= reserveStatus.criteria.allMet ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400' %>">
+                <%= reserveStatus.criteria.allMet ? 'ALL MET' : 'NOT MET' %>
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="p-4 rounded-lg <%= reserveStatus.criteria.criteriaA ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/5' %>">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-2 h-2 rounded-full <%= reserveStatus.criteria.criteriaA ? 'bg-emerald-500' : 'bg-yellow-500' %>"></span>
+                <span class="text-sm font-medium">Criteria A</span>
+            </div>
+            <p class="text-xs text-muted">Reader pool ≥ 1 day avg payout for 30 consecutive days</p>
+            <p class="text-xs text-muted mt-1">Avg daily payout: ₦<%= reserveStatus.criteria.avgDailyPayout.toLocaleString() %></p>
+            <p class="text-xs text-muted">Reader pool: ₦<%= reserveStatus.criteria.readerPoolBalance.toLocaleString() %></p>
+        </div>
+
+        <div class="p-4 rounded-lg <%= reserveStatus.criteria.criteriaB ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/5' %>">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-2 h-2 rounded-full <%= reserveStatus.criteria.criteriaB ? 'bg-emerald-500' : 'bg-yellow-500' %>"></span>
+                <span class="text-sm font-medium">Criteria B</span>
+            </div>
+            <p class="text-xs text-muted">Publisher settlements on time for 8 consecutive weeks</p>
+        </div>
+
+        <div class="p-4 rounded-lg <%= reserveStatus.criteria.criteriaC ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-white/5' %>">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-2 h-2 rounded-full <%= reserveStatus.criteria.criteriaC ? 'bg-emerald-500' : 'bg-yellow-500' %>"></span>
+                <span class="text-sm font-medium">Criteria C</span>
+            </div>
+            <p class="text-xs text-muted">Reserve ≥ 30 days avg reader rewards</p>
+            <p class="text-xs text-muted mt-1">Reserve: ₦<%= reserveStatus.criteria.reserveBalance.toLocaleString() %></p>
+            <p class="text-xs text-muted">30-day target: ₦<%= reserveStatus.criteria.thirtyDayTarget.toLocaleString() %></p>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-4 p-4 bg-white/5 rounded-lg">
+        <div class="flex-1">
+            <label class="text-xs text-muted block mb-1">Unlock Percentage (max 40%)</label>
+            <div class="flex gap-2">
+                <input type="number" id="unlockPercentage" min="1" max="40" value="10"
+                       class="w-24 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm"
+                       <%= reserveStatus.criteria.allMet ? '' : 'disabled' %>>
+                <button onclick="unlockReserve()"
+                        class="px-4 py-2 rounded-lg font-medium text-sm <%= reserveStatus.criteria.allMet ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-white/10 text-muted cursor-not-allowed' %>"
+                        <%= reserveStatus.criteria.allMet ? '' : 'disabled' %>>
+                    Unlock
+                </button>
+            </div>
+        </div>
+        <div class="text-right">
+            <p class="text-xs text-muted">Last Unlock</p>
+            <p class="text-sm"><%= typeof reserveStatus.lastUnlockAt !== 'undefined' && reserveStatus.lastUnlockAt ? new Date(reserveStatus.lastUnlockAt).toLocaleDateString() : 'Never' %></p>
+        </div>
+    </div>
+    <div id="unlockResult" class="mt-2"></div>
+</div>
+<% } %>
+
+<% if (typeof publisherBalances !== 'undefined' && publisherBalances.length > 0) { %>
+<div class="card mb-8">
+    <h2 class="font-heading text-xl font-semibold mb-6">Publisher Pool Balances</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">Publisher</th>
+                    <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% publisherBalances.forEach(function(p) { %>
+                <tr class="border-b border-white/5">
+                    <td class="py-3 px-4 text-sm"><%= p.publisherName || p.publisherId %></td>
+                    <td class="py-3 px-4 text-right text-sm text-emerald-400">₦<%= p.balance.toLocaleString() %></td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<% } %>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="lg:col-span-2">
+        <div class="card">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="font-heading text-xl font-semibold">Monthly Overview</h2>
+                <select id="monthSelect" data-custom-select onchange="window.location.href='/admin/earnings?month='+this.value">
+                    <% if (typeof months !== 'undefined') { months.forEach(function(m) { %>
+                        <option value="<%= m %>" <%= m === currentMonth ? 'selected' : '' %>><%= m %></option>
+                    <% }); } %>
+                </select>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-white/10">
+                            <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">Month</th>
+                            <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Credits</th>
+                            <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Est. Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (typeof monthlyData !== 'undefined') { monthlyData.forEach(function(m) { %>
+                        <tr class="border-b border-white/5">
+                            <td class="py-3 px-4"><%= m.month %></td>
+                            <td class="py-3 px-4 text-right"><%= m.credits.toLocaleString() %></td>
+                            <td class="py-3 px-4 text-right text-emerald-400">₦<%= m.estimatedRevenue.toLocaleString() %></td>
+                        </tr>
+                        <% }); } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <div class="card">
+            <h2 class="font-heading text-xl font-semibold mb-6">Revenue Split</h2>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg">
+                    <span class="text-sm">Contributors (60%)</span>
+                    <span class="font-semibold text-emerald-400">₦<%= (typeof stats !== 'undefined' ? stats.contributorPool : 0).toLocaleString() %></span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-lg">
+                    <span class="text-sm">Organization (40%)</span>
+                    <span class="font-semibold text-violet-400">₦<%= (typeof stats !== 'undefined' ? stats.orgShare : 0).toLocaleString() %></span>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-violet-500/10 border border-violet-500/20 rounded-lg">
+                <p class="text-xs text-muted">Estimated Payout</p>
+                <p class="text-lg font-semibold text-white mt-1">
+                    <% if (typeof monthlyData !== 'undefined' && monthlyData.length > 0) { %>
+                        ₦<%= monthlyData.find(m => m.month === currentMonth)?.estimatedRevenue || 0 %>
+                    <% } else { %>
+                        ₦0
+                    <% } %>
+                </p>
+                <p class="text-xs text-muted mt-1">Current month pool</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-8">
+    <h2 class="font-heading text-xl font-semibold mb-6">Top Contributors - <%= currentMonth %></h2>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">#</th>
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">Contributor</th>
+                    <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Credits</th>
+                    <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Est. Payout</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (typeof leaderboard !== 'undefined') { leaderboard.forEach(function(item) { %>
+                <tr class="border-b border-white/5">
+                    <td class="py-3 px-4">
+                        <% if (item.rank <= 3) { %>
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-bold"><%= item.rank %></span>
+                        <% } else { %>
+                            <span class="text-muted"><%= item.rank %></span>
+                        <% } %>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                            <% if (item.user) { %>
+                            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center text-xs font-bold">
+                                <%= item.user.username ? item.user.username.charAt(0).toUpperCase() : '?' %>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium"><%= item.user.username || 'Unknown' %></p>
+                                <p class="text-xs text-muted"><%= item.user.email || '' %></p>
+                            </div>
+                            <% } else { %>
+                            <span class="text-muted">Unknown</span>
+                            <% } %>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-right"><%= item.credits.toLocaleString() %></td>
+                    <td class="py-3 px-4 text-right text-emerald-400">₦<%= item.estimatedShare.toLocaleString() %></td>
+                </tr>
+                <% }); } %>
+                
+                <% if (typeof leaderboard !== 'undefined' && leaderboard.length === 0) { %>
+                <tr>
+                    <td colspan="4" class="py-8 text-center text-muted">No contributor data yet</td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<% if (typeof recentLedgerEntries !== 'undefined' && recentLedgerEntries.length > 0) { %>
+<div class="card">
+    <h2 class="font-heading text-xl font-semibold mb-6">Transaction Audit Trail</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">Date</th>
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">Type</th>
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">Pool</th>
+                    <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Amount</th>
+                    <th class="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted">Balance</th>
+                    <th class="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted">User</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% recentLedgerEntries.forEach(function(entry) { %>
+                <tr class="border-b border-white/5 text-sm">
+                    <td class="py-2 px-4 text-muted"><%= new Date(entry.createdAt).toLocaleDateString() %></td>
+                    <td class="py-2 px-4">
+                        <span class="px-2 py-0.5 rounded text-xs font-medium
+                            <%= entry.type.includes('reserve') ? 'bg-amber-500/20 text-amber-400' : '' %>
+                            <%= entry.type.includes('publisher') ? 'bg-blue-500/20 text-blue-400' : '' %>
+                            <%= entry.type.includes('reader') || entry.type === 'read_reward' ? 'bg-emerald-500/20 text-emerald-400' : '' %>
+                            <%= entry.type === 'ad_revenue_operational' ? 'bg-violet-500/20 text-violet-400' : '' %>
+                            <%= entry.type === 'reserve_unlock' ? 'bg-red-500/20 text-red-400' : '' %>
+                        "><%= entry.type %></span>
+                    </td>
+                    <td class="py-2 px-4 text-muted"><%= entry.pool || '-' %></td>
+                    <td class="py-2 px-4 text-right font-mono <%= entry.amount > 0 ? 'text-emerald-400' : 'text-red-400' %>">
+                        <%= entry.amount > 0 ? '+' : '' %>₦<%= entry.amount.toLocaleString() %>
+                    </td>
+                    <td class="py-2 px-4 text-right font-mono text-muted">₦<%= (entry.balanceAfter || 0).toLocaleString() %></td>
+                    <td class="py-2 px-4"><%= entry.user ? (entry.user.username || entry.user.email || 'ID:'+entry.user._id.toString().slice(-6)) : 'System' %></td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<% } %>
+
+<script>
+async function unlockReserve() {
+    const pct = document.getElementById('unlockPercentage').value;
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    document.getElementById('unlockResult').innerHTML = '';
+
+    try {
+        const res = await fetch('/admin/api/reserve/unlock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ percentage: parseInt(pct) })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('unlockResult').innerHTML =
+                '<div class="p-3 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm mt-2">Unlocked ₦' +
+                data.unlocked.toLocaleString() + '. Remaining locked: ₦' +
+                data.remainingLocked.toLocaleString() + '</div>';
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            document.getElementById('unlockResult').innerHTML =
+                '<div class="p-3 rounded-lg bg-red-500/20 text-red-400 text-sm mt-2">' + data.error + '</div>';
+            btn.disabled = false;
+            btn.textContent = 'Unlock';
+        }
+    } catch (e) {
+        document.getElementById('unlockResult').innerHTML =
+            '<div class="p-3 rounded-lg bg-red-500/20 text-red-400 text-sm mt-2">Request failed</div>';
+        btn.disabled = false;
+        btn.textContent = 'Unlock';
+    }
+}
+</script>

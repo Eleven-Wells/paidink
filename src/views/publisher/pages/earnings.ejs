@@ -1,0 +1,138 @@
+<%- include('../../partials/publisher-shell-open') %>
+
+<%
+var credits = typeof credits !== 'undefined' ? credits : { creation: 0, engagement: 0, reach: 0, source: 0, total: 0 };
+var lastMonthCredits = typeof lastMonthCredits !== 'undefined' ? lastMonthCredits : { total: 0 };
+var rank = typeof rank !== 'undefined' ? rank : { name: 'BRONZE', multiplier: 1.0 };
+var userCredits = typeof userCredits !== 'undefined' ? userCredits : 0;
+%>
+
+<div class="publisher-content" style="display:grid;gap:1.5rem;">
+    <div class="publisher-stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+        <div class="publisher-stat-card" style="background:var(--pub-accent-soft);border:1px solid var(--pub-border);border-radius:0.75rem;padding:1.25rem;">
+            <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);margin-bottom:0.5rem;">This Month</div>
+            <div style="font-size:1.75rem;font-weight:700;color:var(--pub-text);font-family:'Space Grotesk',sans-serif;">₦<%= credits.total.toLocaleString() %></div>
+            <div style="font-size:0.75rem;color:var(--pub-muted);margin-top:0.25rem;">
+                <%= lastMonthCredits.total > 0 ? ((credits.total - lastMonthCredits.total) / lastMonthCredits.total * 100).toFixed(1) + '% vs last month' : 'First month' %>
+            </div>
+        </div>
+        <div class="publisher-stat-card" style="background:var(--pub-accent-soft);border:1px solid var(--pub-border);border-radius:0.75rem;padding:1.25rem;">
+            <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);margin-bottom:0.5rem;">Lifetime</div>
+            <div style="font-size:1.75rem;font-weight:700;color:var(--pub-text);font-family:'Space Grotesk',sans-serif;">₦<%= userCredits.toLocaleString() %></div>
+            <div style="font-size:0.75rem;color:var(--pub-muted);margin-top:0.25rem;">Total earned</div>
+        </div>
+        <div class="publisher-stat-card" style="background:var(--pub-accent-soft);border:1px solid var(--pub-border);border-radius:0.75rem;padding:1.25rem;">
+            <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);margin-bottom:0.5rem;">Current Rank</div>
+            <div style="font-size:1.75rem;font-weight:700;color:var(--pub-text);font-family:'Space Grotesk',sans-serif;"><%= rank.name %></div>
+            <div style="font-size:0.75rem;color:var(--pub-muted);margin-top:0.25rem;"><%= rank.multiplier %>x multiplier</div>
+        </div>
+        <div class="publisher-stat-card" style="background:var(--pub-accent-soft);border:1px solid var(--pub-border);border-radius:0.75rem;padding:1.25rem;">
+            <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);margin-bottom:0.5rem;">Total Views</div>
+            <div style="font-size:1.75rem;font-weight:700;color:var(--pub-text);font-family:'Space Grotesk',sans-serif;"><%= (typeof totalViews !== 'undefined' ? totalViews : 0).toLocaleString() %></div>
+            <div style="font-size:0.75rem;color:var(--pub-muted);margin-top:0.25rem;">Across all posts</div>
+        </div>
+    </div>
+
+    <div class="publisher-panel" style="margin:0;">
+        <h3 style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;color:var(--pub-muted-strong);margin-bottom:1rem;">Credit Breakdown · All Time</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;">
+            <div class="credit-category" style="background:var(--pub-table-bg);border:1px solid var(--pub-table-border);border-radius:0.65rem;padding:1rem;text-align:center;">
+                <div style="font-size:1.25rem;font-weight:700;color:var(--pub-text);margin-bottom:0.25rem;"><%= (lifetimeCredits.creation || 0).toLocaleString() %></div>
+                <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);">Creation</div>
+                <div style="font-size:0.6rem;color:var(--pub-muted-strong);margin-top:0.25rem;">Posts published, approved</div>
+            </div>
+            <div class="credit-category" style="background:var(--pub-table-bg);border:1px solid var(--pub-table-border);border-radius:0.65rem;padding:1rem;text-align:center;">
+                <div style="font-size:1.25rem;font-weight:700;color:var(--pub-text);margin-bottom:0.25rem;"><%= (lifetimeCredits.engagement || 0).toLocaleString() %></div>
+                <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);">Engagement</div>
+                <div style="font-size:0.6rem;color:var(--pub-muted-strong);margin-top:0.25rem;">Views, reads, comments</div>
+            </div>
+            <div class="credit-category" style="background:var(--pub-table-bg);border:1px solid var(--pub-table-border);border-radius:0.65rem;padding:1rem;text-align:center;">
+                <div style="font-size:1.25rem;font-weight:700;color:var(--pub-text);margin-bottom:0.25rem;"><%= (lifetimeCredits.reach || 0).toLocaleString() %></div>
+                <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);">Reach</div>
+                <div style="font-size:0.6rem;color:var(--pub-muted-strong);margin-top:0.25rem;">Shares, screenshots</div>
+            </div>
+            <div class="credit-category" style="background:var(--pub-table-bg);border:1px solid var(--pub-table-border);border-radius:0.65rem;padding:1rem;text-align:center;">
+                <div style="font-size:1.25rem;font-weight:700;color:var(--pub-text);margin-bottom:0.25rem;"><%= (lifetimeCredits.source || 0).toLocaleString() %></div>
+                <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--pub-muted);">Source</div>
+                <div style="font-size:0.6rem;color:var(--pub-muted-strong);margin-top:0.25rem;">Verified, breaking</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="publisher-panel" style="margin:0;">
+        <h3 style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;color:var(--pub-muted-strong);margin-bottom:1rem;">Top Performing Posts</h3>
+        <% if (typeof posts !== 'undefined' && posts.length > 0) { %>
+        <div style="display:grid;gap:0.75rem;">
+            <% posts.forEach(function(post, index) { %>
+            <div class="post-row" style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--pub-table-bg);border-radius:0.5rem;border:1px solid var(--pub-table-border);">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:0.875rem;font-weight:500;color:var(--pub-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;"><%= post.title %></div>
+                    <div style="font-size:0.7rem;color:var(--pub-muted);margin-top:0.25rem;">
+                        <%= post.stats?.views || 0 %> views · <%= post.stats?.reads || 0 %> reads
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.875rem;font-weight:600;color:var(--pub-text);"><%= (post.stats?.views || 0).toLocaleString() %></div>
+                    <div style="font-size:0.65rem;color:var(--pub-muted);">views</div>
+                </div>
+            </div>
+            <% }); %>
+        </div>
+        <% } else { %>
+        <div style="text-align:center;padding:2rem;color:var(--pub-muted);">
+            <p>No published posts yet. Start writing to earn credits!</p>
+        </div>
+        <% } %>
+    </div>
+
+    <div class="publisher-panel" style="margin:0;">
+        <h3 style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;color:var(--pub-muted-strong);margin-bottom:1rem;">How Credits Work</h3>
+        <div style="font-size:0.8rem;color:var(--pub-muted);line-height:1.7;">
+            <p style="margin-bottom:1rem;">Your credits are calculated monthly based on your contributions to the platform. At the end of each month, earnings from the contributor pool are distributed based on your share of total credits.</p>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem;">
+                <div>
+                    <div style="font-weight:600;color:var(--pub-text);margin-bottom:0.5rem;">Creation (+20 pts)</div>
+                    <ul style="list-style:none;padding:0;margin:0;font-size:0.75rem;color:var(--pub-muted);">
+                        <li>· Publish a post</li>
+                        <li>· Post gets approved</li>
+                    </ul>
+                </div>
+                <div>
+                    <div style="font-weight:600;color:var(--pub-text);margin-bottom:0.5rem;">Engagement (+1-4 pts)</div>
+                    <ul style="list-style:none;padding:0;margin:0;font-size:0.75rem;color:var(--pub-muted);">
+                        <li>· Unique page view (1)</li>
+                        <li>· Read 30s+ (2)</li>
+                        <li>· Read 60s+ (4)</li>
+                    </ul>
+                </div>
+                <div>
+                    <div style="font-weight:600;color:var(--pub-text);margin-bottom:0.5rem;">Reach (+2-3 pts)</div>
+                    <ul style="list-style:none;padding:0;margin:0;font-size:0.75rem;color:var(--pub-muted);">
+                        <li>· Share a post (3)</li>
+                        <li>· Screenshot (2)</li>
+                    </ul>
+                </div>
+                <div>
+                    <div style="font-weight:600;color:var(--pub-text);margin-bottom:0.5rem;">Source (+10-20 pts)</div>
+                    <ul style="list-style:none;padding:0;margin:0;font-size:0.75rem;color:var(--pub-muted);">
+                        <li>· Verified post (10)</li>
+                        <li>· First to break (20)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="margin-top:1.5rem;padding:1rem;background:var(--pub-accent-soft);border-radius:0.5rem;border:1px solid var(--pub-border);">
+                <div style="font-weight:600;color:var(--pub-text);">Rank Multipliers</div>
+                <div style="font-size:0.75rem;color:var(--pub-muted);margin-top:0.5rem;">
+                    Bronze (1x) · Silver (1.25x) · Gold (1.5x) · Insider (2x)
+                </div>
+                <div style="font-size:0.7rem;color:var(--pub-muted-strong);margin-top:0.5rem;">
+                    Higher ranks earn more credit points per action!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/publisher-shell-close') %>

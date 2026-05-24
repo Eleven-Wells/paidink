@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Explore | NOOK' %></title>
+    <meta name="description" content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
+    <link rel="canonical" href="<%= typeof canonical !== 'undefined' && canonical ? canonical : '' %>">
+    <meta name="theme-color" content="#6d0a0a">
+    <meta property="og:title" content="<%= title || 'Explore | NOOK' %>">
+    <meta property="og:description" content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
+    <meta property="og:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title || 'Explore | NOOK' %>">
+    <meta name="twitter:description" content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
+    <meta name="twitter:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Abhaya+Libre:wght@400;500;600;700;800&family=Zen+Tokyo+Zoo&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        * { 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: #ffffff; 
+            color: #000000; 
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ========== TOP NAV BAR (spans middle + right columns) ========== */
+        .explore-top-nav-bar {
+            grid-column: 1 / -1;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #fff;
+            border-bottom: 1px solid #e5e5e5;
+            padding: clamp(8px, 1.5vw, 16px) 0;
+        }
+
+        .explore-top-nav-bar .explore-top-nav {
+            padding-left: clamp(16px, 3vw, 40px);
+            padding-right: clamp(16px, 3vw, 40px);
+        }
+
+        /* ========== MAIN GRID LAYOUT (2 columns: feed + sidebar) ========== */
+        .explore-container {
+            display: grid;
+            grid-template-columns: 1fr clamp(280px, 30vw, 642px);
+            grid-template-rows: auto 1fr;
+            gap: 0;
+            margin-left: clamp(240px, 20vw, 335px);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* ========== LEFT COLUMN - SIDE NAV (fixed, outside grid) ========== */
+        .explore-left-column {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: clamp(240px, 20vw, 335px);
+            height: 100vh;
+            overflow-y: auto;
+            padding: 0;
+            background: #fff;
+            z-index: 100;
+        }
+
+        /* ========== MIDDLE COLUMN - MAIN FEED ========== */
+        .explore-middle-column {
+            min-width: 0;
+            width: 100%;
+            margin: 0 auto;
+            padding: clamp(32px, 4vw, 48px) clamp(16px, 2vw, 24px) clamp(60px, 6vw, 80px) clamp(32px, 4vw, 48px);
+            box-sizing: border-box;
+        }
+
+        /* ========== RIGHT COLUMN - SIDEBARS ========== */
+        .explore-right-column {
+            position: sticky;
+            top: clamp(24px, 3vw, 40px);
+            padding: clamp(16px, 2vw, 24px) clamp(12px, 2vw, 20px) clamp(24px, 3vw, 40px) clamp(8px, 1vw, 12px);
+        }
+
+        /* Search bar styling */
+        .explore-search-wrapper {
+            max-width: 100%;
+            margin-bottom: clamp(16px, 2vw, 24px);
+            box-sizing: border-box;
+        }
+
+        .explore-search-mobile {
+            display: none;
+        }
+
+        @media (max-width: 1100px) {
+            .explore-search-mobile {
+                display: block;
+            }
+        }
+
+        .explore-search-form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+            height: clamp(40px, 6vw, 56px);
+            padding: 8px;
+            border-radius: clamp(14px, 3vw, 24px);
+            border: 1px solid #000;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .explore-search-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: clamp(6px, 1vw, 10px);
+            width: 100%;
+            height: 100%;
+        }
+
+        .explore-search-input {
+            flex: 1;
+            font-family: 'Abhaya Libre', serif;
+            font-weight: 500;
+            font-size: clamp(14px, 2vw, 20px);
+            color: #000;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+        }
+
+        .explore-search-input::placeholder {
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Feed wrapper */
+        .explore-feed-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(32px, 4vw, 48px);
+            width: 100%;
+        }
+
+        /* Right sidebar spacing */
+        .explore-trending-wrapper {
+            margin-bottom: clamp(24px, 3vw, 40px);
+        }
+
+        /* ========== RESPONSIVE BREAKPOINTS ========== */
+        
+        /* Large screens (1400px - 1700px) */
+        @media (max-width: 1700px) {
+            .explore-container {
+                grid-template-columns: 1fr clamp(280px, 25vw, 500px);
+                margin-left: clamp(240px, 20vw, 300px);
+            }
+        }
+
+        /* Medium-large screens (1100px - 1400px) */
+        @media (max-width: 1400px) {
+            .explore-container {
+                grid-template-columns: 1fr clamp(260px, 28vw, 450px);
+                margin-left: clamp(240px, 20vw, 280px);
+            }
+        }
+
+        /* Tablet landscape (900px - 1100px) - Right column disappears */
+        @media (max-width: 1100px) {
+            .explore-container {
+                grid-template-columns: 1fr;
+                margin-left: 0;
+            }
+            
+            .explore-right-column {
+                display: none;
+            }
+        }
+
+        /* Tablet portrait (640px - 900px) - Left column disappears, search back in middle */
+        @media (max-width: 900px) {
+            .explore-container {
+                grid-template-columns: 1fr;
+                margin-left: 0;
+                min-height: 100vh;
+                align-content: center;
+                width: 100%;
+            }
+            
+            .explore-left-column {
+                display: none;
+            }
+            
+            .explore-right-column {
+                display: none;
+            }
+            
+            .explore-top-nav-bar {
+                padding: 8px 0;
+                width: 100%;
+                grid-column: 1;
+                overflow-x: auto;
+            }
+
+            .explore-top-nav-bar .explore-top-nav {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            
+            .explore-search-form {
+                width: 80vw;
+                margin: 0 auto;
+            }
+
+            .explore-middle-column {
+                padding: 24px 16px 80px 16px;
+                width: 100%;
+                margin: 0 auto;
+            }
+        }
+
+        /* Mobile (below 640px) */
+        @media (max-width: 640px) {
+            .explore-container {
+                align-content: flex-start;
+                min-height: auto;
+            }
+            .explore-middle-column {
+                padding: 12px 16px 80px 16px;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .explore-feed-wrapper {
+                width: 100%;
+            }
+            
+            .explore-search-wrapper {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .explore-search-form {
+                height: 44px;
+                padding: 6px;
+                width: 80vw;
+                margin: 0 auto;
+            }
+            
+            .explore-search-input {
+                font-size: 14px;
+            }
+            
+            .explore-search-input-wrapper svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .explore-top-nav-bar {
+                padding: 6px 12px;
+            }
+            
+            .explore-top-nav {
+                gap: 6px !important;
+            }
+            
+            .explore-tab-btn {
+                height: 30px !important;
+                padding: 4px 10px !important;
+            }
+        }
+
+        /* Utility classes */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(16, 16, 16, 0.98), rgba(5, 5, 5, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 0.875rem;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.success { 
+            border-left: 4px solid #22c55e; 
+        }
+        
+        .toast.error { 
+            border-left: 4px solid #ef4444; 
+        }
+    </style>
+</head>
+<body>
+
+<!-- Main Grid Container -->
+<div class="explore-container">
+
+    <!-- Top Navigation Bar - Spans Full Width -->
+    <nav class="explore-top-nav-bar">
+        <%- include('../partials/explore-top-nav', { activeTab: activeTab }) %>
+    </nav>
+    
+    <!-- LEFT COLUMN: Side Navigation (Desktop only) -->
+    <aside class="explore-left-column">
+        <%- include('../partials/app-side-nav', {
+            sideNavItems: [
+                { label: 'Home', href: '/', icon: 'home' },
+                { label: 'Explore', href: '/browse', icon: 'explore' },
+                { label: 'Activity', href: '/activity', icon: 'activity' },
+                { label: 'Profile', href: '/profile', icon: 'profile' }
+            ],
+            ctaText: 'Join Nook',
+            ctaHref: '/register'
+        }) %>
+    </aside>
+
+    <!-- MIDDLE COLUMN: Main Content -->
+    <main class="explore-middle-column">
+        
+        <!-- Search Bar (visible only on tablet/mobile when right column is hidden) -->
+        <div class="explore-search-wrapper explore-search-mobile">
+            <form role="search" class="explore-search-form">
+                <label for="search-nook-mobile" class="sr-only">Search</label>
+                <div class="explore-search-input-wrapper">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input 
+                        id="search-nook-mobile" 
+                        name="search" 
+                        type="search" 
+                        placeholder="search Nook" 
+                        aria-label="search Nook" 
+                        class="explore-search-input"
+                    />
+                </div>
+            </form>
+        </div>
+
+        <!-- Feed Content -->
+        <div class="explore-feed-wrapper">
+            <%- include('../partials/explore-feed', { 
+                posts: posts, 
+                feedSuggestions: feedSuggestions,
+                feedAds: feedAds
+            }) %>
+        </div>
+        
+    </main>
+
+    <!-- RIGHT COLUMN: Sidebars (Desktop only, hides on smaller screens) -->
+    <aside class="explore-right-column">
+        <!-- Search Bar -->
+        <div class="explore-search-wrapper">
+            <form role="search" class="explore-search-form">
+                <label for="search-nook" class="sr-only">Search</label>
+                <div class="explore-search-input-wrapper">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input 
+                        id="search-nook" 
+                        name="search" 
+                        type="search" 
+                        placeholder="search Nook" 
+                        aria-label="search Nook" 
+                        class="explore-search-input"
+                    />
+                </div>
+            </form>
+        </div>
+
+        <!-- Trending Section -->
+        <div class="explore-trending-wrapper">
+            <%- include('../partials/explore-trending', { 
+                trendingPosts: trendingPosts 
+            }) %>
+        </div>
+        
+        <!-- Who to Follow Section -->
+        <%- include('../partials/explore-who-to-follow', { 
+            suggestedUsers: suggestedUsers 
+        }) %>
+        <% if (typeof sidebarAd !== 'undefined' && sidebarAd) { %>
+            <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
+        <% } %>
+    </aside>
+
+</div>
+
+<!-- Mobile Bottom Navigation (shows only on mobile) -->
+<%- include('../partials/mobile-bottom-nav', { 
+    currentPage: 'explore' 
+}) %>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<script>
+function showToast(message, type = 'error') {
+    var toast = document.getElementById('toast');
+    if (!toast) {
+        console.error('Toast element not found');
+        return;
+    }
+    toast.textContent = message;
+    toast.className = 'toast ' + type + ' show';
+    setTimeout(function() {
+        toast.classList.remove('show');
+    }, 3000);
+}
+window.showToast = showToast;
+</script>
+
+</body>
+</html>

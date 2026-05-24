@@ -1,0 +1,41 @@
+<style>
+    .error-container { min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+    .ghost { animation: float 4s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+    .ghost-blur { animation: ghostPulse 3s ease-in-out infinite; }
+    @keyframes ghostPulse { 0%, 100% { opacity: 0.3; filter: blur(40px); } 50% { opacity: 0.5; filter: blur(60px); } }
+</style>
+
+<div class="error-container">
+    <div class="max-w-4xl mx-auto text-center">
+        <div class="mb-12 relative inline-block">
+            <div class="ghost-blur absolute inset-0 bg-white/20 rounded-full"></div>
+            <svg width="280" height="280" viewBox="0 0 280 280" class="relative ghost">
+                <circle cx="140" cy="100" r="50" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                <circle cx="140" cy="100" r="35" fill="rgba(255,255,255,0.03)"/>
+                <circle cx="125" cy="90" r="5" fill="rgba(255,255,255,0.4)"/>
+                <circle cx="155" cy="90" r="5" fill="rgba(255,255,255,0.4)"/>
+                <ellipse cx="140" cy="110" rx="8" ry="4" fill="rgba(255,255,255,0.2)"/>
+                <path d="M90 150 Q 140 200 190 150" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none"/>
+                <text x="140" y="170" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="bold">404</text>
+            </svg>
+        </div>
+
+        <div class="space-y-6">
+            <h1 class="font-heading text-8xl md:text-9xl tracking-tight text-white/90">404</h1>
+            <h2 class="font-heading text-3xl md:text-4xl text-muted">PAGE NOT FOUND</h2>
+            <p class="text-muted max-w-xl mx-auto text-lg">
+                The page you're looking for seems to have wandered off into the digital void. Let's get you back on track.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
+                <a href="/" class="btn-primary-dark px-10 py-4 rounded-full text-sm w-full sm:w-auto">
+                    Return Home
+                </a>
+                <a href="javascript:history.back()" class="btn-secondary-dark px-8 py-4 rounded-full text-xs font-mono uppercase tracking-[0.15em] w-full sm:w-auto">
+                    Go Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

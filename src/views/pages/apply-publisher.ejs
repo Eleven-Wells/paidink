@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Publisher | NOOK Rewards</title>
+    <%- include('../partials/dashboard-css') %>
+</head>
+
+<body class="min-h-screen">
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <%- include('../partials/dashboard-header') %>
+
+    <main class="relative pt-24 pb-16">
+        <div class="max-w-2xl mx-auto px-6">
+            <a href="/dashboard" class="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white mb-6">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+            
+            <div class="glass-card rounded-2xl p-8">
+                <% if (status === 'pending') { %>
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h1 class="font-heading text-2xl font-bold mb-2">Application Under Review</h1>
+                        <p class="text-muted mb-6">Your publisher application is being reviewed. You'll be notified once it's approved.</p>
+                        <div class="bg-white/5 rounded-xl p-4 text-sm text-muted">
+                            Applied on: <%= appliedAt ? new Date(appliedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A' %>
+                        </div>
+                    </div>
+                <% } else if (status === 'rejected') { %>
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </div>
+                        <h1 class="font-heading text-2xl font-bold mb-2">Application Not Approved</h1>
+                        <p class="text-muted mb-4">Your publisher application was not approved at this time.</p>
+                        <% if (notes) { %>
+                            <div class="bg-white/5 rounded-xl p-4 text-sm text-muted mb-6">
+                                <strong>Reason:</strong> <%= notes %>
+                            </div>
+                        <% } %>
+                        <form method="POST" action="/apply-publisher">
+                            <button type="submit" class="btn-primary">
+                                Apply Again
+                            </button>
+                        </form>
+                    </div>
+                <% } else if (status === 'approved') { %>
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h1 class="font-heading text-2xl font-bold mb-2">You're a Publisher!</h1>
+                        <p class="text-muted mb-6">Your application has been approved. You can now create and publish content.</p>
+                        <a href="/publisher" class="btn-primary">
+                            Go to Publisher Dashboard
+                        </a>
+                    </div>
+                <% } else { %>
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.49 3.49l5 5a2 2 0 002.82 0l2.83-2.83a2 2 0 000-2.83l-5-5a2 2 0 00-2.82 0l-2.83 2.83a2 2 0 000 2.83z"/>
+                            </svg>
+                        </div>
+                        <h1 class="font-heading text-2xl font-bold mb-2">Become a Publisher</h1>
+                        <p class="text-muted mb-6">Apply to become a publisher and share your content with the world. Earn from your articles.</p>
+                        
+                        <div class="text-left bg-white/5 rounded-xl p-4 mb-6">
+                            <h3 class="font-semibold text-white mb-3">What you'll get:</h3>
+                            <ul class="text-sm text-muted space-y-2">
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Create and publish your own articles
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Earn from views and reads
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Access to publisher analytics
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    Dedicated dashboard
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <form method="POST" action="/apply-publisher">
+                            <button type="submit" class="btn-primary w-full">
+                                Apply Now
+                            </button>
+                        </form>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <%- include('../partials/dashboard-scripts') %>
+</body>
+</html>

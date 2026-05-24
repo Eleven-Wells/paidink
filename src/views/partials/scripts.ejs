@@ -1,0 +1,37 @@
+<script src="/public/js/theme.js"></script>
+<script src="/public/js/search.js"></script>
+<script src="/public/js/translation.js"></script>
+<script src="/public/js/share.js"></script>
+<script src="/public/js/subscribe.js"></script>
+<script src="/public/js/loadMore.js"></script>
+
+<script>
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileOverlay');
+            menu?.classList.remove('active');
+            overlay?.classList.remove('active');
+            document.body.style.overflow = '';
+            const pubSide = document.getElementById('publisherSidebar');
+            const pubOver = document.getElementById('publisherSidebarOverlay');
+            pubSide?.classList.remove('is-open');
+            pubOver?.classList.remove('is-open');
+            const pubBtn = document.getElementById('publisherMenuBtn');
+            pubBtn?.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href && href !== '#') {
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    });
+</script>

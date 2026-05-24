@@ -1,0 +1,459 @@
+<%- include('../../partials/publisher-shell-open') %>
+
+<% var isEdit = typeof post !== 'undefined' && post; %>
+<% var formAction = isEdit ? '/publisher/posts/' + post._id : '/publisher/create-post'; %>
+<% var draftKey = isEdit ? ('publisher-draft-' + post._id) : 'publisher-draft-new'; %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="publisher-panel" style="border-color:rgba(185,28,28,0.3);margin-bottom:1rem;">
+        <p class="text-sm" style="color:var(--pub-danger);"><%= error %></p>
+    </div>
+<% } %>
+
+<form id="publisherPostForm" method="POST" action="<%= formAction %>" class="publisher-form-grid" style="margin-bottom:6rem;">
+    <div class="space-y-6" style="display:flex;flex-direction:column;gap:1.5rem;">
+        <div class="publisher-field">
+            <label for="pub-title">Title</label>
+            <input id="pub-title" type="text" name="title" value="<%= isEdit ? post.title : '' %>" required class="publisher-input" placeholder="Headline · clear and specific" maxlength="200" autocomplete="off">
+        </div>
+        <div class="publisher-field">
+            <label for="pub-summary">Summary</label>
+            <textarea id="pub-summary" name="summary" required class="publisher-textarea" style="min-height:100px;font-family:Inter,sans-serif;" rows="4" maxlength="500" placeholder="Short teaser for listings and social"><%= isEdit ? post.summary : '' %></textarea>
+            <p class="publisher-field-hint"><span id="cnt-summary">0</span> / 500</p>
+        </div>
+        <div class="publisher-field">
+            <label for="pub-content">Body (Markdown)</label>
+            <div class="publisher-toggle-row" role="group" aria-label="Editor layout">
+                <button type="button" class="publisher-toggle is-on" data-layout="split" id="layoutSplit">Split</button>
+                <button type="button" class="publisher-toggle" data-layout="write" id="layoutWrite">Write</button>
+                <button type="button" class="publisher-toggle" data-layout="preview" id="layoutPreview">Preview</button>
+            </div>
+            
+            <div class="publisher-format-toolbar" id="formatToolbar" role="toolbar" aria-label="Text formatting">
+                <button type="button" class="fmt-btn" data-fmt="h1" title="Heading 1">H1</button>
+                <button type="button" class="fmt-btn" data-fmt="h2" title="Heading 2">H2</button>
+                <button type="button" class="fmt-btn" data-fmt="h3" title="Heading 3">H3</button>
+                <span class="fmt-divider"></span>
+                <button type="button" class="fmt-btn" data-fmt="b" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                <button type="button" class="fmt-btn" data-fmt="i" title="Italic (Ctrl+I)"><em>I</em></button>
+                <button type="button" class="fmt-btn" data-fmt="s" title="Strikethrough"><del>S</del></button>
+                <span class="fmt-divider"></span>
+                <button type="button" class="fmt-btn" data-fmt="link" title="Link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </button>
+                <span class="fmt-divider"></span>
+                <button type="button" class="fmt-btn" data-fmt="ul" title="Bullet list">•</button>
+                <button type="button" class="fmt-btn" data-fmt="ol" title="Numbered list">1.</button>
+                <button type="button" class="fmt-btn" data-fmt="quote" title="Blockquote">&gt;</button>
+                <span class="fmt-divider"></span>
+                <button type="button" class="fmt-btn" data-fmt="code" title="Inline code">`</button>
+                <button type="button" class="fmt-btn" data-fmt="codeblock" title="Code block">```</button>
+            </div>
+            <div id="editorSplit" class="publisher-editor-split" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <textarea id="pub-content" name="content" required class="publisher-textarea" style="min-height:320px;" rows="18" placeholder="# Intro&#10;&#10;Write in **Markdown**. Use headings, lists, and code fences."><%= isEdit ? post.content : '' %></textarea>
+                <div>
+                    <div style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;color:var(--pub-muted-strong);margin-bottom:0.5rem;">Live preview</div>
+                    <div id="pub-preview" class="publisher-preview"></div>
+                </div>
+            </div>
+            <div id="editorWrite" style="display:none;">
+                <textarea id="pub-content-solo" class="publisher-textarea" style="min-height:360px;" rows="20" placeholder="# Intro&#10;&#10;Write in **Markdown**…" aria-label="Article body"></textarea>
+            </div>
+            <div id="editorPreviewOnly" style="display:none;">
+                <div id="pub-preview-full" class="publisher-preview" style="max-height:480px;"></div>
+            </div>
+            <p class="publisher-field-hint"><span id="cnt-content">0</span> characters · autosaved locally</p>
+        </div>
+    </div>
+
+    <aside class="space-y-6" style="display:flex;flex-direction:column;gap:1.25rem;">
+        <div class="publisher-panel" style="margin:0;">
+            <h3 style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.12em;color:var(--pub-muted-strong);margin-bottom:1rem;">Publish</h3>
+            <div class="publisher-field">
+                <label for="pub-category">Category</label>
+                <div class="custom-select">
+                    <select id="pub-category" name="category" required data-custom-select>
+                        <option value="">Select…</option>
+                        <% categories.forEach(function(cat) { %>
+                            <option value="<%= cat %>" <%= isEdit && post.category === cat ? 'selected' : '' %>><%= categoryNames[cat] || cat %></option>
+                        <% }); %>
+                    </select>
+                </div>
+            </div>
+            <div class="publisher-field">
+                <label for="pub-tags">Tags</label>
+                <input id="pub-tags" type="text" name="tags" value="<%= isEdit && post.tags ? post.tags.join(', ') : '' %>" class="publisher-input" placeholder="react, node, ai">
+                <p class="publisher-field-hint">Comma-separated</p>
+            </div>
+            <div class="publisher-field">
+                <label for="pub-image">Cover image URL</label>
+                <input id="pub-image" type="url" name="image" value="<%= isEdit ? (post.image || '') : '' %>" class="publisher-input" placeholder="https://…">
+                <img id="pub-image-preview" class="publisher-img-preview" alt="">
+            </div>
+            <div class="publisher-field">
+                <label for="pub-meta">Meta description</label>
+                <textarea id="pub-meta" name="metaDescription" class="publisher-textarea" style="min-height:72px;font-family:Inter,sans-serif;" rows="3" maxlength="200" placeholder="Search snippet"><%= isEdit ? (post.metaDescription || '') : '' %></textarea>
+                <p class="publisher-field-hint"><span id="cnt-meta">0</span> / 200</p>
+            </div>
+            <div class="publisher-field">
+                <span class="block mb-2" style="font-size:0.65rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--pub-muted);">Visibility</span>
+                <div class="flex gap-6 flex-wrap">
+                    <label class="flex items-center gap-2 cursor-pointer text-sm" style="color:var(--pub-text)">
+                        <input type="radio" name="status" value="draft" <%= !isEdit || !post.publishedAt ? 'checked' : '' %> class="accent-[#6d0a0a]">
+                        Draft
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm" style="color:var(--pub-text)">
+                        <input type="radio" name="status" value="published" <%= isEdit && post.publishedAt ? 'checked' : '' %> class="accent-[#6d0a0a]">
+                        Live
+                    </label>
+                </div>
+            </div>
+            <% if (isEdit) { %>
+                <a href="/publisher/posts" class="publisher-btn-ghost w-full justify-center mt-2">Discard changes</a>
+            <% } %>
+        </div>
+    </aside>
+</form>
+
+<div class="publisher-dock">
+    <div class="publisher-dock-stats">
+        <span id="dock-autosave" style="color:var(--pub-muted)">Draft not saved to server until you submit.</span>
+        <span>Summary <strong id="dock-sum" style="color:var(--pub-text)">0</strong>/500</span>
+        <span>Meta <strong id="dock-meta" style="color:var(--pub-text)">0</strong>/200</span>
+    </div>
+    <div class="publisher-dock-actions">
+        <button type="submit" form="publisherPostForm" class="publisher-btn-primary"><%= isEdit ? 'Save changes' : 'Save post' %></button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+<script>
+(function () {
+    var form = document.getElementById('publisherPostForm');
+    var content = document.getElementById('pub-content');
+    var contentSolo = document.getElementById('pub-content-solo');
+    var summary = document.getElementById('pub-summary');
+    var meta = document.getElementById('pub-meta');
+    var preview = document.getElementById('pub-preview');
+    var previewFull = document.getElementById('pub-preview-full');
+    var imgIn = document.getElementById('pub-image');
+    var imgPr = document.getElementById('pub-image-preview');
+    var draftKey = <%- JSON.stringify(draftKey) %>;
+    var isEdit = <%= isEdit ? 'true' : 'false' %>;
+
+    function bodyValue() {
+        var solo = document.getElementById('editorWrite');
+        if (solo && solo.style.display !== 'none' && contentSolo) return contentSolo.value;
+        return content ? content.value : '';
+    }
+    function syncSoloFromMain() {
+        if (contentSolo && content) contentSolo.value = content.value;
+    }
+    function syncMainFromSolo() {
+        if (content && contentSolo) content.value = contentSolo.value;
+    }
+
+    function renderMd(src) {
+        if (!src) return '';
+        if (!window.marked) {
+            return '<p style="color:var(--pub-danger)">Markdown library not loaded</p>';
+        }
+        if (!window.DOMPurify) {
+            return '<p style="color:var(--pub-danger)">Sanitizer library not loaded</p>';
+        }
+        // marked v11+ uses marked.marked.parse() or new marked.use()
+        var parseFunc = typeof window.marked.parse === 'function' ? window.marked.parse : 
+                      typeof window.marked === 'function' ? window.marked : null;
+        var parseFunc = typeof window.marked.parse === 'function' ? window.marked.parse : 
+                      typeof window.marked === 'function' ? window.marked : null;
+        if (!parseFunc) {
+            console.log('marked available methods:', Object.keys(window.marked));
+            return '<p style="color:var(--pub-danger)">Cannot parse markdown</p>';
+        }
+        var raw = parseFunc(src, { breaks: true, gfm: true });
+        // Configure DOMPurify to allow headings and common HTML
+        return window.DOMPurify.sanitize(raw, {
+            ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr', 'ul', 'ol', 'li', 'a', 'strong', 'em', 'code', 'pre', 'blockquote', 'span', 'div'],
+            ALLOWED_ATTR: ['href', 'class', 'id', 'target', 'rel']
+        });
+    }
+    function updatePreview() {
+        var txt = bodyValue();
+        var html = renderMd(txt);
+        var empty = '<p style="color:var(--pub-muted);font-size:0.875rem">Nothing to preview yet.</p>';
+        if (preview) {
+            preview.innerHTML = html || empty;
+            console.log('preview HTML:', preview.innerHTML);
+            var firstH1 = preview.querySelector('h1');
+            console.log('preview h1 element:', firstH1, 'textContent:', firstH1 ? firstH1.textContent : null);
+        }
+        if (previewFull) {
+            previewFull.innerHTML = html || empty;
+        }
+    }
+    function counts() {
+        var s = summary ? summary.value.length : 0;
+        var m = meta ? meta.value.length : 0;
+        var c = bodyValue().length;
+        var elS = document.getElementById('cnt-summary');
+        var elM = document.getElementById('cnt-meta');
+        var elC = document.getElementById('cnt-content');
+        var dS = document.getElementById('dock-sum');
+        var dM = document.getElementById('dock-meta');
+        if (elS) elS.textContent = s;
+        if (elM) elM.textContent = m;
+        if (elC) elC.textContent = c;
+        if (dS) dS.textContent = s;
+        if (dM) dM.textContent = m;
+    }
+    var t;
+    function schedule() {
+        clearTimeout(t);
+        t = setTimeout(function () {
+            try {
+                var payload = {
+                    title: document.getElementById('pub-title') && document.getElementById('pub-title').value,
+                    summary: summary && summary.value,
+                    content: bodyValue(),
+                    meta: meta && meta.value,
+                    image: imgIn && imgIn.value,
+                    tags: document.getElementById('pub-tags') && document.getElementById('pub-tags').value
+                };
+                localStorage.setItem(draftKey, JSON.stringify(payload));
+                var d = document.getElementById('dock-autosave');
+                if (d) d.textContent = 'Autosaved locally · ' + new Date().toLocaleTimeString();
+            } catch (e) {}
+        }, 600);
+    }
+    function loadDraft() {
+        try {
+            var raw = localStorage.getItem(draftKey);
+            if (!raw) return;
+            var d = JSON.parse(raw);
+            if (!isEdit && d.content && content && !content.value) {
+                content.value = d.content;
+                syncSoloFromMain();
+            }
+            if (!isEdit && d.summary && summary && !summary.value) summary.value = d.summary;
+        } catch (e) {}
+    }
+    function imgPreview() {
+        if (!imgIn || !imgPr) return;
+        var u = imgIn.value.trim();
+        if (u && /^https?:\/\//i.test(u)) {
+            imgPr.src = u;
+            imgPr.classList.add('is-visible');
+        } else {
+            imgPr.classList.remove('is-visible');
+        }
+    }
+
+    var splitEl = document.getElementById('editorSplit');
+    var writeEl = document.getElementById('editorWrite');
+    var prevEl = document.getElementById('editorPreviewOnly');
+    function setLayout(mode) {
+        document.querySelectorAll('.publisher-toggle-row .publisher-toggle').forEach(function (b) {
+            b.classList.toggle('is-on', b.getAttribute('data-layout') === mode);
+        });
+        if (mode === 'split') {
+            syncMainFromSolo();
+            if (splitEl) splitEl.style.display = 'grid';
+            if (writeEl) writeEl.style.display = 'none';
+            if (prevEl) prevEl.style.display = 'none';
+            if (splitEl && window.matchMedia('(max-width:1023px)').matches) {
+                splitEl.style.gridTemplateColumns = '1fr';
+            } else if (splitEl) {
+                splitEl.style.gridTemplateColumns = '1fr 1fr';
+            }
+            document.getElementById('formatToolbar').style.display = 'none';
+        } else if (mode === 'write') {
+            syncSoloFromMain();
+            if (splitEl) splitEl.style.display = 'none';
+            if (writeEl) writeEl.style.display = 'block';
+            if (prevEl) prevEl.style.display = 'none';
+            document.getElementById('formatToolbar').style.display = 'flex';
+        } else {
+            syncMainFromSolo();
+            if (splitEl) splitEl.style.display = 'none';
+            if (writeEl) writeEl.style.display = 'none';
+            if (prevEl) prevEl.style.display = 'block';
+            document.getElementById('formatToolbar').style.display = 'none';
+        }
+        updatePreview();
+        counts();
+    }
+    document.getElementById('layoutSplit') && document.getElementById('layoutSplit').addEventListener('click', function () { setLayout('split'); });
+    document.getElementById('layoutWrite') && document.getElementById('layoutWrite').addEventListener('click', function () { setLayout('write'); });
+    document.getElementById('layoutPreview') && document.getElementById('layoutPreview').addEventListener('click', function () { setLayout('preview'); });
+
+    function onBodyInput() {
+        updatePreview();
+        counts();
+        schedule();
+    }
+    if (content) content.addEventListener('input', onBodyInput);
+    if (contentSolo) contentSolo.addEventListener('input', onBodyInput);
+    if (summary) summary.addEventListener('input', function () { counts(); schedule(); });
+    if (meta) meta.addEventListener('input', function () { counts(); schedule(); });
+    if (imgIn) imgIn.addEventListener('input', imgPreview);
+    document.getElementById('pub-title') && document.getElementById('pub-title').addEventListener('input', schedule);
+
+loadDraft();
+    syncSoloFromMain();
+    setLayout('split');
+    imgPreview();
+
+    // ===== FORMAT TOOLBAR =====
+    function getActiveTextarea() {
+        var solo = document.getElementById('editorWrite');
+        if (solo && solo.style.display !== 'none' && contentSolo) return contentSolo;
+        return content;
+    }
+
+function wrapSelection(prefix, suffix) {
+        var ta = getActiveTextarea();
+        if (!ta) return;
+        var start = ta.selectionStart;
+        var end = ta.selectionEnd;
+        var text = ta.value;
+        var selected = text.substring(start, end);
+        var before = text.substring(0, start);
+        var after = text.substring(end);
+        var wrapped = prefix + (selected || 'text') + suffix;
+        ta.value = before + wrapped + after;
+        var newPos = start + prefix.length + (selected ? selected.length : 4) + suffix.length;
+        ta.selectionStart = start + prefix.length;
+        ta.selectionEnd = start + prefix.length + (selected ? selected.length : 4);
+        ta.focus();
+        onBodyInput();
+    }
+
+    function getActiveTextarea() {
+        var solo = document.getElementById('editorWrite');
+        if (solo && solo.style.display !== 'none' && contentSolo) return contentSolo;
+        return content;
+    }
+
+    function insertAtLineStart(prefix) {
+        var ta = getActiveTextarea();
+        if (!ta) return;
+        var text = ta.value;
+        var pos = ta.selectionStart;
+        var lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+        var before = text.substring(0, lineStart);
+        var after = text.substring(lineStart);
+        ta.value = before + prefix + after;
+        ta.selectionStart = ta.selectionEnd = lineStart + prefix.length;
+        ta.focus();
+        onBodyInput();
+    }
+
+    function showLinkPrompt() {
+        var ta = getActiveTextarea();
+        if (!ta) return;
+        var start = ta.selectionStart;
+        var end = ta.selectionEnd;
+        var selected = ta.value.substring(start, end);
+        
+        var existingModal = document.getElementById('linkModal');
+        if (existingModal) existingModal.remove();
+        
+        var overlay = document.createElement('div');
+        overlay.id = 'linkModal';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(53,33,28,0.22);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        
+        var modal = document.createElement('div');
+        modal.style.cssText = 'background:var(--pub-panel-bg);backdrop-filter:blur(20px);border:1px solid var(--pub-panel-border);border-radius:1rem;padding:2rem;width:90%;max-width:420px;box-shadow:var(--pub-panel-shadow);';
+        
+        modal.innerHTML = 
+            '<h3 style="font-family:Space Grotesk,sans-serif;font-size:1.25rem;font-weight:600;color:var(--pub-text);margin-bottom:1.5rem;">Add Link</h3>' +
+            '<div style="margin-bottom:1.25rem;">' +
+                '<label style="display:block;font-size:0.75rem;color:var(--pub-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em;">Link Text</label>' +
+                '<input type="text" id="linkText" style="width:100%;padding:0.75rem 1rem;background:var(--pub-input-bg);border:1px solid var(--pub-input-border);border-radius:0.65rem;color:var(--pub-input-text);font-size:0.875rem;box-sizing:border-box;" value="' + (selected || '').replace(/"/g, '&quot;') + '">' +
+            '</div>' +
+            '<div style="margin-bottom:1.5rem;">' +
+                '<label style="display:block;font-size:0.75rem;color:var(--pub-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em;">URL</label>' +
+                '<input type="url" id="linkUrl" style="width:100%;padding:0.75rem 1rem;background:var(--pub-input-bg);border:1px solid var(--pub-input-border);border-radius:0.65rem;color:var(--pub-input-text);font-size:0.875rem;box-sizing:border-box;" value="https://">' +
+            '</div>' +
+            '<div style="display:flex;gap:0.75rem;justify-content:flex-end;">' +
+                '<button type="button" id="linkCancel" style="padding:0.75rem 1.5rem;background:transparent;border:1px solid var(--pub-border-strong);border-radius:0.5rem;color:var(--pub-muted);font-size:0.875rem;cursor:pointer;">Cancel</button>' +
+                '<button type="button" id="linkInsert" style="padding:0.75rem 1.5rem;background:var(--pub-btn-primary-bg);border:none;border-radius:0.5rem;color:var(--pub-btn-primary-text);font-size:0.875rem;font-weight:500;cursor:pointer;">Insert</button>' +
+            '</div>';
+        
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        
+        var urlInput = document.getElementById('linkUrl');
+        var textInput = document.getElementById('linkText');
+        
+        setTimeout(function() {
+            if (urlInput) {
+                urlInput.focus();
+                urlInput.setSelectionRange(8, urlInput.value.length);
+            }
+        }, 50);
+        
+        document.getElementById('linkCancel').onclick = function() {
+            overlay.remove();
+        };
+        
+        document.getElementById('linkInsert').onclick = function() {
+            var text = textInput.value.trim() || selected || 'link';
+            var url = urlInput.value.trim() || 'https://';
+            var markdownLink = '[' + text + '](' + url + ')';
+            
+            var before = ta.value.substring(0, start);
+            var after = ta.value.substring(end);
+            ta.value = before + markdownLink + after;
+            ta.selectionStart = start + markdownLink.length;
+            ta.selectionEnd = ta.selectionStart;
+            ta.focus();
+            onBodyInput();
+            overlay.remove();
+        };
+        
+        overlay.onclick = function(e) {
+            if (e.target === overlay) overlay.remove();
+        };
+    }
+
+    document.querySelectorAll('.fmt-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var fmt = btn.getAttribute('data-fmt');
+            switch(fmt) {
+                case 'h1': insertAtLineStart('# '); break;
+                case 'h2': insertAtLineStart('## '); break;
+                case 'h3': insertAtLineStart('### '); break;
+                case 'b': wrapSelection('**', '**'); break;
+                case 'i': wrapSelection('*', '*'); break;
+                case 's': wrapSelection('~~', '~~'); break;
+                case 'link': showLinkPrompt(); break;
+                case 'ul': insertAtLineStart('- '); break;
+                case 'ol': insertAtLineStart('1. '); break;
+                case 'quote': insertAtLineStart('> '); break;
+                case 'code': wrapSelection('`', '`'); break;
+                case 'codeblock': wrapSelection('```\n', '\n```'); break;
+            }
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        var ta = getActiveTextarea();
+        if (!ta || document.activeElement !== ta) return;
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key.toLowerCase()) {
+                case 'b': e.preventDefault(); wrapSelection('**', '**'); break;
+                case 'i': e.preventDefault(); wrapSelection('*', '*'); break;
+                case 's': e.preventDefault(); wrapSelection('~~', '~~'); break;
+                case 'k': e.preventDefault(); showLinkPrompt(); break;
+            }
+        }
+    });
+})();
+</script>
+
+<%- include('../../partials/publisher-shell-close') %>
+<%- include('../../partials/dashboard-scripts') %>

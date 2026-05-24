@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title || 'Dashboard | NOOK' %>
+    </title>
+    <meta name="description"
+        content="<%= description || 'Track your reading activity, earnings, and milestones on NOOK.' %>">
+    <link rel="canonical" href="<%= canonical || '' %>">
+    <meta name="theme-color" content="#6d0a0a">
+    <meta property="og:title" content="<%= title || 'Dashboard | NOOK' %>">
+    <meta property="og:description"
+        content="<%= description || 'Track your reading activity, earnings, and milestones on NOOK.' %>">
+    <meta property="og:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= title || 'Dashboard | NOOK' %>">
+    <meta name="twitter:description"
+        content="<%= description || 'Track your reading activity, earnings, and milestones on NOOK.' %>">
+    <meta name="twitter:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <%- include('../partials/dashboard-css') %>
+        <style>
+            .dashboard-shell {
+                color: var(--dash-text);
+            }
+
+            .dashboard-hero {
+                position: relative;
+                overflow: hidden;
+                background:
+                    radial-gradient(circle at top right, rgba(109, 10, 10, 0.12), transparent 30%),
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 246, 239, 0.98));
+            }
+
+            .dashboard-hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background-image:
+                    linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
+                background-size: 72px 72px;
+                mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
+                pointer-events: none;
+            }
+
+            .dashboard-kicker {
+                color: var(--dash-accent);
+                letter-spacing: 0.2em;
+            }
+
+            .dashboard-hero-title {
+                color: var(--dash-text);
+                letter-spacing: -0.035em;
+            }
+
+            .dashboard-hero-copy {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-hero-emphasis {
+                color: var(--dash-text);
+                font-weight: 700;
+            }
+
+            .dashboard-trend-up {
+                color: var(--dash-success);
+                font-weight: 700;
+            }
+
+            .dashboard-trend-down {
+                color: var(--dash-danger);
+                font-weight: 700;
+            }
+
+            .dashboard-stat-card,
+            .dashboard-panel {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .dashboard-stat-card::before,
+            .dashboard-panel::before {
+                content: "";
+                position: absolute;
+                inset: 0 auto auto 0;
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+                pointer-events: none;
+            }
+
+            .dashboard-stat-label {
+                color: var(--dash-muted-strong);
+                letter-spacing: 0.14em;
+            }
+
+            .dashboard-stat-value {
+                color: var(--dash-text);
+                letter-spacing: -0.03em;
+            }
+
+            .dashboard-stat-meta {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-panel-title {
+                color: var(--dash-text);
+                letter-spacing: -0.02em;
+            }
+
+            .dashboard-panel-link {
+                color: var(--dash-accent);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                transition: color 0.2s ease, opacity 0.2s ease;
+            }
+
+            .dashboard-panel-link:hover {
+                color: var(--dash-accent-strong);
+            }
+
+            .dashboard-panel-button {
+                border: 1px solid rgba(109, 10, 10, 0.12);
+                background: rgba(109, 10, 10, 0.04);
+                border-radius: 999px;
+                padding: 0.45rem 0.8rem;
+                font-weight: 600;
+                transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            }
+
+            .dashboard-panel-button:hover {
+                background: rgba(109, 10, 10, 0.08);
+                border-color: rgba(109, 10, 10, 0.16);
+            }
+
+            .dashboard-history-item {
+                text-decoration: none;
+                background: rgba(109, 10, 10, 0.035);
+                border: 1px solid rgba(109, 10, 10, 0.08);
+                transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .dashboard-history-item:hover {
+                transform: translateY(-1px);
+                background: rgba(109, 10, 10, 0.06);
+                border-color: rgba(109, 10, 10, 0.14);
+                box-shadow: 0 18px 36px rgba(109, 10, 10, 0.07);
+            }
+
+            .dashboard-history-thumb {
+                box-shadow: 0 10px 28px rgba(109, 10, 10, 0.1);
+            }
+
+            .dashboard-history-placeholder {
+                background: linear-gradient(135deg, rgba(109, 10, 10, 0.08), rgba(191, 86, 55, 0.08));
+                color: var(--dash-accent);
+                border: 1px solid rgba(109, 10, 10, 0.08);
+            }
+
+            .dashboard-history-title {
+                color: var(--dash-text);
+            }
+
+            .dashboard-history-meta {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-status-positive {
+                color: var(--dash-success);
+                font-weight: 700;
+            }
+
+            .dashboard-status-pending {
+                color: var(--dash-warning);
+                font-weight: 700;
+            }
+
+            .dashboard-status-neutral {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-empty-state {
+                text-align: center;
+                color: var(--dash-muted);
+                padding: 2.5rem 1rem;
+            }
+
+            .dashboard-empty-state-compact {
+                padding: 1.5rem 0.75rem;
+            }
+
+            .dashboard-empty-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                margin-top: 0.85rem;
+                color: var(--dash-accent);
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+            .dashboard-empty-link:hover {
+                color: var(--dash-accent-strong);
+            }
+
+            .dashboard-progress-copy {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-progress-value {
+                color: var(--dash-text);
+            }
+
+            .dashboard-progress-track {
+                background: rgba(109, 10, 10, 0.08);
+            }
+
+            .dashboard-progress-fill {
+                background: linear-gradient(90deg, var(--dash-accent), #ba4a28);
+                box-shadow: 0 8px 18px rgba(109, 10, 10, 0.18);
+            }
+
+            .dashboard-progress-fill-secondary {
+                background: linear-gradient(90deg, #d97706, #f59e0b);
+                box-shadow: 0 8px 18px rgba(217, 119, 6, 0.18);
+            }
+
+            .dashboard-notif-item {
+                border: 1px solid rgba(109, 10, 10, 0.08);
+                background: rgba(109, 10, 10, 0.03);
+                transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            }
+
+            .dashboard-notif-item:hover {
+                background: rgba(109, 10, 10, 0.06);
+                border-color: rgba(109, 10, 10, 0.14);
+                transform: translateY(-1px);
+            }
+
+            .dashboard-notif-item.is-read {
+                opacity: 0.7;
+            }
+
+            .dashboard-notif-title {
+                color: var(--dash-text);
+            }
+
+            .dashboard-notif-copy {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-achievement-item {
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                padding: 0.85rem;
+                border-radius: 0.95rem;
+                border: 1px solid rgba(109, 10, 10, 0.08);
+                background: rgba(109, 10, 10, 0.03);
+            }
+
+            .dashboard-achievement-icon {
+                width: 2.35rem;
+                height: 2.35rem;
+                border-radius: 0.85rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .dashboard-achievement-icon.is-earned {
+                background: rgba(21, 128, 61, 0.12);
+                color: var(--dash-success);
+            }
+
+            .dashboard-achievement-icon.is-locked {
+                background: rgba(109, 10, 10, 0.06);
+                color: var(--dash-muted);
+            }
+
+            .dashboard-achievement-name {
+                color: var(--dash-text);
+            }
+
+            .dashboard-achievement-progress {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-referral-card {
+                background: linear-gradient(145deg, rgba(109, 10, 10, 0.05), rgba(255, 255, 255, 0.7));
+                border: 1px solid rgba(109, 10, 10, 0.12);
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            }
+
+            .dashboard-referral-code {
+                color: var(--dash-accent);
+                letter-spacing: 0.08em;
+            }
+
+            .dashboard-referral-button {
+                border: 1px solid rgba(109, 10, 10, 0.12);
+                background: rgba(109, 10, 10, 0.06);
+                color: var(--dash-accent);
+                transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            }
+
+            .dashboard-referral-button:hover {
+                background: var(--dash-accent);
+                border-color: var(--dash-accent);
+                color: #ffffff;
+                transform: translateY(-1px);
+            }
+
+            .dashboard-referral-note {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-copy-check {
+                color: var(--dash-success);
+            }
+
+            .dashboard-focus-ring:focus-visible,
+            .dashboard-panel-button:focus-visible,
+            .dashboard-referral-button:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
+            }
+
+            @media (max-width: 640px) {
+                .dashboard-hero {
+                    padding: 1.35rem;
+                }
+
+                .dashboard-stat-card,
+                .dashboard-panel {
+                    padding: 1.1rem;
+                }
+            }
+        </style>
+</head>
+
+<body class="min-h-screen dashboard-page">
+    <div class="bg-noise"></div>
+    <div class="bg-grid"></div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <%- include('../partials/dashboard-header') %>
+
+        <main class="dashboard-shell relative z-10 pt-24 pb-16">
+            <div class="max-w-7xl mx-auto px-6">
+                <section class="glass-card dashboard-hero rounded-2xl p-6 md:p-8 mb-8">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
+                        <div>
+                            <p class="dashboard-kicker font-mono text-xs uppercase mb-2">Reader Console</p>
+                            <h1 class="dashboard-hero-title font-heading text-3xl md:text-4xl font-bold mb-3">Welcome
+                                back, <%= user?.displayName || 'Reader' %>
+                            </h1>
+                            <p class="dashboard-hero-copy max-w-2xl">
+                                You completed <span class="dashboard-hero-emphasis">
+                                    <%= readStats?.reads7d || 0 %> reads
+                                </span> in the last 7 days
+                                <% if ((readStats?.reads7dDelta || 0) !==0) { %>
+                                    (<span
+                                        class="<%= (readStats?.reads7dDelta || 0) >= 0 ? 'dashboard-trend-up' : 'dashboard-trend-down' %>">
+                                        <%= (readStats?.reads7dDelta || 0)>= 0 ? '+' : '' %><%= readStats?.reads7dDelta
+                                                || 0 %>%
+                                    </span> vs prior week)
+                                    <% } %>.
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <a href="/browse" class="btn-primary-dark px-6 py-3 rounded-full text-xs">Read now</a>
+                            <a href="/withdraw" class="btn-secondary px-6 py-3 rounded-full text-xs">Withdraw</a>
+                            <% if (user?.publisherStatus==='approved' ) { %>
+                                <a href="/switch-role?role=publisher"
+                                    class="btn-secondary px-6 py-3 rounded-full text-xs">Open Publisher</a>
+                                <% } %>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                    <article class="glass-card dashboard-stat-card rounded-2xl p-5">
+                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Available
+                        </p>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%=
+                                user?.wallet?.balance?.toFixed(2) || '0.00' %>
+                        </p>
+                        <p class="dashboard-stat-meta text-xs mt-2">Ready for withdrawal</p>
+                    </article>
+                    <article class="glass-card dashboard-stat-card rounded-2xl p-5">
+                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">This Week
+                            Earned</p>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= (readStats?.earned7d ||
+                                0).toFixed(2) %>
+                        </p>
+                        <p
+                            class="text-xs mt-2 <%= (readStats?.earned7dDelta || 0) >= 0 ? 'dashboard-trend-up' : 'dashboard-trend-down' %>">
+                            <%= (readStats?.earned7dDelta || 0)>= 0 ? '+' : '' %><%= readStats?.earned7dDelta || 0 %>%
+                                    vs last week
+                        </p>
+                    </article>
+                    <article class="glass-card dashboard-stat-card rounded-2xl p-5">
+                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Reads</p>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">
+                            <%= user?.stats?.totalReads || 0 %>
+                        </p>
+                        <p class="dashboard-stat-meta text-xs mt-2">
+                            <%= readStats?.todayReads || 0 %> completed today
+                        </p>
+                    </article>
+                    <article class="glass-card dashboard-stat-card rounded-2xl p-5">
+                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Streak</p>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">
+                            <%= user?.stats?.streak || 0 %> days
+                        </p>
+                        <p class="dashboard-stat-meta text-xs mt-2">Keep reading daily</p>
+                    </article>
+                </section>
+
+                <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div class="xl:col-span-2 space-y-6">
+                        <div class="glass-card dashboard-panel rounded-2xl p-6">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Recent Reading</h2>
+                                <a href="/reads" class="dashboard-panel-link text-xs font-mono">View full history</a>
+                            </div>
+
+                            <% if (readHistory && readHistory.length> 0) { %>
+                                <div class="space-y-3">
+                                    <% readHistory.forEach(function(session) { %>
+                                        <a href="/post/<%= session.post?.slug || '#' %>"
+                                            class="dashboard-history-item dashboard-focus-ring flex items-center gap-4 p-3 rounded-xl">
+                                            <% if (session.post?.image) { %>
+                                                <img src="<%= session.post.image %>" alt="" loading="lazy"
+                                                    decoding="async"
+                                                    class="dashboard-history-thumb w-14 h-14 rounded-lg object-cover flex-shrink-0">
+                                                <% } else { %>
+                                                    <div
+                                                        class="dashboard-history-placeholder w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <% } %>
+                                                        <div class="flex-1 min-w-0">
+                                                            <h3 class="dashboard-history-title font-medium truncate">
+                                                                <%= session.post?.title || 'Unknown Article' %>
+                                                            </h3>
+                                                            <p class="dashboard-history-meta text-xs mt-1">
+                                                                <% if (session.timeSpentSeconds> 0) { %>
+                                                                    <%= session.timeSpentSeconds < 60 ?
+                                                                        `${session.timeSpentSeconds} sec` :
+                                                                        `${Math.floor(session.timeSpentSeconds / 60)}
+                                                                        min` %> read
+                                                                        <% } else { %>
+                                                                            In progress
+                                                                            <% } %>
+                                                            </p>
+                                                        </div>
+                                                        <div class="text-right">
+                                                            <% if (session.rewardAwarded) { %>
+                                                                <p class="text-sm dashboard-status-positive">+₦<%=
+                                                                        session.rewardAmount %>
+                                                                </p>
+                                                                <% } else if (session.completed) { %>
+                                                                    <p class="text-xs dashboard-status-pending">Pending
+                                                                    </p>
+                                                                    <% } else { %>
+                                                                        <p class="text-xs dashboard-status-neutral">
+                                                                            Incomplete</p>
+                                                                        <% } %>
+                                                        </div>
+                                        </a>
+                                        <% }); %>
+                                </div>
+                                <% } else { %>
+                                    <div class="dashboard-empty-state">
+                                        <p>No reads yet. Start with today’s top stories.</p>
+                                        <a href="/" class="dashboard-empty-link">Browse stories</a>
+                                    </div>
+                                    <% } %>
+                        </div>
+
+                        <div class="glass-card dashboard-panel rounded-2xl p-6">
+                            <h2 class="dashboard-panel-title font-heading text-xl font-semibold mb-4">Progress Goals
+                            </h2>
+                            <div class="space-y-5">
+                                <div>
+                                    <div class="flex items-center justify-between text-sm mb-2">
+                                        <span class="dashboard-progress-copy">Next read milestone</span>
+                                        <span class="dashboard-progress-value font-mono">
+                                            <%= readStats?.readsToNextMilestone || 0 %> reads left
+                                        </span>
+                                    </div>
+                                    <% const readProgress=Math.max(0, Math.min(100, ((50 -
+                                        (readStats?.readsToNextMilestone || 0)) / 50) * 100)); %>
+                                        <div class="dashboard-progress-track h-2 rounded-full overflow-hidden">
+                                            <div class="dashboard-progress-fill h-full rounded-full"
+                                                style="width:<%= readProgress %>%;"></div>
+                                        </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center justify-between text-sm mb-2">
+                                        <span class="dashboard-progress-copy">Referral target</span>
+                                        <% const refProgress=Math.max(0, Math.min(100, ((readStats?.referredCount || 0)
+                                            / (readStats?.referralTarget || 5)) * 100)); %>
+                                            <span class="dashboard-progress-value font-mono">
+                                                <%= readStats?.referredCount || 0 %>/<%= readStats?.referralTarget || 5
+                                                        %>
+                                            </span>
+                                    </div>
+                                    <div class="dashboard-progress-track h-2 rounded-full overflow-hidden">
+                                        <div class="dashboard-progress-fill dashboard-progress-fill-secondary h-full rounded-full"
+                                            style="width:<%= refProgress %>%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-card dashboard-panel rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Notifications</h2>
+                                <button id="markAllRead"
+                                    class="dashboard-panel-button dashboard-focus-ring text-xs">Mark all read</button>
+                            </div>
+                            <div id="notifList" class="space-y-3">
+                                <div class="dashboard-empty-state dashboard-empty-state-compact text-sm">Loading
+                                    notifications...</div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card dashboard-panel rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Achievements</h2>
+                                <span id="achievementCount" class="text-xs text-muted">Loading...</span>
+                            </div>
+                            <div id="achievementsList" class="space-y-3">
+                                <div class="dashboard-empty-state dashboard-empty-state-compact">Loading achievements...
+                                </div>
+                            </div>
+                            <a href="/achievements" class="dashboard-panel-link block text-center text-sm mt-4">View all
+                                achievements</a>
+                        </div>
+
+                        <% if (typeof rewardedAd !=='undefined' && rewardedAd) { %>
+                            <%- include('../partials/ad-rewarded', { ad: rewardedAd }) %>
+                                <% } %>
+
+                                    <div class="glass-card dashboard-panel rounded-2xl p-6">
+                                        <h2 class="dashboard-panel-title font-heading text-xl font-semibold mb-4">
+                                            Referral</h2>
+                                        <div class="dashboard-referral-card rounded-xl p-4">
+                                            <div class="flex items-center gap-3">
+                                                <p id="referralCode"
+                                                    class="dashboard-referral-code text-xl font-mono font-bold flex-1">
+                                                    <%= user?.referralCode || 'N/A' %>
+                                                </p>
+                                                <button id="copyReferralBtn"
+                                                    class="dashboard-referral-button dashboard-focus-ring p-3 rounded-xl"
+                                                    title="Copy referral link">
+                                                    <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                                        height="18" viewBox="0 0 24 24" fill="none"
+                                                        stroke="currentColor" stroke-width="2">
+                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                        <path
+                                                            d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                                        </path>
+                                                    </svg>
+                                                    <svg id="checkIcon" class="dashboard-copy-check hidden"
+                                                        xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <p class="dashboard-referral-note text-sm mt-2">Share and earn ₦50 per
+                                                referral.</p>
+                                        </div>
+                                    </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <div id="toast" class="toast"></div>
+        <script>
+            async function loadAchievements() {
+                try {
+                    const res = await fetch('/api/achievements');
+                    const data = await res.json();
+                    if (!data.success) return;
+                    const countEl = document.getElementById('achievementCount');
+                    const listEl = document.getElementById('achievementsList');
+                    if (countEl) countEl.textContent = `${data.unlockedCount}/${data.totalAchievements} unlocked`;
+                    if (!listEl) return;
+                    if (!data.achievements || data.achievements.length === 0) {
+                        listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No achievements yet.</div>';
+                        return;
+                    }
+                    listEl.innerHTML = data.achievements.slice(0, 3).map((a) => `
+                    <div class="dashboard-achievement-item">
+                        <div class="dashboard-achievement-icon ${a.earned ? 'is-earned' : 'is-locked'}">
+                            ${a.earned ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="dashboard-achievement-name text-sm font-medium truncate">${a.name}</p>
+                            <p class="dashboard-achievement-progress text-xs">${a.progress}% complete</p>
+                        </div>
+                    </div>
+                `).join('');
+                } catch (error) {
+                    console.error('Failed to load achievements', error);
+                }
+            }
+
+            async function loadNotifications() {
+                try {
+                    const res = await fetch('/api/notifications');
+                    const data = await res.json();
+                    const listEl = document.getElementById('notifList');
+                    if (!listEl || !data.success) return;
+                    if (!data.notifications || data.notifications.length === 0) {
+                        listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No notifications yet.</div>';
+                        return;
+                    }
+                    listEl.innerHTML = data.notifications.slice(0, 5).map((n) => `
+                    <button class="dashboard-notif-item dashboard-focus-ring w-full text-left p-3 rounded-xl ${n.read ? 'is-read' : ''}" onclick="handleNotifClick('${n._id}')">
+                        <p class="dashboard-notif-title text-sm font-medium truncate">${n.title}</p>
+                        <p class="dashboard-notif-copy text-xs mt-1 line-clamp-2">${n.message}</p>
+                    </button>
+                `).join('');
+                } catch (error) {
+                    console.error('Failed to load notifications', error);
+                }
+            }
+
+            window.handleNotifClick = async function (id) {
+                await fetch(`/api/notifications/${id}/read`, {
+                    method: 'PUT'
+                });
+                loadNotifications();
+            };
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const markAllRead = document.getElementById('markAllRead');
+                const copyBtn = document.getElementById('copyReferralBtn');
+                if (markAllRead) {
+                    markAllRead.addEventListener('click', async function () {
+                        await fetch('/api/notifications/read-all', {
+                            method: 'PUT'
+                        });
+                        loadNotifications();
+                    });
+                }
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async function () {
+                        const referralCode = document.getElementById('referralCode');
+                        const link = `${window.location.origin}/register?ref=${referralCode?.textContent || ''}`;
+                        await navigator.clipboard.writeText(link);
+                        document.getElementById('copyIcon')?.classList.add('hidden');
+                        document.getElementById('checkIcon')?.classList.remove('hidden');
+                        setTimeout(() => {
+                            document.getElementById('copyIcon')?.classList.remove('hidden');
+                            document.getElementById('checkIcon')?.classList.add('hidden');
+                        }, 1600);
+                    });
+                }
+                loadAchievements();
+                loadNotifications();
+            });
+        </script>
+        <%- include('../partials/dashboard-scripts') %>
+
+            <%- include('../partials/mobile-bottom-nav', { currentPage: 'dashboard' , theme: 'light' , unreadCount:
+                unreadCount }) %>
+</body>
+
+</html>

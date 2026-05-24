@@ -1,0 +1,178 @@
+<%- include('../../partials/publisher-shell-open') %>
+
+<section class="publisher-stat-grid" aria-label="Key metrics">
+    <article class="publisher-stat">
+        <div class="publisher-stat-label">Articles</div>
+        <div class="publisher-stat-value"><%= stats.totalPosts %></div>
+        <div class="publisher-stat-delta"><%= stats.publishedPosts %> live · <%= stats.draftPosts %> draft</div>
+    </article>
+    <article class="publisher-stat">
+        <div class="publisher-stat-label">Views</div>
+        <div class="publisher-stat-value"><%= stats.totalViews.toLocaleString() %></div>
+        <% if (deltas.views !== null && deltas.views !== undefined) { %>
+            <div class="publisher-stat-delta <%= deltas.views >= 0 ? 'positive' : 'negative' %>">Last 7d vs prior 7d · <%= deltas.views >= 0 ? '+' : '' %><%= deltas.views %>%</div>
+        <% } else { %>
+            <div class="publisher-stat-delta">Last 30 days in charts</div>
+        <% } %>
+    </article>
+    <article class="publisher-stat">
+        <div class="publisher-stat-label">Reads</div>
+        <div class="publisher-stat-value"><%= stats.totalReads.toLocaleString() %></div>
+        <% if (deltas.reads !== null && deltas.reads !== undefined) { %>
+            <div class="publisher-stat-delta <%= deltas.reads >= 0 ? 'positive' : 'negative' %>">Last 7d vs prior 7d · <%= deltas.reads >= 0 ? '+' : '' %><%= deltas.reads %>%</div>
+        <% } else { %>
+            <div class="publisher-stat-delta">Completed reads on your posts</div>
+        <% } %>
+    </article>
+    <article class="publisher-stat">
+        <div class="publisher-stat-label">Earnings</div>
+        <div class="publisher-stat-value">₦<%= stats.totalEarnings.toLocaleString() %></div>
+        <div class="publisher-stat-delta">From reader activity</div>
+    </article>
+</section>
+
+<div class="publisher-grid-2">
+    <div class="publisher-panel">
+        <div class="publisher-panel-head">
+            <h2 class="publisher-panel-title">Article views</h2>
+            <span class="publisher-panel-meta">30 days · your posts</span>
+        </div>
+        <div class="publisher-chart-wrap">
+            <canvas id="viewsChart" aria-label="Views chart"></canvas>
+        </div>
+    </div>
+    <div class="publisher-panel">
+        <div class="publisher-panel-head">
+            <h2 class="publisher-panel-title">Completed reads</h2>
+            <span class="publisher-panel-meta">30 days · your posts</span>
+        </div>
+        <div class="publisher-chart-wrap">
+            <canvas id="readsChart" aria-label="Reads chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="publisher-panel" style="margin-bottom:0;">
+    <div class="publisher-panel-head">
+        <h2 class="publisher-panel-title">Top posts</h2>
+        <span class="publisher-panel-meta">By lifetime views</span>
+    </div>
+    <% if (!topPosts || topPosts.length === 0) { %>
+        <div class="publisher-empty">
+            <div class="publisher-empty-icon" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <p style="font-weight:600;margin-bottom:0.5rem;color:var(--pub-text)">No articles yet</p>
+            <p style="font-size:0.875rem;color:var(--pub-muted);margin-bottom:1.5rem;max-width:28rem;margin-left:auto;margin-right:auto">Publish your first piece to populate analytics and reader stats.</p>
+            <a href="/publisher/create-post" class="publisher-btn-primary">Open editor</a>
+        </div>
+    <% } else { %>
+        <div class="publisher-table-wrap">
+            <table class="publisher-table">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Topic</th>
+                        <th>Views</th>
+                        <th>Reads</th>
+                        <th>State</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% topPosts.forEach(function(post) { %>
+                        <tr>
+                            <td>
+                                <a href="/post/<%= post.slug %>" target="_blank" rel="noopener" class="publisher-row-title line-clamp-2"><%= post.title %></a>
+                            </td>
+                            <td>
+                                <span class="publisher-cat-pill"><%= categoryNames[post.category] || post.category %></span>
+                            </td>
+                            <td class="font-mono text-sm" style="color:var(--pub-muted)"><%= post.stats?.views || 0 %></td>
+                            <td class="font-mono text-sm" style="color:var(--pub-muted)"><%= post.stats?.reads || 0 %></td>
+                            <td>
+                                <% if (post.publishedAt) { %>
+                                    <span class="publisher-cat-pill status-live">Live</span>
+                                <% } else { %>
+                                    <span class="publisher-cat-pill status-draft">Draft</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } %>
+</div>
+
+<script>
+(function () {
+    var labels = <%- JSON.stringify(charts.last30Days) %>;
+    var viewsData = <%- JSON.stringify(charts.viewsData) %>;
+    var readsData = <%- JSON.stringify(charts.readsData) %>;
+    var root = getComputedStyle(document.documentElement);
+    var tick = root.getPropertyValue('--pub-chart-tick').trim();
+    var grid = root.getPropertyValue('--pub-chart-grid').trim();
+    var lineColor = root.getPropertyValue('--pub-chart-line').trim();
+    var fillColor = root.getPropertyValue('--pub-chart-fill').trim();
+    var lineColor2 = root.getPropertyValue('--pub-chart-line-2').trim();
+    var fillColor2 = root.getPropertyValue('--pub-chart-fill-2').trim();
+    var common = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: {
+                grid: { display: false, drawBorder: false },
+                ticks: { color: tick, maxTicksLimit: 8, font: { size: 10, family: 'JetBrains Mono' } }
+            },
+            y: {
+                grid: { color: grid, drawBorder: false },
+                ticks: { color: tick, font: { size: 10, family: 'JetBrains Mono' } },
+                beginAtZero: true
+            }
+        }
+    };
+    if (document.getElementById('viewsChart')) {
+        new Chart(document.getElementById('viewsChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Views',
+                    data: viewsData,
+                    borderColor: lineColor,
+                    backgroundColor: fillColor,
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4
+                }]
+            },
+            options: common
+        });
+    }
+    if (document.getElementById('readsChart')) {
+        new Chart(document.getElementById('readsChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Reads',
+                    data: readsData,
+                    borderColor: lineColor2,
+                    backgroundColor: fillColor2,
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 4
+                }]
+            },
+            options: common
+        });
+    }
+})();
+</script>
+
+<%- include('../../partials/publisher-shell-close') %>

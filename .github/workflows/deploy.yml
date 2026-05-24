@@ -1,0 +1,103 @@
+name: Deploy
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: 'Deployment environment'
+                required: true
+                default: 'production'
+                type: choice
+                options:
+                    - production
+                    - staging
+
+jobs:
+    deploy:
+        name: Deploy to ${{ inputs.environment || 'production' }}
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.environment || 'production' }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v3
+              with:
+                  version: '10'
+
+            - name: Get dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run tests
+              run: pnpm test
+              env:
+                  NODE_ENV: test
+
+            - name: Build application
+              run: pnpm run build:css
+
+            - name: Run deploy script
+              run: |
+                  echo "Deploying to ${{ inputs.environment || 'production' }}..."
+                  # Add your deployment commands here
+                  # Example for Render:
+                  # curl -X POST $RENDER_DEPLOY_HOOK_URL
+
+            - name: Notify deployment
+              if: always()
+              uses: slackapi/slack-github-action@v1.26.0
+              with:
+                  payload: |
+                      {
+                        "text": "Deployment ${{ job.status }} for Latest-Tech-News to ${{ inputs.environment || 'production' }}",
+                        "blocks": [
+                          {
+                            "type": "section",
+                            "text": {
+                              "type": "mrkdwn",
+                              "text": "*Deployment Status*: ${{ job.status }}"
+                            }
+                          }
+                        ]
+                      }
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+                  SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+    health-check:
+        name: Health Check
+        runs-on: ubuntu-latest
+        needs: deploy
+        if: always() && needs.deploy.result == 'success'
+
+        steps:
+            - name: Check application health
+              run: |
+                  echo "Checking health endpoint..."
+                  sleep 10
+                  curl -f ${{ secrets.APP_URL }}/api/health || exit 1
+                  echo "Health check passed!"
+
+    rollback:
+        name: Rollback on Failure
+        runs-on: ubuntu-latest
+        needs: health-check
+        if: needs.health-check.result == 'failure'
+
+        steps:
+            - name: Trigger rollback
+              run: |
+                  echo "Deployment failed! Initiating rollback..."
+                  # Add rollback commands here
+                  # Example for Render:
+                  # render-cli deploys rollback --id ${{ env.DEPLOYMENT_ID }}
+                  exit 1
