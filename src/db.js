@@ -11,10 +11,23 @@ async function connectDB() {
     }
 
     try {
-        await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-        });
+        // Some mongoose versions validate option names passed via setters.
+        // To avoid "is not a valid option to set" errors in serverless
+        // environments, append driver options to the connection URI instead
+        // of passing them to mongoose.connect as top-level setters.
+        let mongoUri = process.env.MONGO_URI;
+        const params = 'serverSelectionTimeoutMS=5000&socketTimeoutMS=45000';
+
+        if (!mongoUri.includes('?')) {
+            mongoUri = `${mongoUri}?${params}`;
+        } else {
+            // Avoid duplicating params if they're already present
+            if (!mongoUri.includes('serverSelectionTimeoutMS') && !mongoUri.includes('socketTimeoutMS')) {
+                mongoUri = `${mongoUri}&${params}`;
+            }
+        }
+
+        await mongoose.connect(mongoUri, {});
         isConnected = true;
         console.log('Connected to MongoDB');
 

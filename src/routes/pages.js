@@ -5,6 +5,7 @@ const postService = require('../services/PostService');
 const NotificationService = require('../services/NotificationService');
 const DashboardService = require('../services/DashboardService');
 const User = require('../models/User');
+const { buildSitemapXml, buildRobotsTxt } = require('../seo/seoManager');
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
@@ -96,6 +97,16 @@ async function pagesRoutes(fastify) {
                 }
             } catch (e) { }
         }
+    });
+
+    fastify.get('/sitemap.xml', async (req, reply) => {
+        const { content } = await buildSitemapXml();
+        reply.type('application/xml; charset=utf-8').send(content);
+    });
+
+    fastify.get('/robots.txt', async (req, reply) => {
+        const content = await buildRobotsTxt();
+        reply.type('text/plain; charset=utf-8').send(content);
     });
 
     fastify.get('/register', async (req, reply) => {

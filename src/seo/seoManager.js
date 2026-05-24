@@ -3,11 +3,12 @@ const path = require('path');
 const Post = require('../models/Post');
 const { loadConfig } = require('../config');
 
-async function generateSitemap() {
-    try {
-        const config = loadConfig();
-        const posts = await Post.find({}).sort({ publishedAt: -1 });
-        const baseUrl = config.BASE_URL;
+const isServerless = !!process.env.VERCEL || !!process.env.SERVERLESS;
+
+async function buildSitemapXml() {
+    const config = loadConfig();
+    const posts = await Post.find({}).sort({ publishedAt: -1 });
+    const baseUrl = (config.BASE_URL || '').replace(/\/$/, '');
 
     const categoryPages = [
         { slug: 'backend', name: 'Backend Development' },
@@ -30,7 +31,7 @@ async function generateSitemap() {
 
     const today = new Date().toISOString().split('T')[0];
 
-        let sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+    let sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
@@ -44,8 +45,8 @@ async function generateSitemap() {
     </url>
 `;
 
-        for (const category of categoryPages) {
-            sitemapContent += `
+    for (const category of categoryPages) {
+        sitemapContent += `
     <url>
         <loc>${baseUrl}/category/${category.slug}</loc>
         <lastmod>${today}</lastmod>
@@ -53,10 +54,10 @@ async function generateSitemap() {
         <priority>0.8</priority>
     </url>
 `;
-        }
+    }
 
-        for (const page of staticPages) {
-            sitemapContent += `
+    for (const page of staticPages) {
+        sitemapContent += `
     <url>
         <loc>${baseUrl}/${page.slug}</loc>
         <lastmod>${today}</lastmod>
@@ -64,16 +65,16 @@ async function generateSitemap() {
         <priority>${page.priority}</priority>
     </url>
 `;
-        }
+    }
 
-        for (const post of posts) {
-            const lastmod = post.publishedAt ? new Date(post.publishedAt).toISOString().split('T')[0] : today;
-            const daysSincePublished = post.publishedAt
-                ? Math.floor((new Date() - new Date(post.publishedAt)) / (7 * 24 * 60 * 60 * 1000))
-                : 30;
-            const priority = daysSincePublished < 7 ? '0.9' : '0.7';
+    for (const post of posts) {
+        const lastmod = post.publishedAt ? new Date(post.publishedAt).toISOString().split('T')[0] : today;
+        const daysSincePublished = post.publishedAt
+            ? Math.floor((new Date() - new Date(post.publishedAt)) / (7 * 24 * 60 * 60 * 1000))
+            : 30;
+        const priority = daysSincePublished < 7 ? '0.9' : '0.7';
 
-            sitemapContent += `
+        sitemapContent += `
     <url>
         <loc>${baseUrl}/post/${post.slug}</loc>
         <lastmod>${lastmod}</lastmod>
@@ -81,15 +82,26 @@ async function generateSitemap() {
         <priority>${priority}</priority>
     </url>
 `;
-        }
+    }
 
-        sitemapContent += '\n</urlset>';
+    sitemapContent += '\n</urlset>';
+    return { content: sitemapContent, postCount: posts.length };
+}
+
+async function generateSitemap() {
+    try {
+        const { content, postCount } = await buildSitemapXml();
+
+        if (isServerless) {
+            console.log('[SEO] Serverless runtime detected; skipping sitemap file write.');
+            return true;
+        }
 
         const publicDir = path.join(__dirname, '../../public');
         await fs.mkdir(publicDir, { recursive: true });
-        await fs.writeFile(path.join(publicDir, 'sitemap.xml'), sitemapContent, 'utf8');
+        await fs.writeFile(path.join(publicDir, 'sitemap.xml'), content, 'utf8');
 
-        console.log(`[SEO] Generated sitemap with ${posts.length} posts`);
+        console.log(`[SEO] Generated sitemap with ${postCount} posts`);
         return true;
     } catch (error) {
         console.error('[SEO] Failed to generate sitemap:', error);
@@ -131,12 +143,11 @@ async function pingSearchEngines() {
     return results;
 }
 
-async function generateRobotsTxt() {
-    try {
-        const config = loadConfig();
-        const baseUrl = config.BASE_URL;
+async function buildRobotsTxt() {
+    const config = loadConfig();
+    const baseUrl = (config.BASE_URL || '').replace(/\/$/, '');
 
-        const robotsContent = `User-agent: *
+    return `User-agent: *
 Allow: /
 
 Sitemap: ${baseUrl}/sitemap.xml
@@ -144,6 +155,16 @@ Sitemap: ${baseUrl}/sitemap.xml
 Disallow: /api/private/
 Disallow: /admin/
 `;
+}
+
+async function generateRobotsTxt() {
+    try {
+        const robotsContent = await buildRobotsTxt();
+
+        if (isServerless) {
+            console.log('[SEO] Serverless runtime detected; skipping robots.txt file write.');
+            return true;
+        }
 
         const publicDir = path.join(__dirname, '../../public');
         await fs.mkdir(publicDir, { recursive: true });
@@ -171,8 +192,10 @@ async function updateSEOFiles() {
 }
 
 module.exports = {
+    buildSitemapXml,
     generateSitemap,
     pingSearchEngines,
+    buildRobotsTxt,
     generateRobotsTxt,
     updateSEOFiles
 };
