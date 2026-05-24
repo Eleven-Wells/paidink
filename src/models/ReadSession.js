@@ -24,14 +24,12 @@ const readSessionSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-        index: true
+        required: true
     },
     post: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Post',
-        required: true,
-        index: true
+        required: true
     },
     startedAt: {
         type: Date,

@@ -4,8 +4,7 @@ const userAchievementSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-        index: true
+        required: true
     },
     achievement: {
         type: mongoose.Schema.Types.ObjectId,

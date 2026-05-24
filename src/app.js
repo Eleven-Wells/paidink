@@ -199,4 +199,9 @@ async function buildApp() {
     await fastify.after();
 }
 
-module.exports = { fastify, buildApp };
+fastify.buildApp = buildApp;
+fastify.fastify = fastify;
+
+module.exports = fastify;
+module.exports.default = fastify;
+module.exports.__esModule = true;

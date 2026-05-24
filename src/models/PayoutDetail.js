@@ -33,8 +33,6 @@ const payoutDetailSchema = new mongoose.Schema({
     timestamps: true
 });
 
-payoutDetailSchema.index({ user: 1 });
-
 payoutDetailSchema.methods = {
     decrypt(encryptionKey) {
         try {

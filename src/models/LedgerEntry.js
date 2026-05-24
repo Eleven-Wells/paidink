@@ -4,8 +4,7 @@ const ledgerEntrySchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        default: null,
-        index: true
+        default: null
     },
     type: {
         type: String,
