@@ -3,7 +3,7 @@ const http = require('http');
 
 class RenderKeepAlive {
     constructor(options = {}) {
-        this.targetUrl = options.targetUrl || process.env.TARGET_URL || 'https://latest-tech-news.onrender.com';
+        this.targetUrl = options.targetUrl || process.env.TARGET_URL || 'https://nook-app.onrender.com';
         this.pingInterval = options.pingInterval || 5 * 60 * 1000; // 5 minutes default
         this.endpoints = options.endpoints || ['/ping', '/health'];
         this.timeout = options.timeout || 10000; // 10 seconds timeout

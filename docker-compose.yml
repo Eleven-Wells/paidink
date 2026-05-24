@@ -3,24 +3,24 @@ version: "3.8"
 services:
   mongodb:
     image: mongo:7
-    container_name: LatestTechNews
+    container_name: Nook
     restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: LatestTechNews
+      MONGO_INITDB_DATABASE: Nook
     volumes:
       - mongodb_data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
-      - LatestTechNews-Network
+      - Nook-Network
     pull_policy: never
 
   redis:
     image: redis:7-alpine
-    container_name: LatestTechNews-redis
+    container_name: Nook-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -28,7 +28,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - LatestTechNews-Network
+      - Nook-Network
     pull_policy: never
 
 volumes:
@@ -36,5 +36,5 @@ volumes:
   redis_data:
 
 networks:
-  LatestTechNews-Network:
+  Nook-Network:
     driver: bridge

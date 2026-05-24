@@ -1,5 +1,5 @@
 {
-  "name": "LatestTechNews",
+  "name": "Nook",
   "version": "1.0.0",
   "description": "AI-powered automated content platform for tech news",
   "main": "src/server.js",
