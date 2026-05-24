@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const adEventSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     adConfig: { type: mongoose.Schema.Types.ObjectId, ref: 'AdConfig', index: true },
     placement: { type: mongoose.Schema.Types.ObjectId, ref: 'AdPlacement', index: true },
     session: { type: mongoose.Schema.Types.ObjectId, ref: 'ReadSession' },

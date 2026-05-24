@@ -10,14 +10,12 @@ const CommentSchema = new mongoose.Schema({
     post: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Post',
-        required: true,
-        index: true
+        required: true
     },
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-        index: true
+        required: true
     },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
