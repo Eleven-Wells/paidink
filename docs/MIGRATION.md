@@ -444,7 +444,9 @@ curl "http://localhost:5050/api/cron?job=content-cleanup"
 | `VERCEL_PROJECT_ID` | Vercel deploy | Nook project in Vercel |
 | `FLY_API_TOKEN` | Worker deploy | Fly.io API authentication |
 | `APP_URL` | Health check | Production URL (e.g., `https://nook-app.vercel.app`) |
-| `SLACK_WEBHOOK_URL` | Notify | Deployment status notifications (optional) |
+| `DISCORD_WEBHOOK_URL` | Notify | Deployment status notifications via Discord webhook (optional) |
+
+**Notifications:** The `notify` job sends a Discord webhook with deployment status (color-coded: green for success, red for failure). Requires `DISCORD_WEBHOOK_URL` secret. Remove the step if not needed.
 
 **How Vercel GitHub integration relates:** `vercel.json` has `"github": { "enabled": true, "silent": true }` — this enables Vercel's native GitHub integration, which auto-deploys on every push regardless of the GitHub Actions workflow. The workflow's `deploy-vercel` job is redundant with this integration and can be removed once verified. Leaving both in for now gives double coverage during migration.
 

@@ -58,19 +58,29 @@ jobs:
         needs: [deploy-vercel, deploy-worker, health-check]
         if: always()
         steps:
-            - uses: slackapi/slack-github-action@v1.26.0
-              with:
-                  payload: |
-                      {
-                          "text": "Nook deployment complete (${{ inputs.environment || 'production' }})",
-                          "blocks": [{
-                              "type": "section",
-                              "text": {
-                                  "type": "mrkdwn",
-                                  "text": "*Nook Deployment*\nStatus: ${{ job.status }}\nEnvironment: ${{ inputs.environment || 'production' }}"
-                              }
-                          }]
-                      }
+            - name: Send Discord notification
               env:
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-                  SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+                  DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+                  STATUS: ${{ job.status }}
+                  ENV: ${{ inputs.environment || 'production' }}
+                  DEPLOY_VERCEL: ${{ needs.deploy-vercel.result }}
+                  DEPLOY_WORKER: ${{ needs.deploy-worker.result }}
+                  HEALTH_CHECK: ${{ needs.health-check.result }}
+              run: |
+                  COLOR=$([ "$STATUS" = "success" ] && echo "5814783" || echo "15548997")
+                  curl -sf -X POST "$DISCORD_WEBHOOK" \
+                    -H "Content-Type: application/json" \
+                    -d "{
+                      \"embeds\": [{
+                        \"title\": \"Nook Deployment\",
+                        \"color\": $COLOR,
+                        \"fields\": [
+                          {\"name\": \"Status\", \"value\": \"$STATUS\", \"inline\": true},
+                          {\"name\": \"Environment\", \"value\": \"$ENV\", \"inline\": true},
+                          {\"name\": \"Vercel API\", \"value\": \"$DEPLOY_VERCEL\", \"inline\": true},
+                          {\"name\": \"Worker\", \"value\": \"$DEPLOY_WORKER\", \"inline\": true},
+                          {\"name\": \"Health Check\", \"value\": \"$HEALTH_CHECK\", \"inline\": true}
+                        ],
+                        \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+                      }]
+                    }" || echo "Discord notification failed (no webhook?)"
