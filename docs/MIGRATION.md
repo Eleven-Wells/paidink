@@ -405,26 +405,166 @@ pnpm start:worker  # separate terminal
 curl "http://localhost:5050/api/cron?job=content-cleanup"
 ```
 
-### Phase 7: CI/CD — Dual Deployment
-**Problem:** Current `deploy.yml` has Render deploy hook placeholders.
+### Phase 7: CI/CD — Dual Deployment (Completed)
 
-**Solution:** Split into two deploy jobs — Vercel deploy (API) + container deploy (Worker).
+**Problem:** Current `deploy.yml` has Render deploy hook placeholders and references `Latest-Tech-News`. It needs to deploy both the Vercel API and the worker container.
+
+**Solution:** Rewrote as two parallel deploy jobs — Vercel API (via `amondnet/vercel-action`) and Worker container (via `flyctl`). A health check job verifies the deployment, and a notification job reports the result.
 
 **Files affected:**
-- `.github/workflows/deploy.yml` — Full rewrite
-- New: GitHub secrets for Vercel + Fly.io/Railway tokens
+- `.github/workflows/deploy.yml` — Full rewrite (103 → 83 lines)
 
-### Phase 8: Vercel Project Configuration
-**Problem:** No Vercel project exists yet.
+**Pipeline structure:**
+```
+┌────────────────┐     ┌─────────────────┐
+│ deploy-vercel  │     │  deploy-worker  │
+│ └── pnpm build │     │  └── flyctl     │
+│ └── vercel     │     │      deploy     │
+│     --prod     │     │  (Fly.io)       │
+└───────┬────────┘     └───────┬─────────┘
+        └──────────┬───────────┘
+                   ▼
+           ┌──────────────┐
+           │ health-check │
+           │ curl /health │
+           └──────┬───────┘
+                  ▼
+           ┌──────────────┐
+           │    notify    │
+           │  Slack alert │
+           └──────────────┘
+```
 
-**Solution:** Create Vercel project, configure 28+ environment variables (the same ones from `.env`), connect domain, set up preview deployments.
+**Required GitHub Secrets:**
 
-**Tools:** Vercel CLI (`vercel link`, `vercel env pull`)
+| Secret | Used By | Purpose |
+|--------|---------|---------|
+| `VERCEL_TOKEN` | Vercel deploy | Vercel API authentication |
+| `VERCEL_ORG_ID` | Vercel deploy | Vercel team/org ID |
+| `VERCEL_PROJECT_ID` | Vercel deploy | Nook project in Vercel |
+| `FLY_API_TOKEN` | Worker deploy | Fly.io API authentication |
+| `APP_URL` | Health check | Production URL (e.g., `https://nook-app.vercel.app`) |
+| `SLACK_WEBHOOK_URL` | Notify | Deployment status notifications (optional) |
 
-### Phase 9: DNS Cut-over
-**Problem:** Traffic currently goes to `nook-app.onrender.com`.
+**How Vercel GitHub integration relates:** `vercel.json` has `"github": { "enabled": true, "silent": true }` — this enables Vercel's native GitHub integration, which auto-deploys on every push regardless of the GitHub Actions workflow. The workflow's `deploy-vercel` job is redundant with this integration and can be removed once verified. Leaving both in for now gives double coverage during migration.
 
-**Solution:** Gradual DNS migration — start with 10% traffic to Vercel preview URL, ramp to 100%, then update the custom domain's DNS records.
+### Phase 8: Vercel Project Configuration (Planned)
+
+**Steps:**
+
+1. **Install Vercel CLI and log in:**
+   ```bash
+   pnpm add -g vercel
+   vercel login
+   ```
+
+2. **Create and link Vercel project:**
+   ```bash
+   vercel link --project nook --yes
+   ```
+   This creates `.vercel/project.json` with the project ID.
+
+3. **Configure environment variables** (all from `.env`):
+   ```bash
+   vercel env add NODE_ENV production
+   vercel env add MONGO_URI
+   vercel env add REDIS_HOST
+   vercel env add REDIS_PORT
+   vercel env add REDIS_PASSWORD
+   vercel env add UPSTASH_REDIS_REST_URL
+   vercel env add UPSTASH_REDIS_REST_TOKEN
+   vercel env add OPENAI_API_KEY
+   vercel env add UNSPLASH_ACCESS_KEY
+   vercel env add NEWS_API_KEY
+   vercel env add ADMIN_API_KEY
+   vercel env add JWT_SECRET
+   vercel env add CRON_SECRET
+   vercel env add SENTRY_DSN
+   vercel env add BASE_URL
+   # ... plus any feature flag env vars (FEATURE_*)
+   ```
+
+4. **Set up custom domain** (if applicable):
+   ```bash
+   vercel domains add nook-app.yourdomain.com
+   ```
+
+5. **Configure Vercel project settings** (via dashboard or CLI):
+   - Build command: `pnpm run build` (already set in `package.json`)
+   - Output directory: `public` (for static files)
+   - Node.js version: 20.x
+   - Cron Jobs: Enabled (Vercel Pro plan or above required)
+   - GitHub Integration: Connected (auto-deploy on push to main)
+
+6. **Configure preview deployments:**
+   - Enable auto-assign for pull request deployments
+   - Set preview environment variables (use staging MongoDB/Redis if available)
+
+7. **Verify deployment:**
+   ```bash
+   vercel deploy --prod
+   curl https://nook-app.vercel.app/api/health
+   curl https://nook-app.vercel.app/api/ping
+   curl https://nook-app.vercel.app/
+   ```
+
+**Required Plan:** Vercel Pro ($20/month) or above for:
+- Cron Jobs (not available on Hobby)
+- Longer serverless function execution time
+- Team collaboration features
+
+### Phase 9: DNS Cut-over (Planned)
+
+**Goal:** Gradually migrate traffic from `https://nook-app.onrender.com` (Render, old) to `https://nook-app.vercel.app` or custom domain (Vercel, new).
+
+**Prerequisites:**
+- [ ] Phase 8 complete (Vercel project deployed and verified)
+- [ ] Worker deployed on Fly.io and verified
+- [ ] All cron jobs running correctly on both sides
+- [ ] Static assets verified (CSS, JS, images loading)
+
+**Cut-over steps:**
+
+1. **Pre-cutover verification** (Days 1-2):
+   - Run both deployments in parallel
+   - Verify Vercel deployment at `https://nook-app.vercel.app`
+   - Verify worker is processing BullMQ jobs
+   - Monitor error rates via Sentry
+   - Test all critical paths: homepage, article pages, admin API, sitemap
+
+2. **Stage 1 — Shadow traffic** (Day 3):
+   - Keep Render as the primary (DNS target)
+   - Run a smoke test script that compares Render vs Vercel responses:
+     ```bash
+     #!/bin/bash
+     PATHS=("/" "/api/health" "/api/ping")
+     for path in "${PATHS[@]}"; do
+         render=$(curl -s -o /dev/null -w "%{http_code}" "https://nook-app.onrender.com$path")
+         vercel=$(curl -s -o /dev/null -w "%{http_code}" "https://nook-app.vercel.app$path")
+         echo "$path: Render=$render Vercel=$vercel"
+     done
+     ```
+
+3. **Stage 2 — Internal testing** (Day 4):
+   - Update `BASE_URL` in Vercel env vars to the custom domain
+   - Verify SEO (sitemap, canonical URLs) point to the new domain
+   - Run a full functional test suite
+
+4. **Stage 3 — DNS switch** (Day 5):
+   - Update DNS `CNAME` or `ALIAS` record to point to `cname.vercel-dns.com`
+   - Or update `A` records to Vercel's edge IPs: `76.76.21.21`
+   - Wait for DNS propagation (5 min to 48 hours depending on TTL)
+
+5. **Post-cutover monitoring** (Days 6-7):
+   - Monitor Sentry for error spikes
+   - Verify cron jobs triggered successfully in Vercel dashboard
+   - Check worker logs for job processing
+   - Monitor MongoDB Atlas for connection patterns
+
+**Rollback (if needed):**
+- DNS: Point CNAME back to Render URL (instant for low TTL)
+- Vercel: Use dashboard to rollback to previous deployment
+- Worker: Redeploy to Render using the last known good deploy
 
 ---
 
