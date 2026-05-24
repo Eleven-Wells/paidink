@@ -219,6 +219,147 @@
             border-color: rgba(255, 255, 255, 0.15);
         }
 
+        .feed-ad-card,
+        .sidebar-ad-widget,
+        .banner-ad-container,
+        .inline-ad-container {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 24px;
+            background: #ffffff;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.06);
+            padding: 22px;
+            display: block;
+            width: 100%;
+        }
+
+        .feed-ad-card .feed-ad-label,
+        .sidebar-ad-header .sidebar-ad-label,
+        .banner-ad-label,
+        .inline-ad-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #1d4ed8;
+            background: rgba(59, 130, 246, 0.08);
+            margin-bottom: 16px;
+        }
+
+        .feed-ad-content,
+        .sidebar-ad-banner,
+        .banner-ad-content,
+        .inline-ad-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .feed-ad-title,
+        .feed-ad-description,
+        .sidebar-ad-cta,
+        .banner-ad-cta,
+        .inline-ad-cta {
+            color: #111827;
+        }
+
+        .feed-ad-cta,
+        .sidebar-ad-cta,
+        .banner-ad-cta,
+        .inline-ad-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: fit-content;
+            padding: 12px 20px;
+            border-radius: 9999px;
+            background-color: #1d4ed8;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 700;
+            transition: opacity 0.2s ease;
+        }
+        .feed-ad-cta:hover,
+        .sidebar-ad-cta:hover,
+        .banner-ad-cta:hover,
+        .inline-ad-cta:hover {
+            opacity: 0.88;
+        }
+
+        .feed-ad-image,
+        .sidebar-ad-banner,
+        .banner-ad-content svg,
+        .inline-ad-content svg {
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .inline-ad-container {
+            padding: 20px;
+        }
+
+        .banner-ad-container {
+            padding: 24px;
+        }
+
+        .sidebar-ad-widget {
+            padding: 16px;
+        }
+
+        .sidebar-ad-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .sidebar-ad-banner {
+            min-height: 120px;
+        }
+
+        .banner-ad-label,
+        .inline-ad-label {
+            margin-bottom: 16px;
+        }
+
+        .feed-ad-description {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .feed-ad-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .sidebar-ad-cta,
+        .banner-ad-cta,
+        .inline-ad-cta {
+            margin-top: 0;
+        }
+
+        .feed-ad-card {
+            padding: 20px;
+        }
+
+        .sidebar-ad-widget {
+            background: #f8fafc;
+        }
+
+        .inline-ad-container {
+            background: #f8fafc;
+        }
+
+        .banner-ad-container {
+            background: #f8fafc;
+        }
+
         .section-number {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 12rem;

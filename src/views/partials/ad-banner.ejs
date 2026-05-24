@@ -2,11 +2,15 @@
 <div class="banner-ad-container">
     <div class="banner-ad-label">Sponsored</div>
     <div class="banner-ad-content">
-        <svg width="100%" height="100" viewBox="0 0 970 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="970" height="100" fill="#2563eb" fill-opacity="0.03"/>
-            <text x="485" y="50" text-anchor="middle" dominant-baseline="middle" fill="#2563eb" font-size="14" font-family="system-ui">Advertisement</text>
-            <text x="485" y="68" text-anchor="middle" dominant-baseline="middle" fill="#6b7280" font-size="11" font-family="system-ui">970 x 100</text>
-        </svg>
+        <% if (ad.imageUrl) { %>
+            <img src="<%= ad.imageUrl %>" alt="Sponsored content" loading="lazy" decoding="async" />
+        <% } else { %>
+            <svg width="100%" height="100" viewBox="0 0 970 100" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="970" height="100" fill="#2563eb" fill-opacity="0.03"/>
+                <text x="485" y="50" text-anchor="middle" dominant-baseline="middle" fill="#2563eb" font-size="14" font-family="system-ui">Advertisement</text>
+                <text x="485" y="68" text-anchor="middle" dominant-baseline="middle" fill="#6b7280" font-size="11" font-family="system-ui">970 x 100</text>
+            </svg>
+        <% } %>
     </div>
     <a href="<%= ad.clickUrl %>" class="banner-ad-cta" target="_blank" rel="sponsored noopener">Learn More</a>
 </div>

@@ -1,18 +1,13 @@
-const { Worker, QueueEvents, Queue } = require('bullmq');
 const JobLog = require('./models/JobLog');
-const { getBullMQConnection, getBullMQRedisUrl, isUpstashEnabled } = require('./config/redis');
+const { getBullMQConnection } = require('./config/redis');
 const { AppError } = require('./errors/errors');
 const { captureError, captureMessage } = require('./plugins/sentry');
 const dotenv = require('dotenv');
 dotenv.config();
 
-if (isUpstashEnabled()) {
-    if (!getBullMQRedisUrl()) {
-        console.error('[BullMQ][Error] Upstash REST Redis detected. BullMQ cannot use UPSTASH_REDIS_REST_URL because it lacks persistent connection support. Set BULLMQ_REDIS_URL or REDIS_URL to a redis:// endpoint for worker queue processing.');
-    } else {
-        console.info('[BullMQ][Info] Upstash REST Redis is enabled for caching, but BullMQ will use a separate persistent Redis endpoint for queues.');
-    }
-}
+// Note: BullMQ is required lazily inside initialization functions so this
+// module can be imported even when AI generation is disabled without
+// loading BullMQ or attempting Redis connections.
 
 let worker = null;
 let queueEvents = null;
@@ -92,6 +87,8 @@ async function initializeWorker(options = {}) {
 
     const contentService = require('./services/ContentService');
     const { isFeatureEnabled } = require('./config/features');
+
+    const { Worker } = require('bullmq');
 
     worker = new Worker('content-generation', async (job) => {
         if (!isFeatureEnabled('content', 'aiGeneration')) {
@@ -181,6 +178,8 @@ async function initializeQueueEvents() {
     if (!redisConnection) {
         throw new Error('[Worker] Cannot initialize queue events - BullMQ requires a persistent redis:// connection when UPSTASH_REDIS_REST_URL is enabled. Set BULLMQ_REDIS_URL or REDIS_URL.');
     }
+
+    const { QueueEvents } = require('bullmq');
 
     queueEvents = new QueueEvents('content-generation', {
         connection: redisConnection
