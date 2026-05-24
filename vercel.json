@@ -1,0 +1,39 @@
+{
+    "functions": {
+        "api/index.js": {
+            "runtime": "nodejs@20",
+            "maxDuration": 30
+        }
+    },
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/api/index"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/public/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=3600, immutable"
+                }
+            ]
+        },
+        {
+            "source": "/public/images/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=86400, immutable"
+                }
+            ]
+        }
+    ],
+    "crons": [],
+    "github": {
+        "enabled": true,
+        "silent": true
+    }
+}
