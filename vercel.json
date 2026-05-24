@@ -1,11 +1,9 @@
 {
     "functions": {
         "api/index.js": {
-            "runtime": "nodejs@20",
             "maxDuration": 30
         },
         "api/cron.js": {
-            "runtime": "nodejs@20",
             "maxDuration": 60
         }
     },
