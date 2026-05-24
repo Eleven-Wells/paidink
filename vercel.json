@@ -42,15 +42,15 @@
     "crons": [
         {
             "path": "/api/cron?job=tools-update",
-            "schedule": "0 * * * *"
+            "schedule": "0 0 */2 * *"
         },
         {
             "path": "/api/cron?job=content-ingestion",
-            "schedule": "0 */6 * * *"
+            "schedule": "0 6 */2 * *"
         },
         {
             "path": "/api/cron?job=feed-update",
-            "schedule": "0 */2 * * *"
+            "schedule": "0 12 */2 * *"
         },
         {
             "path": "/api/cron?job=seo-update",
