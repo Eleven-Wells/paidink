@@ -1,13 +1,17 @@
-const { Worker, QueueEvents } = require('bullmq');
+const { Worker, QueueEvents, Queue } = require('bullmq');
 const JobLog = require('./models/JobLog');
-const { getRedisConnection, isUpstashEnabled } = require('./config/redis');
+const { getBullMQConnection, getBullMQRedisUrl, isUpstashEnabled } = require('./config/redis');
 const { AppError } = require('./errors/errors');
 const { captureError, captureMessage } = require('./plugins/sentry');
 const dotenv = require('dotenv');
 dotenv.config();
 
 if (isUpstashEnabled()) {
-    console.warn('[BullMQ][Warning] Upstash REST Redis detected. BullMQ requires a Redis server with persistent connections and pub/sub support. Using Upstash REST for queues is incompatible — provide a redis:// endpoint or a separate Redis instance for BullMQ workers.');
+    if (!getBullMQRedisUrl()) {
+        console.error('[BullMQ][Error] Upstash REST Redis detected. BullMQ cannot use UPSTASH_REDIS_REST_URL because it lacks persistent connection support. Set BULLMQ_REDIS_URL or REDIS_URL to a redis:// endpoint for worker queue processing.');
+    } else {
+        console.info('[BullMQ][Info] Upstash REST Redis is enabled for caching, but BullMQ will use a separate persistent Redis endpoint for queues.');
+    }
 }
 
 let worker = null;
@@ -47,10 +51,10 @@ function createJobLogger(job) {
 
 async function initializeWorker(options = {}) {
     const { concurrency = 1, limiter = { max: 1, duration: 60000 } } = options;
-    const redisConnection = getRedisConnection();
+    const redisConnection = getBullMQConnection();
 
     if (!redisConnection) {
-        throw new Error('[Worker] Cannot initialize - Redis not connected');
+        throw new Error('[Worker] Cannot initialize - BullMQ requires a persistent redis:// connection for queue processing when UPSTASH_REDIS_REST_URL is enabled. Set BULLMQ_REDIS_URL or REDIS_URL.');
     }
 
     if (redisConnection.status !== 'ready') {
@@ -172,7 +176,11 @@ async function initializeWorker(options = {}) {
 }
 
 async function initializeQueueEvents() {
-    const redisConnection = getRedisConnection();
+    const redisConnection = getBullMQConnection();
+
+    if (!redisConnection) {
+        throw new Error('[Worker] Cannot initialize queue events - BullMQ requires a persistent redis:// connection when UPSTASH_REDIS_REST_URL is enabled. Set BULLMQ_REDIS_URL or REDIS_URL.');
+    }
 
     queueEvents = new QueueEvents('content-generation', {
         connection: redisConnection
@@ -204,8 +212,8 @@ async function start(options = {}) {
         // Clear any existing queue so old jobs don't linger
         try {
             const { Queue } = require('bullmq');
-            const { getRedisConnection } = require('./config/redis');
-            const redisConnection = getRedisConnection();
+            const { getBullMQConnection } = require('./config/redis');
+            const redisConnection = getBullMQConnection();
             if (redisConnection && redisConnection.status === 'ready') {
                 const queue = new Queue('content-generation', { connection: redisConnection });
                 await queue.pause();
