@@ -67,6 +67,7 @@ jobs:
     notify:
         name: Notify
         runs-on: ubuntu-latest
+        environment: production
         needs: [deploy-vercel, deploy-worker]
         if: always()
         steps:
