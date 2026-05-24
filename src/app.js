@@ -56,6 +56,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { loadConfig, getAllowedOrigins, CATEGORY_ENUM, CATEGORY_NAMES } = require('./config');
+const { assetUrl } = require('./config/assets');
 const errorHandlerPlugin = require('./plugins/error-handler');
 const sentryPlugin = require('./plugins/sentry');
 const requestIdPlugin = require('./plugins/request-id');
@@ -94,7 +95,8 @@ async function buildApp() {
         root: path.join(__dirname, 'views'),
         defaultContext: {
             CATEGORY_ENUM,
-            CATEGORY_NAMES
+            CATEGORY_NAMES,
+            assetUrl
         }
     });
 

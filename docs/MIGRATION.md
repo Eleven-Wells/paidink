@@ -251,27 +251,80 @@ UPSTASH_REDIS_REST_TOKEN=<token>
 
 ---
 
-## What Remains To Be Done
+### Phase 4: Static Assets — Vercel Edge CDN via Rewrite (Completed)
 
-### Phase 4: Static Assets — Local FS → Vercel Blob
-**Problem:** `@fastify/static` serves from `public/` on the local filesystem. Vercel serverless functions have read-only filesystem (except `/tmp`).
+**Problem:** The app uses `@fastify/static` to serve files from `public/`. On Vercel, serving static files through the serverless function is wasteful — every image/JS/CSS request would invoke the Node.js function instead of being served from the Edge CDN. Additionally, `@fastify/static` registers a prefix `/public/`, so files are served at paths like `/public/css/output.css`.
 
-**Solution:** Upload static assets to Vercel Blob Storage at deploy time, serve from CDN.
+**Solution:** A two-layer approach:
 
-**Files affected:**
-- `src/app.js` — Replace `@fastify/static` with Blob URL generation
-- New: `scripts/upload-static.mjs` — Uploads `public/` to Vercel Blob
-- EJS templates — Update asset URLs to use Blob CDN paths
+1. **Vercel Edge CDN** (primary): Files in `public/` are automatically served by Vercel's static file infrastructure at root paths (e.g., `public/css/output.css` → `/css/output.css`). A rewrite rule maps the template's `/public/` paths to the root path, so Vercel serves them from the Edge CDN.
+2. **`@fastify/static`** (fallback): In container mode and as a fallback on Vercel, `@fastify/static` continues to serve files at `/public/` prefix.
+3. **Asset URL helper** (future-proofing): An `assetUrl()` function is available in all EJS templates. When `ASSETS_URL` env var is set (e.g., pointing to Vercel Blob Storage), the helper returns the CDN URL. Otherwise, it returns the original path.
 
-### Phase 4: Static Assets — Local FS → Vercel Blob
-**Problem:** `@fastify/static` serves from `public/` on the local filesystem. Vercel serverless functions have read-only filesystem (except `/tmp`).
+**Files modified/created:**
 
-**Solution:** Upload static assets to Vercel Blob Storage at deploy time, serve from CDN.
+#### `vercel.json`
+**Before:**
+```json
+"rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
+]
+```
+All requests went to the serverless function, including static files.
 
-**Files affected:**
-- `src/app.js` — Replace `@fastify/static` with Blob URL generation
-- New: `scripts/upload-static.mjs` — Uploads `public/` to Vercel Blob
-- EJS templates — Update asset URLs to use Blob CDN paths
+**After:**
+```json
+"rewrites": [
+    { "source": "/public/(.*)", "destination": "/$1" },
+    { "source": "/(.*)", "destination": "/api/index" }
+]
+```
+The `/public/(.*)` rewrite maps static file requests to Vercel's root-path static serving. If the file exists in `public/`, Vercel serves it from the Edge CDN. If not (edge case), it falls through to the serverless function.
+
+**How it works:**
+1. Request arrives for `/public/css/output.css`
+2. Vercel rewrite matches `/public/(.*)` → rewrites to `/css/output.css`
+3. Vercel checks for static file at `public/css/output.css` → found!
+4. Served from Edge CDN with Cache-Control headers (images: 1 day, everything else: 1 hour)
+
+#### `src/config/assets.js` (new)
+Exports two functions:
+- `assetUrl(path)` — If `ASSETS_URL` env var is set, returns `<ASSETS_URL>/<path>` (e.g., `https://blob-store.vercel-storage.com/css/output.css`). Otherwise returns the original path.
+- `isUsingRemoteAssets()` — Returns `true` when `ASSETS_URL` is configured.
+
+**Purpose:** Allows templates to optionally use the `assetUrl()` helper. Currently all templates use hardcoded `/public/...` paths (which work via the rewrite). When migrating to Vercel Blob in the future, just set `ASSETS_URL` and update templates to use `<%= assetUrl('/public/css/output.css') %>`.
+
+#### `src/app.js` (modified)
+- Imports `assetUrl` from `./config/assets`
+- Passes `assetUrl` to EJS view context via `defaultContext`:
+  ```js
+  defaultContext: { CATEGORY_ENUM, CATEGORY_NAMES, assetUrl }
+  ```
+- Now available in every EJS template as `<%= assetUrl('/public/images/og-default.png') %>`
+
+#### `scripts/upload-static.mjs` (new)
+ES module script that uploads the entire `public/` directory to Vercel Blob Storage at deploy time. Uses `@vercel/blob` SDK.
+
+**Usage in CI/CD:**
+```bash
+BLOB_READ_WRITE_TOKEN=<token> node scripts/upload-static.mjs
+```
+
+After uploading, set `ASSETS_URL` in Vercel environment variables to the Blob base URL.
+
+#### `package.json` / `pnpm-lock.yaml`
+Added `@vercel/blob@^2.4.0` as dev dependency.
+
+**How static assets resolve at runtime:**
+
+| Context | `ASSETS_URL` | How assets are served |
+|---------|-------------|----------------------|
+| Local dev | Not set | `@fastify/static` at `/public/` (unchanged) |
+| Container/Railway | Not set | `@fastify/static` at `/public/` (unchanged) |
+| Vercel (CDN) | Not set | Vercel Edge CDN via `/public/` → `/$1` rewrite |
+| Vercel (Blob) | `https://<store>.public.blob.vercel-storage.com` | Vercel Blob Storage via `assetUrl()` helper |
+
+**Current state:** Vercel serves static files from Edge CDN via the rewrite rule. The `assetUrl()` helper and Blob upload script are ready for future optimization but not yet activated (no `ASSETS_URL` is set).
 
 ### Phase 6: Vercel Cron Jobs
 **Problem:** The 7 cron jobs currently run via `fastify-cron` in the container. They need to also (or instead) run as Vercel Cron Jobs for the serverless deployment.
