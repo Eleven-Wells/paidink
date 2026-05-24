@@ -52,32 +52,39 @@ A direct "deploy the same code" approach would fail. This migration requires an 
 ## Current Architecture (After Migration Phase 1 & 2)
 
 ```
-┌─────────────────────────────────────┐     ┌──────────────────────────────┐
-│  Vercel (Serverless Functions)       │     │  Worker Service (Container)  │
-│                                     │     │                              │
-│  api/index.js                       │     │  worker/index.js             │
-│  └── Lazy-inits fastify on cold     │     │  ├── Connect MongoDB         │
-│      start, routes through it       │     │  ├── Connect Redis (ioredis) │
-│                                     │     │  ├── Start BullMQ Worker     │
-│  src/app.js (shared)                │     │  └── Start 7 Cron Jobs       │
-│  ├── Fastify instance               │     │                              │
-│  ├── 17 plugins (NO cron)           │     │  worker/Dockerfile           │
-│  ├── All routes (pages, API, auth)  │     │  └── pnpm start:worker       │
-│  └── Exports { fastify, buildApp }  │     │                              │
-│                                     │     │  src/cron/index.js (shared)  │
-│  src/server.js                      │     │  └── 7 standalone functions  │
-│  └── Imports from app.js            │     │                              │
-│      + cron-plugin + worker + listen│     │  src/worker.js (shared)      │
-│                                     │     │  └── BullMQ content worker   │
-│  vercel.json                        │     │                              │
-│  ├── Node.js 20 runtime             │     │  src/models/ (shared)        │
-│  ├── Catch-all rewrites → /api      │     │  src/config/ (shared)        │
-│  └── CDN cache headers              │     │  src/services/ (shared)      │
-│                                     │     │                              │
-│  Static Assets (future: Blob)       │     │  Deploy: Fly.io / Railway    │
-│  └── public/ via @fastify/static    │     │  └── docker build -f         │
-│                                     │     │      worker/Dockerfile .     │
-└─────────────────────────────────────┘     └──────────────────────────────┘
+┌─────────────────────────────────────────┐     ┌──────────────────────────────┐
+│  Vercel (Serverless Functions)           │     │  Worker Service (Container)  │
+│                                         │     │                              │
+│  ┌───────────────────────────────────┐  │     │  worker/index.js             │
+│  │  api/index.js (Fastify handler)   │  │     │  ├── Connect MongoDB         │
+│  │  └── Lazy-inits fastify on cold   │  │     │  ├── Connect Redis (ioredis) │
+│  │      start, routes through it     │  │     │  ├── Start BullMQ Worker     │
+│  │                                   │  │     │  └── Start 7 Cron Jobs       │
+│  │  api/cron.js (Cron dispatcher)    │  │     │                              │
+│  │  └── Vecel Cron → connects DB +   │  │     │  worker/Dockerfile           │
+│  │      Redis, runs job, cleans up   │  │     │  └── pnpm start:worker       │
+│  └───────────────────────────────────┘  │     │                              │
+│                                         │     │  src/cron/index.js (shared)  │
+│  src/app.js (shared)                    │     │  └── 7 standalone functions  │
+│  ├── Fastify instance                   │     │                              │
+│  ├── 17 plugins (NO cron)               │     │  src/worker.js (shared)      │
+│  ├── All routes (pages, API, auth)      │     │  └── BullMQ content worker   │
+│  └── Exports { fastify, buildApp }      │     │                              │
+│                                         │     │  src/models/ (shared)        │
+│  src/server.js                          │     │  src/config/ (shared)        │
+│  └── Imports from app.js                │     │  src/services/ (shared)      │
+│      + cron-plugin + worker + listen    │     │                              │
+│                                         │     │  Deploy: Fly.io / Railway    │
+│  vercel.json                            │     │  └── docker build -f         │
+│  ├── Node.js 20 runtime (30s/60s)       │     │      worker/Dockerfile .     │
+│  ├── Catch-all rewrites → /api          │     │                              │
+│  ├── CDN cache headers                  │     │                              │
+│  ├── 7 cron schedules → /api/cron       │     │                              │
+│  └── GitHub integration                 │     │                              │
+│                                         │     │                              │
+│  Static Assets (future: Blob)           │     │                              │
+│  └── public/ via @fastify/static        │     │                              │
+└─────────────────────────────────────────┘     └──────────────────────────────┘
 ```
 
 ---
@@ -96,6 +103,21 @@ A direct "deploy the same code" approach would fail. This migration requires an 
 - Exports `{ fastify, buildApp }` where `buildApp()` initializes everything
 
 **Why:** Previously all this was inside `src/server.js`'s `registerPlugins()` function, which was only called when `start()` ran. Serverless mode needed a way to bootstrap Fastify without calling `.listen()`.
+
+#### `api/cron.js` — Vercel Cron Job Dispatcher
+
+**Purpose:** A single serverless function that handles all 7 cron jobs triggered by Vercel Cron Jobs.
+
+**What it does:**
+- Accepts `?job=` query parameter (e.g., `?job=seo-update`)
+- Maps kebab-case names (Vercel-friendly) to camelCase function names via `JOB_ALIASES`
+- Authenticates via `Authorization: Bearer <CRON_SECRET>` header (Vercel sends this)
+- On each invocation: connects to MongoDB + Redis, runs the job, then disconnects
+- Returns JSON: `{ success: true/false, job, error? }`
+
+**Why a single file:** All 7 cron jobs share identical connection lifecycle logic. A single dispatcher avoids duplicating that logic across 7 files. Vercel routes `/api/cron?job=seo-update` to this file directly (not through the catch-all rewrite).
+
+**Security:** Requires `CRON_SECRET` env var. Vercel Cron includes a `x-vercel-cron-secret` header set to this value. Without the correct secret, the endpoint returns 401.
 
 #### `api/index.js` — Vercel Serverless Entry Point
 **Purpose:** The single entry point for all Vercel serverless function invocations.
@@ -312,8 +334,13 @@ BLOB_READ_WRITE_TOKEN=<token> node scripts/upload-static.mjs
 
 After uploading, set `ASSETS_URL` in Vercel environment variables to the Blob base URL.
 
+#### `postcss.config.js` (fixed)
+**Before:** Used `tailwindcss: {}` as the PostCSS plugin.
+**After:** Uses `@tailwindcss/postcss: {}` — Tailwind CSS v4 moved the PostCSS plugin to a separate package. The `@tailwindcss/postcss` was already in `devDependencies` but the config wasn't updated.
+
 #### `package.json` / `pnpm-lock.yaml`
-Added `@vercel/blob@^2.4.0` as dev dependency.
+- Added `@vercel/blob@^2.4.0` as dev dependency (for deploy-time Blob uploads).
+- Added `postcss-cli@^11.0.1` as dev dependency (was missing — `pnpm run build:css` would fail with "command not found").
 
 **How static assets resolve at runtime:**
 
@@ -326,14 +353,57 @@ Added `@vercel/blob@^2.4.0` as dev dependency.
 
 **Current state:** Vercel serves static files from Edge CDN via the rewrite rule. The `assetUrl()` helper and Blob upload script are ready for future optimization but not yet activated (no `ASSETS_URL` is set).
 
-### Phase 6: Vercel Cron Jobs
-**Problem:** The 7 cron jobs currently run via `fastify-cron` in the container. They need to also (or instead) run as Vercel Cron Jobs for the serverless deployment.
+### Phase 6: Vercel Cron Jobs (Completed)
 
-**Solution:** Add cron job definitions to `vercel.json` that hit specific API endpoints. These endpoints call the same `src/cron/index.js` functions.
+**Problem:** The 7 cron jobs currently run via `fastify-cron` in the container. They need to also (or instead) run as Vercel Cron Jobs for the serverless deployment. Vercel Cron Jobs fire HTTP requests to specified paths on a schedule — the receiving endpoint must handle the job and respond quickly (< 60s).
+
+**Solution:** A single `api/cron.js` dispatcher handles all 7 cron jobs. Vercel's `crons` config schedules HTTP requests to `/api/cron?job=<name>` with the same schedules as the container cron jobs. The dispatcher connects to MongoDB + Redis, runs the job function, and cleans up — all within a single serverless invocation.
+
+**Architecture notes:**
+- **Short-lived jobs** (`seoUpdate`, `contentCleanup`, `readerPoolSweep`, `unfundedReadsSweep`): Execute fully within the serverless function — pure DB operations.
+- **Queue-based jobs** (`toolsUpdate`, `contentIngestion`, `feedUpdate`): Enqueue BullMQ jobs which the worker service processes later. These require Redis (ioredis) connection from the serverless function.
+- **Worker still has its own cron**: The `worker/index.js` runs all 7 cron jobs independently via the `cron` npm package. This ensures jobs run even if Vercel Cron is misconfigured, and the worker doesn't depend on Vercel for its scheduling.
+
+**Why no deduplication guard:** Two sources of truth mean both could fire the same job. This is acceptable because:
+  - `contentCleanup` is idempotent (deletes logs older than 30 days)
+  - `seoUpdate` regenerates files — running twice is harmless
+  - BullMQ deduplicates identical jobs by default
+  - The cron-plugin and worker schedules use the same env variables, so they stay in sync
 
 **Files affected:**
-- `vercel.json` — Add `"crons": [...]` entries
-- New: API routes that trigger cron jobs (e.g., `GET /api/cron/tools-update`)
+- `vercel.json` — Added `"crons": [...]` with 7 entries, added `api/cron.js` function config (60s maxDuration)
+- `api/cron.js` (new) — Single cron job dispatcher with `JOB_ALIASES` mapping
+- `.env.example` — Added `CRON_SECRET` documentation
+
+**vercel.json cron entries:**
+
+| Job | Schedule | Path |
+|-----|----------|------|
+| tools-update | `0 * * * *` (hourly) | `/api/cron?job=tools-update` |
+| content-ingestion | `0 */6 * * *` (every 6h) | `/api/cron?job=content-ingestion` |
+| feed-update | `0 */2 * * *` (every 2h) | `/api/cron?job=feed-update` |
+| seo-update | `0 3 * * *` (daily 3AM) | `/api/cron?job=seo-update` |
+| content-cleanup | `0 4 * * 0` (weekly Sun) | `/api/cron?job=content-cleanup` |
+| reader-pool-sweep | `0 0 * * *` (daily) | `/api/cron?job=reader-pool-sweep` |
+| unfunded-reads-sweep | `30 0 * * *` (daily) | `/api/cron?job=unfunded-reads-sweep` |
+
+**Environment variables needed for Vercel:**
+```
+CRON_SECRET=<openssl rand -hex 32>
+```
+
+**How to test locally:**
+```bash
+# Start dependencies
+docker-compose up -d
+
+# Start services
+pnpm dev
+pnpm start:worker  # separate terminal
+
+# Trigger a cron job manually
+curl "http://localhost:5050/api/cron?job=content-cleanup"
+```
 
 ### Phase 7: CI/CD — Dual Deployment
 **Problem:** Current `deploy.yml` has Render deploy hook placeholders.
@@ -389,6 +459,8 @@ vercel dev                    # Start Vercel dev server (api/index.js)
 3. **Why not turn the worker into a separate npm package?** The worker shares most of its code (models, config, services) with the main app. A monorepo or separate package would add complexity. Instead, the `worker/` directory imports from `../src/` — simple and effective.
 
 4. **Why keep `ioredis` for the worker?** BullMQ requires a Redis client that supports pub/sub and blocking commands — `@upstash/redis` (HTTP-based) doesn't support these. The worker must use `ioredis`. For the Vercel API, where Redis is used only for caching, `@upstash/redis` is sufficient.
+
+5. **Why two cron sources (Vercel + worker)?** Vercel Cron Jobs are the standard way to schedule periodic work on Vercel, but they depend on Vercel's infrastructure. The worker runs its own cron as a fallback, ensuring jobs execute even during Vercel outages or misconfiguration. Both sources use the same `src/cron/index.js` functions, so there's no logic drift.
 
 ---
 
