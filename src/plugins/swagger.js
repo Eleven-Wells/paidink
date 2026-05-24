@@ -3,12 +3,12 @@ const fp = require('fastify-plugin');
 const apiDocumentation = {
     openapi: '3.0.0',
     info: {
-        title: 'TechMedia API',
+        title: 'Nook API',
         description: 'AI-powered automated content platform for tech news',
         version: '1.0.0',
         contact: {
             name: 'API Support',
-            email: 'support@techmedia.example.com'
+            email: 'support@nook.example.com'
         },
         license: {
             name: 'ISC'

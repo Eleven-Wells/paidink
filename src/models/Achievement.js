@@ -73,7 +73,7 @@ achievementSchema.statics.getDefinitions = function() {
         },
         {
             slug: 'sage',
-            name: 'Sage of TechMedia',
+            name: 'Sage of Nook',
             description: 'Read 100 articles',
             icon: 'star',
             category: 'reading',

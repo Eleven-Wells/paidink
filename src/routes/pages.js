@@ -685,7 +685,7 @@ async function pagesRoutes(fastify) {
         });
 
         return reply.view('layouts/default.ejs', {
-            title: 'Earnings | TechMedia Publisher',
+            title: 'Earnings | Nook Publisher',
             currentPage: 'earnings',
             user: req.user.toPublicJSON(),
             body,

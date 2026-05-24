@@ -252,7 +252,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'dashboard',
             pageTitle: 'Dashboard',
             pageSubtitle: 'Overview of your content and system',
-            title: 'Admin Dashboard | TechMedia',
+            title: 'Admin Dashboard | Nook',
             stats,
             recentPosts
         });
@@ -279,7 +279,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'posts',
             pageTitle: 'Posts',
             pageSubtitle: 'Manage your content',
-            title: 'Posts | TechMedia Admin',
+            title: 'Posts | Nook Admin',
             posts,
             pagination: {
                 page: parseInt(page),
@@ -302,7 +302,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'create-post',
             pageTitle: 'Create Post',
             pageSubtitle: 'Add new content',
-            title: 'Create Post | TechMedia Admin'
+            title: 'Create Post | Nook Admin'
         });
         
         return reply.type('text/html').send(html);
@@ -342,7 +342,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'posts',
             pageTitle: 'Edit Post',
             pageSubtitle: post.title,
-            title: `Edit: ${post.title} | TechMedia Admin`,
+            title: `Edit: ${post.title} | Nook Admin`,
             post
         });
         
@@ -439,7 +439,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'jobs',
             pageTitle: 'Jobs Queue',
             pageSubtitle: 'Content generation pipeline',
-            title: 'Jobs Queue | TechMedia Admin',
+            title: 'Jobs Queue | Nook Admin',
             queueStats,
             jobs,
             hourlyData
@@ -566,7 +566,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'analytics',
             pageTitle: 'Analytics',
             pageSubtitle: 'Traffic and engagement metrics',
-            title: 'Analytics | TechMedia Admin',
+            title: 'Analytics | Nook Admin',
             analytics
         });
 
@@ -673,7 +673,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'performance',
             pageTitle: 'Performance',
             pageSubtitle: 'Application metrics',
-            title: 'Performance | TechMedia Admin',
+            title: 'Performance | Nook Admin',
             performance
         });
 
@@ -738,7 +738,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'health',
             pageTitle: 'System Health',
             pageSubtitle: 'Service status and diagnostics',
-            title: 'System Health | TechMedia Admin',
+            title: 'System Health | Nook Admin',
             health
         });
         
@@ -810,7 +810,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'publisher-requests',
             pageTitle: 'Publisher Requests',
             pageSubtitle: 'Review and approve publisher applications',
-            title: 'Publisher Requests | TechMedia Admin',
+            title: 'Publisher Requests | Nook Admin',
             users,
             pendingCount,
             status,
@@ -871,7 +871,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'settings',
             pageTitle: 'Settings',
             pageSubtitle: 'Configure your application',
-            title: 'Settings | TechMedia Admin'
+            title: 'Settings | Nook Admin'
         });
         
         return reply.type('text/html').send(html);
@@ -958,7 +958,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'earnings',
             pageTitle: 'Earnings',
             pageSubtitle: 'Manage contributor payments and revenue',
-            title: 'Earnings | TechMedia Admin',
+            title: 'Earnings | Nook Admin',
             stats,
             monthlyData,
             leaderboard,

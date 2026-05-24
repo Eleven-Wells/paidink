@@ -1,8 +1,8 @@
-# TechMedia Rewards - System Architecture
+# Nook Rewards - System Architecture
 
 ## 1. Core Concept
 
-**TechMedia Rewards** - A reward-based content platform where users earn money by reading content and engaging with ads, while content creators monetize their articles.
+**Nook Rewards** - A reward-based content platform where users earn money by reading content and engaging with ads, while content creators monetize their articles.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐

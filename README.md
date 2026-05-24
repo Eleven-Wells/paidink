@@ -1,4 +1,4 @@
-# TechMedia - AI-Powered Tech News Platform
+# Nook - AI-Powered Tech News Platform
 
 A modern, SEO-optimized blog platform that automatically generates content using AI, sources articles from RSS feeds, and manages everything through background workers.
 
@@ -19,7 +19,7 @@ A modern, SEO-optimized blog platform that automatically generates content using
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           TechMedia Architecture                             │
+│                           Nook Architecture                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                    │
@@ -489,7 +489,7 @@ curl http://localhost:5050/api/health | jq '.queue'
 
 ```bash
 # Build image
-docker build -t techmedia .
+docker build -t nook .
 
 # Run with docker-compose
 docker-compose -f docker-compose.prod.yml up -d
