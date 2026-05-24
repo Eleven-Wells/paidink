@@ -52,6 +52,10 @@ function createRedisConnection(options = {}) {
 }
 
 function getRedisConnection() {
+    if (isUpstashEnabled()) {
+        return getUpstashClient();
+    }
+
     if (!redisConnection) {
         redisConnection = createRedisConnection();
     }
@@ -59,6 +63,11 @@ function getRedisConnection() {
 }
 
 async function connectRedis() {
+    if (isUpstashEnabled()) {
+        // Upstash REST client doesn't require an explicit persistent connection
+        return Promise.resolve(getUpstashClient());
+    }
+
     if (!connectionPromise) {
         const connection = getRedisConnection();
         connectionPromise = connection.connect().then(() => connection).catch((err) => {
@@ -71,6 +80,12 @@ async function connectRedis() {
 }
 
 async function disconnectRedis() {
+    if (isUpstashEnabled()) {
+        // nothing to close for Upstash REST client
+        upstashClient = null;
+        return;
+    }
+
     if (redisConnection) {
         await redisConnection.quit();
         redisConnection = null;
@@ -79,6 +94,7 @@ async function disconnectRedis() {
 }
 
 function isRedisConnected() {
+    if (isUpstashEnabled()) return !!upstashClient;
     return redisConnection && redisConnection.status === 'ready';
 }
 
