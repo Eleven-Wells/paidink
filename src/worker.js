@@ -1,10 +1,14 @@
 const { Worker, QueueEvents } = require('bullmq');
 const JobLog = require('./models/JobLog');
-const { getRedisConnection } = require('./config/redis');
+const { getRedisConnection, isUpstashEnabled } = require('./config/redis');
 const { AppError } = require('./errors/errors');
 const { captureError, captureMessage } = require('./plugins/sentry');
 const dotenv = require('dotenv');
 dotenv.config();
+
+if (isUpstashEnabled()) {
+    console.warn('[BullMQ][Warning] Upstash REST Redis detected. BullMQ requires a Redis server with persistent connections and pub/sub support. Using Upstash REST for queues is incompatible — provide a redis:// endpoint or a separate Redis instance for BullMQ workers.');
+}
 
 let worker = null;
 let queueEvents = null;

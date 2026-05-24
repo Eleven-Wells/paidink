@@ -1,9 +1,13 @@
 const { Queue } = require('bullmq');
 const crypto = require('crypto');
-const { getRedisConnection } = require('../config/redis');
+const { getRedisConnection, isUpstashEnabled } = require('../config/redis');
 const { isFeatureEnabled } = require('../config/features');
 
 const redisConnection = getRedisConnection();
+
+if (isUpstashEnabled()) {
+    console.warn('[BullMQ][Warning] Upstash REST Redis detected. BullMQ requires a Redis server with persistent connections and pub/sub support. Using Upstash REST for queues is incompatible — provide a redis:// endpoint or a separate Redis instance for BullMQ workers.');
+}
 
 function generateIdempotencyKey(data) {
     const keyData = `${data.sourceUrl || ''}-${data.category || ''}-${data.title || ''}`;
