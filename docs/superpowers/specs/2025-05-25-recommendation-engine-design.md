@@ -21,8 +21,11 @@ Nook is a reward-based content platform ("Read to Earn") built with Fastify + Mo
 │          ▼                         ▼                     │
 │  ┌──────────────────────────────────────────┐           │
 │  │           Storage Layer                    │           │
-│  │  MongoDB: Vector Search index on `posts`   │           │
-│  │  Redis: Co-read matrix + Interest profiles │           │
+│  │  MongoDB: Vector Search index +             │
+│  │    UserInterestProfile model +              │
+│  │    CoreadRelationships collection           │
+│  │  Redis: Co-read matrix (hot) +              │
+│  │    Interest profile cache (1h TTL)          │
 │  └──────────────────┬───────────────────────┘           │
 │                     │                                     │
 │                     ▼                                     │
@@ -73,22 +76,62 @@ Nook is a reward-based content platform ("Read to Earn") built with Fastify + Mo
 
 ### 3. User Interest Profiles
 
-**What**: Per-user preference model built from reading history.
+**What**: Per-user preference model built from reading history. Persisted in MongoDB, cached in Redis for hot-path performance.
 
-**How**:
-- Computed on-demand from `ReadSession` aggregation — cached in Redis with 1h TTL
-- Structure:
-  ```json
-  {
-    "userId": "...",
-    "categoryAffinity": { "backend": 0.8, "ai-tools": 0.3 },
-    "tagAffinity": { "react": 0.6, "nodejs": 0.4 },
-    "publishersFollowed": ["pub1", "pub2"],
-    "lastUpdated": "<ISO timestamp>"
-  }
+**Mongoose model** (`src/models/UserInterestProfile.js`):
+```js
+{
+  userId: ObjectId,          // ref User, unique index
+  categoryAffinity: {        // Map<String, Number>
+    backend: 0.8,
+    "ai-tools": 0.3
+  },
+  tagAffinity: {             // Map<String, Number>
+    react: 0.6,
+    nodejs: 0.4
+  },
+  publisherAffinity: {       // Map<String, Number>
+    somePublisherId: 0.7
+  },
+  totalReads: { type: Number, default: 0 },
+  lastReadAt: Date,
+  updatedAt: Date
+}
+```
+
+**Update flow** — on read completion (`src/routes/reads.js`):
+- Find or create profile for the user (one doc per user)
+- Apply incremental exponential moving average:
   ```
-- Affinity weights: `timeSpentSeconds × completed × recency_multiplier`
-- Recent reads weighted higher (linear decay over 30 days)
+  new_affinity = (old_affinity || 0) × 0.9 + signal × 0.1
+  ```
+  where `signal = timeSpentSeconds / 60 × completed`
+- Increment `totalReads`, set `lastReadAt` to now
+- `profile.save()` — O(1) write per read completion
+- Invalidate Redis cache for this user (or update it)
+
+**Read flow**:
+- Request comes in → `InterestProfileService.getProfile(userId)`
+- Check Redis → hit? return cached
+- Miss → `findOne({ userId })` — single indexed doc lookup, fast
+- Validate: if `profile.totalReads < ReadSession.countDocuments({ user })`, rebuild from full `ReadSession` aggregation (self-healing)
+- Set in Redis with 1h TTL → return
+
+**Why not just Redis?**
+- Profile is **derivable data** (summarized from `ReadSession`), but `ReadSession` is the source of truth
+- Redis persists data only as long as memory allows — losing profiles means cold reads for all users until cache warms
+- Mongo persistence means profiles survive restarts and redeploys
+- Redis on the hot path gives sub-ms reads for the 95% case
+
+**Self-healing**: The validation check (`totalReads` vs actual count) catches data drift from:
+- Schema changes (new affinity fields added)
+- Formula changes (old affinities computed with different weights)
+- Manual corrections or backfills
+- Any other sync issues
+
+On mismatch, a full rebuild from `ReadSession` aggregation replaces the stored profile entirely. This can be triggered:
+- Lazily on cache miss (as above)
+- Via a nightly BullMQ job for all users with mismatches
 
 ### 4. Scoring Service
 
@@ -128,8 +171,9 @@ score = vector_popularity  ×  0.5
 
 | File | Purpose |
 |------|---------|
+| `src/models/UserInterestProfile.js` | Mongoose schema for persistent profile storage |
 | `src/services/RecommendationService.js` | Core scoring — `getFeed()`, `getRelated()`, `getForYou()` |
-| `src/services/InterestProfileService.js` | Build/cache user interest profiles from ReadSessions |
+| `src/services/InterestProfileService.js` | Read/update/cache user interest profiles |
 | `src/services/CoreadService.js` | Read/write co-read matrix in Redis |
 | `src/routes/recommendations.js` | New API endpoints |
 | `src/queue/jobs/co-read-mining.js` | Nightly BullMQ job |
@@ -173,8 +217,10 @@ GET /api/recommendations/for-you
 pages.js home handler
   └→ RecommendationService.getFeed(userId, { limit: 10 })
       └→ InterestProfileService.getProfile(userId)
-      │    ├→ Redis: get cached profile
-      │    └→ (miss) Mongo: aggregate ReadSessions → build profile → set in Redis (1h TTL)
+      │    ├→ Redis: get cached profile (1h TTL)
+      │    ├→ (miss) Mongo: findOne({ userId })
+      │    │    └→ if totalReads < ReadSession.count → full rebuild from aggregation
+      │    └→ return profile → set in Redis
       ├→ Post.aggregate([$vectorSearch: queryText from top category/tags, limit: 50])
       ├→ CoreadService.getTopRelated() for each candidate → Redis sorted sets
       ├→ Score each candidate using the scoring formula
@@ -196,7 +242,7 @@ pages.js home handler
 | Phase | Scope | Files | Estimation |
 |-------|-------|-------|------------|
 | **1** | Vector Search index + `RecommendationService.getRelated()` | `scripts/create-vector-index.js`, `RecommendationService.js`, modify `PostService.js` and `pages.js` related posts | Quickest win — upgrades related posts from tag-only to semantic |
-| **2** | `InterestProfileService` + personalized feed | `InterestProfileService.js`, `CoreadService.js`, expand `RecommendationService.js` with `getFeed()`, modify pages.js homepage | Core personalization — biggest engagement impact |
+| **2** | `UserInterestProfile` model + `InterestProfileService` + personalized feed | `UserInterestProfile.js`, `InterestProfileService.js`, `CoreadService.js`, expand `RecommendationService.js` with `getFeed()`, modify pages.js homepage, wire update in reads.js | Core personalization — biggest engagement impact |
 | **3** | Co-read mining job + `for-you` endpoint | `src/queue/jobs/co-read-mining.js`, `GET /api/recommendations/for-you` | Enhances recommendations with collaborative signals |
 | **4** | Anonymous fallback + `GET /api/recommendations/feed` | Wire anonymous path in `getFeed()`, register route | Covers unauthenticated experience |
 | **5** | Cleanup old references | Remove `getRelatedPosts` calls from pages.js where superseded | Only after new system is stable |
