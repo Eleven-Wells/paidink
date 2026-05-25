@@ -74,24 +74,43 @@ const authPlugin = require('./plugins/auth');
 async function buildApp() {
     loadConfig();
 
-    await fastify.register(fastifyStatic, {
-        root: path.join(__dirname, '..', 'public'),
-        prefix: '/public/',
-        setHeaders: (res, filepath) => {
-            const ext = path.extname(filepath).toLowerCase().slice(1);
+    // Register static assets plugin only if reply.sendFile isn't already decorated.
+    // This avoids "The decorator 'sendFile' has already been added!" when buildApp
+    // is invoked more than once in the same process (serverless + server handlers).
+    const shouldRegisterStatic = (typeof fastify.hasReplyDecorator === 'function')
+        ? !fastify.hasReplyDecorator('sendFile')
+        : true;
 
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-                res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
-                res.setHeader('CDN-Cache-Control', 'max-age=604800');
-            } else if (['css', 'js'].includes(ext)) {
-                res.setHeader('Cache-Control', 'public, max-age=3600');
+    if (shouldRegisterStatic) {
+        try {
+            await fastify.register(fastifyStatic, {
+                root: path.join(__dirname, '..', 'public'),
+                prefix: '/public/',
+                setHeaders: (res, filepath) => {
+                    const ext = path.extname(filepath).toLowerCase().slice(1);
+
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                        res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+                        res.setHeader('CDN-Cache-Control', 'max-age=604800');
+                    } else if (['css', 'js'].includes(ext)) {
+                        res.setHeader('Cache-Control', 'public, max-age=3600');
+                    } else {
+                        res.setHeader('Cache-Control', 'public, max-age=3600');
+                    }
+
+                    res.setHeader('X-Content-Type-Options', 'nosniff');
+                }
+            });
+
+        } catch (err) {
+            // If another module already decorated reply.sendFile, skip and warn.
+            if (err && err.message && err.message.includes("The decorator 'sendFile' has already been added")) {
+                fastify.log.warn({ component: 'static' }, "Static plugin skipped: sendFile already decorated");
             } else {
-                res.setHeader('Cache-Control', 'public, max-age=3600');
+                throw err;
             }
-
-            res.setHeader('X-Content-Type-Options', 'nosniff');
         }
-    });
+    }
 
     await fastify.register(fastifyView, {
         engine: { ejs },

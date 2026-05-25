@@ -26,7 +26,8 @@
     <meta name="theme-color" content="#6d0a0a">
 
     <link rel="canonical" href="<%= canonical || '' %>">
-    <link rel="icon" type="image/x-icon" href="/public/images/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/public/images/apple-touch-icon.png">
     <link rel="alternate" hreflang="en" href="<%= canonical || '' %>">
     <link rel="alternate" hreflang="x-default" href="<%= canonical || '' %>">
@@ -512,6 +513,8 @@
     <% } %>
 
     <%- include('../partials/scripts') %>
+
+    <%- include('../partials/mobile-bottom-nav', { currentPage: typeof currentPage !== 'undefined' ? currentPage : '' , theme: (typeof isLightTheme !== 'undefined' && isLightTheme) ? 'light' : 'dark' }) %>
 
     <button class="scroll-top-btn" id="scrollTopBtn" type="button" aria-label="Scroll to top">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

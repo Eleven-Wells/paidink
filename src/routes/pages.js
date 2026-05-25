@@ -77,6 +77,16 @@ function renderErrorPage(errorName, req) {
     });
 }
 
+function getAvatarWithFallback(user) {
+    if (user && user.avatar) return user.avatar;
+    var initial = '?';
+    if (user) {
+        const nameSource = user.username || user.displayName || '';
+        if (nameSource && nameSource.length > 0) initial = nameSource.charAt(0).toUpperCase();
+    }
+    return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><circle cx="40" cy="40" r="40" fill="#e5e5e5"/><text x="40" y="52" text-anchor="middle" fill="#6d0a0a" font-size="36" font-family="sans-serif">' + initial + '</text></svg>');
+}
+
 async function pagesRoutes(fastify) {
     fastify.addHook('preHandler', async (req, reply) => {
         const token = req.cookies?.auth_token;
@@ -894,12 +904,20 @@ async function pagesRoutes(fastify) {
                 if (post.author && typeof post.author.toPublicJSON === 'function') {
                     post.author = post.author.toPublicJSON();
                 }
+                // ensure avatar fallback is present for authors on the logged-in home feed
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
+                }
                 return post;
             });
 
             const trendingWithAuthors = trendingPosts.map(post => {
                 if (post.author && typeof post.author.toPublicJSON === 'function') {
                     post.author = post.author.toPublicJSON();
+                }
+                // ensure avatar fallback for trending items as well
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
                 }
                 post.readTime = post.content ? Math.max(1, Math.ceil(post.content.split(' ').length / 200)) + 'm' : '5m';
                 return post;
@@ -911,8 +929,14 @@ async function pagesRoutes(fastify) {
                 const { getFeedAds, getAdForSlot } = require('../services/ads/AdPlacementService');
                 feedAds = await getFeedAds(currentUserId, null);
                 sidebarAd = await getAdForSlot(currentUserId, 'sidebar', null);
+                try {
+                    req.log.debug({ feedAds }, 'Fetched feedAds');
+                    req.log.debug({ sidebarAd }, 'Fetched sidebarAd');
+                } catch (logErr) {
+                    console.debug('Ad debug log failed', logErr);
+                }
             } catch (e) {
-                // Ads not available
+                req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable');
             }
 
             return reply.view('pages/home-logged-in.ejs', {
@@ -1057,8 +1081,14 @@ async function pagesRoutes(fastify) {
             const { getFeedAds, getAdForSlot } = require('../services/ads/AdPlacementService');
             feedAds = await getFeedAds(currentUserId, null);
             sidebarAd = await getAdForSlot(currentUserId, 'sidebar', null);
+            try {
+                req.log.debug({ feedAds }, 'Fetched feedAds for explore');
+                req.log.debug({ sidebarAd }, 'Fetched sidebarAd for explore');
+            } catch (logErr) {
+                console.debug('Ad debug log failed', logErr);
+            }
         } catch (e) {
-            // Ads not available
+            req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable for explore');
         }
 
         return reply.view('pages/explore.ejs', {
@@ -1271,10 +1301,11 @@ async function pagesRoutes(fastify) {
         const Post = require('../models/Post');
         await Post.findByIdAndUpdate(post._id, { $inc: { 'stats.views': 1 } });
 
-        if (post.author) {
+        const authorId = post.author && (post.author._id || post.author);
+        if (authorId) {
             try {
                 const Credit = require('../models/Credit');
-                await Credit.earnCredit(post.author, 'UNIQUE_VIEW', { postId: post._id });
+                await Credit.earnCredit(authorId, 'UNIQUE_VIEW', { postId: post._id });
             } catch (err) {
                 console.error('Failed to award view credit:', err.message);
             }
@@ -1282,7 +1313,7 @@ async function pagesRoutes(fastify) {
 
         await fastify.audit.apiAccess(req, 'post:view', 'read', {
             postId: post._id?.toString?.() || String(post._id),
-            authorId: post.author?.toString?.() || (post.author ? String(post.author) : null)
+            authorId: authorId?.toString?.() || (authorId ? String(authorId) : null)
         });
 
         const { generateRelatedPostsHtml, getRelatedPosts, addInternalLinks } = require('../seo/internalLinking');
@@ -1307,8 +1338,14 @@ async function pagesRoutes(fastify) {
             const { getAdForSlot } = require('../services/ads/AdPlacementService');
             adInline = await getAdForSlot(req.currentUser?.id || null, 'article_inline', null);
             adBanner = await getAdForSlot(req.currentUser?.id || null, 'article_endcap', null);
+            try {
+                req.log.debug({ adInline }, 'Fetched adInline for post');
+                req.log.debug({ adBanner }, 'Fetched adBanner for post');
+            } catch (logErr) {
+                console.debug('Ad debug log failed', logErr);
+            }
         } catch (e) {
-            // Ads not available
+            req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable for post');
         }
 
         if (adInline && adInline.served && enhancedContent) {

@@ -21,7 +21,11 @@
                 </div>
             <% }); %>
         <% } else { %>
-            <p class="who-follow-empty">No suggestions yet.</p>
+            <%- include('../partials/empty-state-card', {
+                title: 'No new people yet',
+                copy: 'Suggestions will appear as more readers and writers become active around your interests.',
+                compact: true
+            }) %>
         <% } %>
         </div>
     </div>
@@ -108,13 +112,6 @@
         font-size: 20px;
         color: #fff;
         white-space: nowrap;
-    }
-
-    .who-follow-empty {
-        margin: 0;
-        font-family: 'Abhaya Libre', serif;
-        font-size: 24px;
-        color: rgba(0,0,0,0.5);
     }
 
     @media (max-width: 1400px) {

@@ -24,6 +24,22 @@
         content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <%- include('../partials/dashboard-css') %>
         <style>
+            .profile-sidebar-column {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: clamp(220px, 22vw, 300px);
+                height: 100vh;
+                overflow-y: auto;
+                background: #fff;
+                z-index: 40;
+            }
+
+            .profile-page {
+                margin-left: clamp(220px, 22vw, 300px);
+                padding-top: 2rem !important;
+            }
+
             .profile-page {
                 color: var(--dash-text);
             }
@@ -188,6 +204,58 @@
                     padding: 1.35rem;
                 }
             }
+
+            @media (max-width: 1024px) {
+                .profile-sidebar-column {
+                    display: none;
+                }
+
+                .profile-page {
+                    margin-left: 0;
+                    padding-top: 1.5rem !important;
+                }
+            }
+        </style>
+        <style>
+            /* Username status visuals */
+            #usernameStatus {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.25rem;
+            }
+
+            .username-status-icon {
+                width: 1rem;
+                height: 1rem;
+                display: inline-block;
+            }
+
+            .username-status-spinner {
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .username-status-ok {
+                color: #059669;
+            }
+
+            /* green-600 */
+            .username-status-error {
+                color: #dc2626;
+            }
+
+            /* red-600 */
+            .username-status-checking {
+                color: #d97706;
+            }
+
+            /* amber-600 */
         </style>
 </head>
 
@@ -196,121 +264,243 @@
     <div class="bg-grid"></div>
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <%- include('../partials/dashboard-header') %>
+    <aside class="profile-sidebar-column">
+        <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
+    </aside>
 
-        <main class="profile-page relative z-10 pt-24 pb-16">
-            <div class="max-w-2xl mx-auto px-6">
-                <section class="glass-card profile-hero rounded-2xl p-6 md:p-8 mb-8">
-                    <div class="relative z-10">
-                        <p class="profile-kicker font-mono text-xs uppercase mb-2">Personal Details</p>
-                        <h1 class="profile-title font-heading text-3xl font-bold mb-2">My Profile</h1>
-                        <p class="profile-copy">Update your personal information</p>
+    <main class="profile-page relative z-10 pt-24 pb-16">
+        <div class="max-w-2xl mx-auto px-6">
+            <section class="glass-card profile-hero rounded-2xl p-6 md:p-8 mb-8">
+                <div class="relative z-10">
+                    <p class="profile-kicker font-mono text-xs uppercase mb-2">Personal Details</p>
+                    <h1 class="profile-title font-heading text-3xl font-bold mb-2">My Profile</h1>
+                    <p class="profile-copy">Update your personal information</p>
+                </div>
+            </section>
+
+            <div class="glass-card profile-card rounded-2xl p-6 mb-6">
+                <div class="flex items-center gap-6 mb-8 pb-6 profile-divider border-b">
+                    <div class="profile-avatar-wrap">
+                        <%= user?.displayName?.charAt(0).toUpperCase() || 'U' %>
                     </div>
-                </section>
-
-                <div class="glass-card profile-card rounded-2xl p-6 mb-6">
-                    <div class="flex items-center gap-6 mb-8 pb-6 profile-divider border-b">
-                        <div class="profile-avatar-wrap">
-                            <%= user?.displayName?.charAt(0).toUpperCase() || 'U' %>
-                        </div>
-                        <div>
-                            <h2 class="profile-header-name text-xl font-semibold">
-                                <%= user?.displayName || 'User' %>
-                            </h2>
-                            <p class="profile-header-email">
-                                <%= user?.email || '' %>
-                            </p>
-                        </div>
+                    <div>
+                        <h2 class="profile-header-name text-xl font-semibold">
+                            <%= user?.displayName || 'User' %>
+                        </h2>
+                        <p class="profile-header-email">
+                            <%= user?.email || '' %>
+                        </p>
                     </div>
-
-                    <form id="profileForm" class="space-y-6">
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Display Name</label>
-                            <input type="text" name="displayName" class="profile-input profile-focus-ring"
-                                value="<%= user?.displayName || '' %>" placeholder="Enter your display name">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Username</label>
-                            <input type="text" name="username" class="profile-input profile-focus-ring"
-                                value="<%= user?.username || '' %>" placeholder="Choose a username">
-                            <p class="profile-field-note text-xs mt-1">This will be used for your public profile</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Bio</label>
-                            <textarea name="bio" rows="3" class="profile-input profile-focus-ring w-full"
-                                placeholder="Tell us about yourself"><%= user?.bio || '' %></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Phone Number</label>
-                            <input type="tel" name="phone" class="profile-input profile-focus-ring"
-                                value="<%= user?.phone || '' %>" placeholder="+2348012345678">
-                            <p class="profile-field-note text-xs mt-1">Required for mobile money withdrawals</p>
-                        </div>
-
-                        <div class="custom-select">
-                            <select name="country" data-custom-select>
-                                <option value="Nigeria" <%=user?.country==='Nigeria' ? 'selected' : '' %>>Nigeria
-                                </option>
-                                <option value="Kenya" <%=user?.country==='Kenya' ? 'selected' : '' %>>Kenya</option>
-                                <option value="Ghana" <%=user?.country==='Ghana' ? 'selected' : '' %>>Ghana</option>
-                                <option value="South Africa" <%=user?.country==='South Africa' ? 'selected' : '' %>
-                                    >South Africa</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="profile-submit-btn profile-focus-ring w-full">
-                            Save Changes
-                        </button>
-                    </form>
                 </div>
 
-                <div class="glass-card profile-card rounded-2xl p-6">
-                    <h3 class="profile-title font-heading text-lg font-semibold mb-4">Account Info</h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="flex justify-between">
-                            <span class="profile-info-label">Member since</span>
-                            <span class="profile-info-value">
-                                <%= user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' %>
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="profile-info-label">Total earned</span>
-                            <span class="profile-info-value profile-info-value--earned">₦<%=
-                                    user?.wallet?.lifetimeEarned?.toFixed(2) || '0.00' %></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="profile-info-label">Referral code</span>
-                            <span class="profile-info-value profile-info-value--mono">
-                                <%= user?.referralCode || 'N/A' %>
-                            </span>
-                        </div>
+                <form id="profileForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm profile-label mb-2">Display Name</label>
+                        <input type="text" name="displayName" class="profile-input profile-focus-ring"
+                            value="<%= user?.displayName || '' %>" placeholder="Enter your display name">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm profile-label mb-2">Username</label>
+                        <input type="text" name="username" class="profile-input profile-focus-ring"
+                            value="<%= user?.username || '' %>" placeholder="Choose a username">
+                        <p id="usernameStatus" class="profile-field-note text-xs mt-1"></p>
+                        <p class="profile-field-note text-xs mt-1">This will be used for your public profile</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm profile-label mb-2">Bio</label>
+                        <textarea name="bio" rows="3" class="profile-input profile-focus-ring w-full"
+                            placeholder="Tell us about yourself"><%= user?.bio || '' %></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm profile-label mb-2">Phone Number</label>
+                        <input type="tel" name="phone" class="profile-input profile-focus-ring"
+                            value="<%= user?.phone || '' %>" placeholder="+2348012345678">
+                        <p class="profile-field-note text-xs mt-1">Required for mobile money withdrawals</p>
+                    </div>
+
+                    <div class="custom-select">
+                        <select name="country" data-custom-select>
+                            <option value="Nigeria" <%=user?.country==='Nigeria' ? 'selected' : '' %>>Nigeria
+                            </option>
+                            <option value="Kenya" <%=user?.country==='Kenya' ? 'selected' : '' %>>Kenya</option>
+                            <option value="Ghana" <%=user?.country==='Ghana' ? 'selected' : '' %>>Ghana</option>
+                            <option value="South Africa" <%=user?.country==='South Africa' ? 'selected' : '' %>
+                                >South Africa</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="profile-submit-btn profile-focus-ring w-full">
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+
+            <div class="glass-card profile-card rounded-2xl p-6">
+                <h3 class="profile-title font-heading text-lg font-semibold mb-4">Account Info</h3>
+                <div class="space-y-4 text-sm">
+                    <div class="flex justify-between">
+                        <span class="profile-info-label">Member since</span>
+                        <span class="profile-info-value">
+                            <%= user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' %>
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="profile-info-label">Total earned</span>
+                        <span class="profile-info-value profile-info-value--earned">₦<%=
+                                user?.wallet?.lifetimeEarned?.toFixed(2) || '0.00' %></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="profile-info-label">Referral code</span>
+                        <span class="profile-info-value profile-info-value--mono">
+                            <%= user?.referralCode || 'N/A' %>
+                        </span>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
+    </main>
 
-        <div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const form = document.getElementById('profileForm');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('profileForm');
 
-                if (form) {
-                    form.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        showToast('Profile update feature coming soon!', 'success');
+            if (form) {
+                const usernameInput = form.querySelector('input[name="username"]');
+                const usernameStatus = document.getElementById('usernameStatus');
+                const submitBtn = form.querySelector('button[type="submit"]');
+
+                let availabilityTimer = null;
+                let lastChecked = '';
+                let usernameOk = true;
+
+                function setUsernameStatus(msg, state) {
+                    // state: 'ok' | 'error' | 'checking' | ''
+                    if (!usernameStatus) return;
+                    usernameStatus.className = '';
+                    usernameStatus.classList.add('profile-field-note');
+                    if (state) usernameStatus.classList.add('username-status-' + state);
+                    usernameOk = state !== 'error';
+                    if (submitBtn) submitBtn.disabled = !usernameOk || state === 'checking';
+
+                    if (!msg) { usernameStatus.innerHTML = ''; return; }
+
+                    let iconHtml = '';
+                    if (state === 'ok') {
+                        iconHtml = '<svg class="username-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
+                    } else if (state === 'error') {
+                        iconHtml = '<svg class="username-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.414-9.414a1 1 0 011.414 0L10 9.586l.586-.586a1 1 0 111.414 1.414L11.414 11l.586.586a1 1 0 11-1.414 1.414L10 12.414l-.586.586a1 1 0 11-1.414-1.414L8.586 11l-.586-.586a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                    } else if (state === 'checking') {
+                        iconHtml = '<svg class="username-status-icon username-status-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity="0.25"></circle><path d="M22 12a10 10 0 00-10-10"></path></svg>';
+                    }
+
+                    usernameStatus.innerHTML = iconHtml + '<span>' + (msg || '') + '</span>';
+                }
+
+                async function checkUsernameAvailability(value) {
+                    if (!value) {
+                        setUsernameStatus('Username cannot be empty', 'error');
+                        return;
+                    }
+
+                    if (!/^[a-zA-Z0-9_]{3,30}$/.test(value)) {
+                        setUsernameStatus('Username must be 3-30 chars and contain only letters, numbers and underscores', 'error');
+                        return;
+                    }
+
+                    setUsernameStatus('Checking availability...', 'checking');
+                    try {
+                        const res = await fetch('/api/users/username-available?username=' + encodeURIComponent(value));
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            setUsernameStatus(err.error || 'Unable to check username', 'error');
+                            return;
+                        }
+                        const data = await res.json();
+                        if (data && data.available) {
+                            setUsernameStatus('Username is available', 'ok');
+                        } else {
+                            setUsernameStatus('Username already taken', 'error');
+                        }
+                    } catch (e) {
+                        setUsernameStatus('Network error while checking username', 'error');
+                    }
+                }
+
+                if (usernameInput) {
+                    usernameInput.addEventListener('input', (ev) => {
+                        const v = ev.target.value.trim();
+                        if (availabilityTimer) clearTimeout(availabilityTimer);
+                        availabilityTimer = setTimeout(() => {
+                            if (v === lastChecked) return;
+                            lastChecked = v;
+                            checkUsernameAvailability(v);
+                        }, 500);
+                    });
+
+                    usernameInput.addEventListener('blur', (ev) => {
+                        const v = ev.target.value.trim();
+                        if (availabilityTimer) clearTimeout(availabilityTimer);
+                        if (v && v !== lastChecked) {
+                            lastChecked = v;
+                            checkUsernameAvailability(v);
+                        }
                     });
                 }
-            });
-        </script>
 
-        <%- include('../partials/dashboard-scripts') %>
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const payload = {};
+                    ['displayName', 'username', 'bio', 'phone', 'country'].forEach(k => {
+                        const v = formData.get(k);
+                        if (v !== null && String(v).trim() !== '') payload[k] = String(v).trim();
+                    });
 
-            <%- include('../partials/mobile-bottom-nav', { currentPage: 'profile' , theme: 'light' , unreadCount:
-                unreadCount }) %>
+                    // Re-check username if present and not already ok
+                    if (payload.username) {
+                        if (!usernameOk || payload.username !== lastChecked) {
+                            await checkUsernameAvailability(payload.username);
+                            if (!usernameOk) {
+                                showToast('Please choose a different username', 'error');
+                                return;
+                            }
+                        }
+                    }
+
+                    try {
+                        const res = await fetch('/api/user', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await res.json();
+                        if (res.ok && data && data.success) {
+                            showToast('Profile updated', 'success');
+                            // update UI
+                            const nameEl = document.querySelector('.profile-header-name');
+                            if (nameEl && data.user && data.user.displayName) nameEl.textContent = data.user.displayName;
+                            const emailEl = document.querySelector('.profile-header-email');
+                            if (emailEl && data.user && data.user.email) emailEl.textContent = data.user.email;
+                        } else {
+                            showToast((data && data.error) || 'Failed to update profile', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Network error while updating profile', 'error');
+                    }
+                });
+            }
+        });
+    </script>
+
+    <%- include('../partials/dashboard-scripts') %>
+
+        <%- include('../partials/mobile-bottom-nav', { currentPage: 'profile' , theme: 'light' , unreadCount:
+            unreadCount }) %>
 </body>
 
 </html>

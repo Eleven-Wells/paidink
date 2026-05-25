@@ -103,21 +103,42 @@ async function checkFrequencyLimit(userId, slot, sessionId) {
     if (!rule) return true;
 
     const thirtySecondsAgo = new Date(Date.now() - (rule.minIntervalSeconds * 1000));
-    const recentEvents = await AdEvent.countDocuments({
-        user: userId,
-        placement: { $exists: true },
-        createdAt: { $gte: thirtySecondsAgo },
-        type: { $in: ['impression', 'view'] }
-    });
+    const recentEvents = await AdEvent.aggregate([
+        { $match: {
+            user: userId,
+            createdAt: { $gte: thirtySecondsAgo },
+            type: { $in: ['impression', 'view'] }
+        }},
+        { $lookup: {
+            from: 'adplacements',
+            localField: 'placement',
+            foreignField: '_id',
+            as: 'placementDoc'
+        }},
+        { $match: { 'placementDoc.slot': slot } },
+        { $count: 'count' }
+    ]);
+    const recentCount = recentEvents[0]?.count || 0;
 
-    if (recentEvents > 0 && rule.minIntervalSeconds > 0) return false;
+    if (recentCount > 0 && rule.minIntervalSeconds > 0) return false;
 
-    const sessionEvents = await AdEvent.countDocuments({
-        user: userId,
-        session: sessionId,
-        type: { $in: ['impression', 'view'] }
-    });
-    if (sessionEvents >= rule.maxPerSession) return false;
+    const sessionEvents = await AdEvent.aggregate([
+        { $match: {
+            user: userId,
+            session: sessionId,
+            type: { $in: ['impression', 'view'] }
+        }},
+        { $lookup: {
+            from: 'adplacements',
+            localField: 'placement',
+            foreignField: '_id',
+            as: 'placementDoc'
+        }},
+        { $match: { 'placementDoc.slot': slot } },
+        { $count: 'count' }
+    ]);
+    const sessionEventCount = sessionEvents[0]?.count || 0;
+    if (sessionEventCount >= rule.maxPerSession) return false;
 
     if (rule.excludeAfterRewardClaim) {
         const rewardClaimed = await AdEvent.findOne({
@@ -270,7 +291,9 @@ async function simulateRewardedAd(userId, adConfig, placement, sessionId, metada
 }
 
 async function triggerAdForUser(userId, slot, sessionId, userMetadata = {}) {
-    const { test, variant } = await getActiveABTestForUser(userId);
+    const activeTest = await getActiveABTestForUser(userId);
+    const test = activeTest?.test || null;
+    const variant = activeTest?.variant || null;
     if (!await checkFrequencyLimit(userId, slot, sessionId)) {
         return { served: false, reason: 'frequency_limit' };
     }
@@ -306,7 +329,9 @@ async function triggerAdForUser(userId, slot, sessionId, userMetadata = {}) {
 }
 
 async function triggerRewardedAd(userId, slot, sessionId, userMetadata = {}) {
-    const { test, variant } = await getActiveABTestForUser(userId);
+    const activeTest = await getActiveABTestForUser(userId);
+    const test = activeTest?.test || null;
+    const variant = activeTest?.variant || null;
     if (!await checkFrequencyLimit(userId, slot, sessionId)) {
         return { served: false, reason: 'frequency_limit' };
     }

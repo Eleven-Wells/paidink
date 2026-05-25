@@ -30,7 +30,11 @@
                     </article>
                 <% }); %>
             <% } else { %>
-                <p style="margin: 0; font-family: 'Abhaya Libre', serif; font-size: clamp(16px, 2.5vw, 24px); color: rgba(0,0,0,0.5);">No trending posts yet.</p>
+                <%- include('../partials/empty-state-card', {
+                    title: 'Nothing is trending yet',
+                    copy: 'The most-read posts will show up here once the room gets moving.',
+                    compact: true
+                }) %>
             <% } %>
         </div>
     </div>

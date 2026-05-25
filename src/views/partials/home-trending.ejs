@@ -28,7 +28,11 @@
                 </article>
             <% }); %>
         <% } else { %>
-            <p class="trending-empty">No trending posts yet.</p>
+            <%- include('../partials/empty-state-card', {
+                title: 'No trend line yet',
+                copy: 'Popular posts will appear here once readers start moving through the feed.',
+                compact: true
+            }) %>
         <% } %>
         </div>
     </div>
@@ -113,13 +117,6 @@
         border: none;
         background: rgba(0,0,0,0.15);
         margin: 0;
-    }
-
-    .trending-empty {
-        margin: 0;
-        font-family: 'Abhaya Libre', serif;
-        font-size: 24px;
-        color: rgba(0,0,0,0.5);
     }
 
     @media (max-width: 1400px) {

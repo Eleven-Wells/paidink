@@ -99,7 +99,9 @@ class PostService {
             });
         }
 
-        const post = await Post.findOne({ slug }).lean();
+        const post = await Post.findOne({ slug })
+            .populate('author', 'displayName username avatar bio')
+            .lean();
         if (!post) {
             return null;
         }

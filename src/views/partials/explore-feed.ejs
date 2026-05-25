@@ -87,8 +87,13 @@
             <% } %>
         <% }); %>
     <% } else { %>
-        <div style="text-align: center; padding: 80px 20px; width: 100%;">
-            <p style="font-family: 'Abhaya Libre', serif; font-size: 32px; color: rgba(0,0,0,0.5); margin: 0;">No posts yet. Be the first to share!</p>
+        <div style="padding: 24px 0; width: 100%; max-width: min(897px, 100%);">
+            <%- include('../partials/empty-state-card', {
+                title: 'Explore is quiet right now',
+                copy: 'New stories, conversations, and reader updates will land here as soon as they are published.',
+                ctaText: 'Go home',
+                ctaHref: '/'
+            }) %>
         </div>
     <% } %>
 

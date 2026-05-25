@@ -21,7 +21,11 @@
                     </div>
                 <% }); %>
             <% } else { %>
-                <p style="margin: 0; font-family: 'Abhaya Libre', serif; font-size: clamp(16px, 2.5vw, 24px); color: rgba(0,0,0,0.5);">No suggestions yet.</p>
+                <%- include('../partials/empty-state-card', {
+                    title: 'No suggestions yet',
+                    copy: 'Follow suggestions will appear when there are more people near your reading pattern.',
+                    compact: true
+                }) %>
             <% } %>
         </div>
     </div>

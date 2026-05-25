@@ -49,55 +49,101 @@
     }
 
     @media (max-width: 1024px) {
+        body {
+            padding-bottom: calc(104px + env(safe-area-inset-bottom));
+        }
+
         .mobile-bottom-nav {
             display: flex;
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 64px;
-            background: #fff;
-            border-top: 1px solid rgba(109,10,10,0.1);
+            left: 10px;
+            right: 10px;
+            left: max(10px, env(safe-area-inset-left));
+            right: max(10px, env(safe-area-inset-right));
+            bottom: calc(14px + env(safe-area-inset-bottom));
+            width: auto;
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 66px;
+            background: rgba(255, 253, 251, 0.92);
+            border: 1px solid rgba(109, 10, 10, 0.12);
+            border-radius: 999px;
             align-items: center;
-            justify-content: space-around;
-            z-index: 100;
-            padding: 0 8px;
-            padding-bottom: env(safe-area-inset-bottom);
+            justify-content: space-between;
+            z-index: 9999;
+            padding: 7px;
+            box-sizing: border-box;
+            overflow: hidden;
+            box-shadow: 0 20px 55px rgba(31, 23, 21, 0.18), 0 6px 18px rgba(109, 10, 10, 0.12);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transform: translate3d(0, 0, 0);
+            animation: mobileDockIn 0.42s cubic-bezier(0.2, 0.85, 0.2, 1) both;
         }
 
         .bottom-nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 3px;
+            min-width: 0;
+            flex: 1 1 0;
+            min-height: 52px;
             text-decoration: none;
-            color: #000;
+            color: rgba(31, 23, 21, 0.68);
             font-family: 'Abhaya Libre', serif;
-            font-size: 12px;
-            padding: 8px 12px;
-            border-radius: 12px;
-            transition: color 0.2s, background 0.2s;
+            font-size: 11px;
+            line-height: 1;
+            padding: 6px 4px;
+            border-radius: 999px;
+            overflow: hidden;
+            transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .bottom-nav-item > span:last-child {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .bottom-nav-item:hover,
         .bottom-nav-item:focus {
             color: #6d0a0a;
-            background: rgba(109,10,10,0.05);
+            background: rgba(109, 10, 10, 0.06);
+            transform: translateY(-1px);
         }
 
         .bottom-nav-item-active {
             color: #6d0a0a;
             font-weight: 600;
+            background: rgba(109, 10, 10, 0.1);
         }
 
         .bottom-nav-item svg {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
+            transition: transform 0.2s ease;
+        }
+
+        .bottom-nav-item-active svg {
+            transform: translateY(-1px) scale(1.05);
+        }
+
+        .bottom-nav-item.is-pressing svg {
+            animation: dockIconPop 0.38s cubic-bezier(0.2, 0.9, 0.2, 1.2) both;
+        }
+
+        .bottom-nav-item.is-pressing {
+            background: rgba(109, 10, 10, 0.12);
         }
 
         .mobile-bottom-nav-dark {
-            background: rgba(16, 16, 16, 0.95);
-            border-top-color: rgba(255,255,255,0.1);
+            background: rgba(16, 16, 16, 0.82);
+            border-color: rgba(255,255,255,0.12);
+            box-shadow: 0 20px 55px rgba(0, 0, 0, 0.42);
         }
 
         .mobile-bottom-nav-dark .bottom-nav-item {
@@ -113,6 +159,76 @@
         .mobile-bottom-nav-dark .bottom-nav-item-active {
             color: #fff;
             font-weight: 600;
+            background: rgba(255,255,255,0.12);
+        }
+
+        @keyframes mobileDockIn {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 18px, 0) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+        }
+
+        @keyframes dockIconPop {
+            0% { transform: translateY(0) scale(1); }
+            36% { transform: translateY(-8px) scale(1.18) rotate(-5deg); }
+            64% { transform: translateY(2px) scale(0.94) rotate(3deg); }
+            100% { transform: translateY(-1px) scale(1.05) rotate(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mobile-bottom-nav {
+                animation: none;
+            }
+
+            .bottom-nav-item,
+            .bottom-nav-item svg {
+                transition: none;
+            }
+
+            .bottom-nav-item.is-pressing svg {
+                animation: none;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .mobile-bottom-nav {
+                left: 8px;
+                right: 8px;
+                padding: 6px;
+                min-height: 62px;
+            }
+
+            .bottom-nav-item {
+                font-size: 10px;
+                min-height: 48px;
+                padding-inline: 2px;
+            }
+
+            .bottom-nav-item svg {
+                width: 20px;
+                height: 20px;
+            }
         }
     }
 </style>
+
+<script>
+(function() {
+    var dockItems = document.querySelectorAll('.mobile-bottom-nav .bottom-nav-item');
+    dockItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+            item.classList.remove('is-pressing');
+            void item.offsetWidth;
+            item.classList.add('is-pressing');
+            window.setTimeout(function() {
+                item.classList.remove('is-pressing');
+            }, 420);
+        });
+    });
+})();
+</script>
