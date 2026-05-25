@@ -8,18 +8,44 @@ const AD_SLOT_MAP = {
     feed_banner: { placement: 'feed_banner', pageType: 'feed', fallbackSlot: 'banner' },
     sidebar: { placement: 'sidebar', pageType: 'feed', fallbackSlot: 'sidebar' },
     interstitial: { placement: 'interstitial', pageType: 'feed', fallbackSlot: 'interstitial' },
-    reward_wall: { placement: 'reward_wall', pageType: 'feed', fallbackSlot: 'rewarded' }
+    reward_wall: { placement: 'reward_wall', pageType: 'feed', fallbackSlot: 'rewarded' },
+    feed: { placement: 'feed', pageType: 'feed', fallbackSlot: 'banner' },
+    banner: { placement: 'banner', pageType: 'feed', fallbackSlot: null }
 };
 
 async function getAdForSlot(userId, slotName, sessionId) {
     const slot = AD_SLOT_MAP[slotName];
     if (!slot) return null;
 
-    const result = await triggerAdForUser(userId, slot.placement, sessionId, {
+    let result = await triggerAdForUser(userId, slot.placement, sessionId, {
         pageType: slot.pageType
     });
+    let usedPlacement = slot.placement;
+    let usedSlotName = slotName;
+
+    if (!result.served && slot.fallbackSlot && AD_SLOT_MAP[slot.fallbackSlot]) {
+        const fallback = AD_SLOT_MAP[slot.fallbackSlot];
+        result = await triggerAdForUser(userId, fallback.placement, sessionId, {
+            pageType: fallback.pageType
+        });
+        if (result.served) {
+            usedPlacement = fallback.placement;
+            usedSlotName = slotName;
+            try {
+                console.debug('AdPlacementService: ad served via fallback slot', { userId, slot: slotName, fallback: slot.fallbackSlot });
+            } catch (e) {
+                console.debug('AdPlacementService: debug log failed', e && e.message ? e.message : e);
+            }
+        }
+    }
 
     if (!result.served) {
+        // Log why ad wasn't served for debugging (non-fatal)
+        try {
+            console.debug('AdPlacementService: no ad served', { userId, slot: slotName, result });
+        } catch (e) {
+            console.debug('AdPlacementService: debug log failed', e && e.message ? e.message : e);
+        }
         return getDemoAd(slotName);
     }
 
@@ -32,7 +58,8 @@ async function getAdForSlot(userId, slotName, sessionId) {
         adConfigId: result.adConfig?._id?.toString(),
         abTest: result.abTest,
         abVariant: result.abVariant,
-        slot: slotName
+        slot: usedSlotName,
+        placement: usedPlacement
     };
 }
 

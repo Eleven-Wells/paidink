@@ -160,28 +160,55 @@ async function apiRoutes(fastify) {
         };
     });
 
-fastify.post('/posts', {
+    fastify.post('/posts', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const { content, title } = req.body;
-        
-        if (!content || !content.trim()) {
+        const { content, title, image, link } = req.body;
+
+        const hasContent = content && typeof content === 'string' && content.trim();
+        const hasImage = image && typeof image === 'string';
+        const hasLink = link && typeof link === 'string';
+
+        if (!hasContent && !hasImage && !hasLink) {
             return reply.code(400).send({
                 success: false,
-                error: 'Content is required'
+                error: 'Content, image, or link is required'
             });
         }
 
-        const postTitle = title || content.trim().substring(0, 60) + (content.trim().length > 60 ? '...' : '');
+        var safeLink = '';
+        if (link && typeof link === 'string') {
+            try {
+                const parsedLink = new URL(link);
+                if (parsedLink.protocol === 'http:' || parsedLink.protocol === 'https:') {
+                    safeLink = parsedLink.toString();
+                } else {
+                    return reply.code(400).send({
+                        success: false,
+                        error: 'Link must be a valid http or https URL'
+                    });
+                }
+            } catch (e) {
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Link must be a valid http or https URL'
+                });
+            }
+        }
+
+        const trimmedContent = hasContent ? content.trim() : (hasLink ? link.trim() : 'Shared an image');
+        const finalContent = safeLink && !trimmedContent.includes(safeLink) ? `${trimmedContent}\n\n${safeLink}` : trimmedContent;
+        const postTitle = title || finalContent.substring(0, 60) + (finalContent.length > 60 ? '...' : '');
         const slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + crypto.randomBytes(4).toString('hex');
-        const summary = content.trim().substring(0, 200);
+        const summary = finalContent.substring(0, 200);
 
         const post = new Post({
             title: postTitle,
             slug,
-            content: content.trim(),
+            content: finalContent,
             summary,
             category: 'career',
+            image: image && typeof image === 'string' ? image : undefined,
             author: req.user.id,
             publishedAt: new Date()
         });
@@ -204,7 +231,7 @@ fastify.post('/posts', {
         schema: { body: { type: 'object', properties: {}, additionalProperties: false } }
     }, async (req, reply) => {
         const { id } = req.params;
-        
+
         const post = await Post.findById(id);
         if (!post) {
             return reply.code(404).send({
@@ -219,7 +246,7 @@ fastify.post('/posts', {
 
         const userId = req.user.id;
         const likedIndex = post.likes.indexOf(userId);
-        
+
         if (likedIndex > -1) {
             post.likes.splice(likedIndex, 1);
         } else {
@@ -234,25 +261,163 @@ fastify.post('/posts', {
             likesCount: post.likes.length
         };
     });
-    
+
+    // Update current user's profile
+    fastify.put('/user', {
+        preHandler: [fastify.authenticate]
+    }, async (req, reply) => {
+        try {
+            const { displayName, username, bio, phone, country } = req.body || {};
+
+            // Basic validation
+            const updates = {};
+            if (typeof displayName === 'string') updates.displayName = displayName.trim().slice(0, 50) || undefined;
+            if (typeof username === 'string') updates.username = username.trim();
+            if (typeof bio === 'string') updates.bio = bio.trim().slice(0, 500) || undefined;
+            if (typeof phone === 'string') updates.phone = phone.trim() || undefined;
+            if (typeof country === 'string') updates.country = country.trim() || undefined;
+
+            // Username validation only if username field present and different from current
+            if (Object.prototype.hasOwnProperty.call(req.body || {}, 'username')) {
+                const rawUsername = updates.username || '';
+                if (!rawUsername || !/^[a-zA-Z0-9_]{3,30}$/.test(rawUsername)) {
+                    return reply.code(400).send({ success: false, error: 'Username must be 3-30 chars and contain only letters, numbers and underscores' });
+                }
+
+                const user = await User.findById(req.user.id);
+                const currentUsername = (user && user.username) ? String(user.username) : '';
+                if (rawUsername !== currentUsername) {
+                    const existing = await User.findOne({ username: rawUsername });
+                    if (existing && existing._id.toString() !== req.user.id.toString()) {
+                        return reply.code(409).send({ success: false, error: 'Username already taken' });
+                    }
+                }
+            }
+
+            // Apply updates
+            const user = await User.findById(req.user.id);
+            if (!user) return reply.code(404).send({ success: false, error: 'User not found' });
+
+            Object.keys(updates).forEach(k => {
+                if (typeof updates[k] !== 'undefined') user[k] = updates[k];
+            });
+
+            await user.save();
+
+            // Audit user update
+            try {
+                await fastify.audit.apiAccess(req, 'user:update', 'write', { userId: user._id.toString() });
+            } catch (e) {
+                // non-fatal
+            }
+
+            return { success: true, user: user.toPublicJSON(), requestId: req.requestId };
+        } catch (err) {
+            req.log.error({ err: err.message }, 'Profile update failed');
+            return reply.code(500).send({ success: false, error: 'Profile update failed' });
+        }
+    });
+
+    // Check username availability (no auth required)
+    fastify.get('/users/username-available', async (req, reply) => {
+        try {
+            const username = (req.query && req.query.username) ? String(req.query.username).trim() : '';
+
+            if (!username || !/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+                return reply.code(400).send({ success: false, available: false, error: 'Invalid username format' });
+            }
+
+            const existing = await User.findOne({ username });
+
+            // If not found => available
+            if (!existing) return { success: true, available: true };
+
+            // If the caller is authenticated and owns the username, consider it available
+            if (req.user && existing._id.toString() === req.user.id.toString()) {
+                return { success: true, available: true };
+            }
+
+            return { success: true, available: false };
+        } catch (err) {
+            req.log.error({ err: err.message }, 'Username availability check failed');
+            return reply.code(500).send({ success: false, available: false, error: 'Lookup failed' });
+        }
+    });
+
+    // Allow PATCH for partial updates (same behavior as PUT)
+    fastify.patch('/user', {
+        preHandler: [fastify.authenticate]
+    }, async (req, reply) => {
+        try {
+            const { displayName, username, bio, phone, country } = req.body || {};
+
+            // Basic validation
+            const updates = {};
+            if (typeof displayName === 'string') updates.displayName = displayName.trim().slice(0, 50) || undefined;
+            if (typeof username === 'string') updates.username = username.trim();
+            if (typeof bio === 'string') updates.bio = bio.trim().slice(0, 500) || undefined;
+            if (typeof phone === 'string') updates.phone = phone.trim() || undefined;
+            if (typeof country === 'string') updates.country = country.trim() || undefined;
+
+            // Username validation only if username field present and different from current
+            if (Object.prototype.hasOwnProperty.call(req.body || {}, 'username')) {
+                const rawUsername = updates.username || '';
+                if (!rawUsername || !/^[a-zA-Z0-9_]{3,30}$/.test(rawUsername)) {
+                    return reply.code(400).send({ success: false, error: 'Username must be 3-30 chars and contain only letters, numbers and underscores' });
+                }
+
+                const user = await User.findById(req.user.id);
+                const currentUsername = (user && user.username) ? String(user.username) : '';
+                if (rawUsername !== currentUsername) {
+                    const existing = await User.findOne({ username: rawUsername });
+                    if (existing && existing._id.toString() !== req.user.id.toString()) {
+                        return reply.code(409).send({ success: false, error: 'Username already taken' });
+                    }
+                }
+            }
+
+            // Apply updates
+            const user = await User.findById(req.user.id);
+            if (!user) return reply.code(404).send({ success: false, error: 'User not found' });
+
+            Object.keys(updates).forEach(k => {
+                if (typeof updates[k] !== 'undefined') user[k] = updates[k];
+            });
+
+            await user.save();
+
+            // Audit user update
+            try {
+                await fastify.audit.apiAccess(req, 'user:update', 'write', { userId: user._id.toString() });
+            } catch (e) {
+                // non-fatal
+            }
+
+            return { success: true, user: user.toPublicJSON(), requestId: req.requestId };
+        } catch (err) {
+            req.log.error({ err: err.message }, 'Profile update failed');
+            return reply.code(500).send({ success: false, error: 'Profile update failed' });
+        }
+    });
+
     fastify.post('/posts/:id/save', {
         preHandler: [fastify.authenticate],
         schema: { body: { type: 'object', properties: {}, additionalProperties: false } }
     }, async (req, reply) => {
         const { id } = req.params;
-        
+
         const user = await User.findById(req.user.id);
         if (!user) {
             return reply.code(404).send({ success: false, error: 'User not found' });
         }
-        
+
         if (!user.savedPosts) {
             user.savedPosts = [];
         }
-        
+
         const savedIndex = user.savedPosts.indexOf(id);
         let saved;
-        
+
         if (savedIndex > -1) {
             user.savedPosts.splice(savedIndex, 1);
             saved = false;
@@ -260,26 +425,26 @@ fastify.post('/posts', {
             user.savedPosts.push(id);
             saved = true;
         }
-        
+
         await user.save();
-        
+
         return { success: true, saved };
     });
-    
+
     fastify.post('/posts/:id/share', {
         preHandler: [fastify.authenticate],
         schema: { body: { type: 'object', properties: {}, additionalProperties: false } }
     }, async (req, reply) => {
         const { id } = req.params;
-        
+
         const post = await Post.findById(id);
         if (!post) {
             return reply.code(404).send({ success: false, error: 'Post not found' });
         }
-        
+
         post.shares = (post.shares || 0) + 1;
         await post.save();
-        
+
         return { success: true, shares: post.shares };
     });
 
@@ -287,7 +452,7 @@ fastify.post('/posts', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
         const { id } = req.params;
-        
+
         const targetUser = await User.findById(id);
         if (!targetUser) {
             return reply.code(404).send({
@@ -569,7 +734,7 @@ fastify.post('/posts', {
                 error: err.message
             });
             throw err;
-}
+        }
     });
 
     fastify.get('/notifications', {
@@ -578,7 +743,7 @@ fastify.post('/posts', {
         const notifications = await Notification.find({ user: req.user.id })
             .sort({ createdAt: -1 })
             .limit(50);
-        
+
         return reply.send({ success: true, notifications });
     });
 
@@ -661,7 +826,7 @@ fastify.post('/posts', {
             const user = req.user;
 
             const encryptionKey = process.env.PAYOUT_ENCRYPTION_KEY;
-            
+
             if (!encryptionKey || encryptionKey === 'generate_a_secure_random_string_here') {
                 return reply.code(500).send({
                     success: false,
@@ -782,7 +947,7 @@ fastify.post('/posts', {
                 .sort({ createdAt: -1 })
                 .lean();
 
-            comments.forEach(function(c) {
+            comments.forEach(function (c) {
                 if (!c.author) {
                     c.author = { _id: null, displayName: 'Deleted User' };
                 }

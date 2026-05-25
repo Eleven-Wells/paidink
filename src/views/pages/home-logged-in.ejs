@@ -14,13 +14,16 @@
         <section class="home-search" style="grid-area: search;" aria-label="Search">
             <form role="search">
                 <label for="global-search" class="sr-only">Search</label>
-                <div>
-                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <div class="home-search-shell">
+                    <span class="home-search-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8" />
                         <path d="m21 21-4.35-4.35" />
                     </svg>
-                    <input id="global-search" name="search" type="search" placeholder="Search" aria-label="Search" />
+                    </span>
+                    <input id="global-search" name="search" type="search" placeholder="Search Nook" aria-label="Search Nook" />
+                    <span class="home-search-scope" aria-hidden="true">Posts</span>
                 </div>
             </form>
         </section>
@@ -67,16 +70,26 @@
         }
 
         body {
+            margin: 0;
             overflow-x: hidden;
         }
 
+        #mainNav,
+        #mobileMenu,
+        #mobileOverlay {
+            display: none;
+        }
+
         .home-layout {
+            --home-top-row: 96px;
+            --home-nav-width: clamp(220px, 22vw, 300px);
+            --home-divider-left: var(--home-nav-width);
+            --home-content-gutter: 28px;
             display: grid;
-            grid-template-columns: minmax(240px, 466px) 1fr minmax(200px, 360px);
-            grid-template-rows: auto auto auto auto 1fr;
+            grid-template-columns: var(--home-nav-width) minmax(0, 1fr) minmax(260px, 340px);
+            grid-template-rows: var(--home-top-row) auto auto 1fr;
             grid-template-areas:
-                "brand brand brand"
-                "nav . search"
+                "brand search search"
                 "nav composer composer"
                 "nav feed sidebar"
                 "nav feed sidebar";
@@ -89,14 +102,21 @@
         }
 
         .home-brand {
-            padding: 0 40px;
+            align-self: center;
+            padding: 8px 24px 6px;
             background: #fff;
             position: relative;
             z-index: 2;
         }
 
+        .home-brand a {
+            display: inline-block;
+            line-height: 0.9;
+        }
+
         .home-search {
-            padding: 0 24px 0 0;
+            align-self: center;
+            padding: 18px 24px 14px var(--home-content-gutter);
             max-width: 100%;
             box-sizing: border-box;
         }
@@ -106,65 +126,122 @@
             align-items: center;
             width: 100%;
             max-width: 100%;
-            height: 80px;
-            padding: 10px;
-            border-radius: 36px;
-            border: 1px solid #000;
             box-sizing: border-box;
         }
 
-        .home-search>form>div {
+        .home-search-shell {
             display: flex;
             align-items: center;
-            gap: 11px;
+            gap: 12px;
             width: 100%;
+            min-height: 58px;
+            padding: 8px 10px 8px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(109, 10, 10, 0.14);
+            background: linear-gradient(180deg, #fff, #fffaf7);
+            box-shadow: 0 16px 36px rgba(109, 10, 10, 0.06);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .home-search-shell:focus-within {
+            border-color: rgba(109, 10, 10, 0.34);
+            background: #fff;
+            box-shadow: 0 18px 40px rgba(109, 10, 10, 0.1), 0 0 0 4px rgba(109, 10, 10, 0.06);
+        }
+
+        .home-search-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            flex: 0 0 36px;
+            border-radius: 50%;
+            background: rgba(109, 10, 10, 0.06);
+            color: #6d0a0a;
         }
 
         .home-search input {
             width: 100%;
-            font-family: 'Abhaya Libre', serif;
+            min-width: 0;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
-            font-size: 32px;
-            color: #000;
+            font-size: 16px;
+            color: #1f1715;
             background: transparent;
             border: none;
             outline: none;
             padding: 0;
         }
 
+        .home-search input::placeholder {
+            color: rgba(31, 23, 21, 0.45);
+        }
+
+        .home-search input::-webkit-search-cancel-button {
+            cursor: pointer;
+        }
+
+        .home-search-scope {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(109, 10, 10, 0.08);
+            color: #6d0a0a;
+            font-family: 'Abhaya Libre', serif;
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
         .home-divider {
             grid-area: divider;
             position: absolute;
             top: 0;
-            left: 466px;
+            left: var(--home-divider-left);
             width: 1px;
             height: 100%;
-            background: url('/public/images/line-2.svg') repeat-y;
+            background: linear-gradient(
+                180deg,
+                transparent 0,
+                rgba(109, 10, 10, 0.08) 48px,
+                rgba(109, 10, 10, 0.2) 16%,
+                rgba(109, 10, 10, 0.14) 84%,
+                transparent 100%
+            );
             pointer-events: none;
         }
 
         .home-side-nav {
             grid-area: nav;
+            top: var(--home-top-row);
+            height: calc(100vh - var(--home-top-row));
+            overflow: hidden;
         }
 
         .home-activity-feed {
             grid-area: feed;
-            padding-top: 40px;
+            padding-top: 24px;
+            padding-left: var(--home-content-gutter);
         }
 
         .home-composer {
             grid-area: composer;
+            padding-left: var(--home-content-gutter);
         }
 
         .home-sidebar {
             grid-area: sidebar;
             display: flex;
             flex-direction: column;
-            gap: 32px;
-            padding: 140px 24px 40px 0;
+            gap: 24px;
+            padding: 24px 24px 40px 0;
             position: sticky;
-            top: 0;
-            height: 100vh;
+            top: 24px;
+            max-height: calc(100vh - 48px);
             overflow-y: auto;
             scrollbar-width: none;
         }
@@ -180,15 +257,18 @@
 
         @media (max-width: 1400px) {
             .home-layout {
-                grid-template-columns: 320px 1fr 300px;
+                --home-top-row: 92px;
+                --home-nav-width: 260px;
+                --home-content-gutter: 24px;
+                grid-template-columns: var(--home-nav-width) minmax(0, 1fr) 300px;
             }
 
             .home-divider {
-                left: 320px;
+                left: var(--home-divider-left);
             }
 
             .home-search {
-                padding: 0 24px 0 0;
+                padding: 16px 24px 12px var(--home-content-gutter);
             }
 
             .home-search form {
@@ -196,12 +276,11 @@
             }
 
             .home-search input {
-                font-size: 24px;
+                font-size: 15px;
             }
 
-            .home-search svg {
-                width: 28px;
-                height: 28px;
+            .home-search-shell {
+                min-height: 54px;
             }
         }
 
@@ -226,17 +305,21 @@
 
             .home-search form {
                 max-width: 100%;
-                height: 60px;
-                border-radius: 24px;
             }
 
             .home-search input {
-                font-size: 20px;
+                font-size: 15px;
             }
 
-            .home-search svg {
-                width: 24px;
-                height: 24px;
+            .home-search-shell {
+                min-height: 52px;
+                padding-left: 12px;
+            }
+
+            .home-search-icon {
+                width: 34px;
+                height: 34px;
+                flex-basis: 34px;
             }
 
             .home-divider {
@@ -248,7 +331,7 @@
             }
 
             .home-sidebar {
-                padding: 160px 0 0;
+                padding: 24px 24px 0 0;
             }
         }
 
@@ -281,6 +364,10 @@
             .home-search form {
                 max-width: 100%;
                 box-sizing: border-box;
+            }
+
+            .home-search-scope {
+                display: none;
             }
 
             .home-activity-feed {

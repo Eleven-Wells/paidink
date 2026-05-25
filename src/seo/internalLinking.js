@@ -136,14 +136,32 @@ function addInternalLinks(content, relatedPosts) {
 function extractKeywordsFromTitle(title) {
     if (!title) return [];
 
-    // Extract important tech terms
-    const techTerms = [
+    // Extract relevant keywords from post titles for linking
+    const commonKeywords = [
+        // Tech terms (kept for tech category)
         'JavaScript', 'Node.js', 'React', 'Python', 'Docker', 'Kubernetes',
         'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST', 'API',
-        'DevOps', 'CI/CD', 'AWS', 'Azure', 'Git', 'TypeScript'
+        'DevOps', 'CI/CD', 'AWS', 'Azure', 'Git', 'TypeScript',
+        // News/Current events
+        'Election', 'Vote', 'Government', 'Policy', 'Court', 'Law',
+        // Sports
+        'Championship', 'Tournament', 'League', 'Olympics', 'World Cup',
+        'Premier League', 'NFL', 'NBA', 'MLB', 'NHL',
+        // Entertainment
+        'Movie', 'Film', 'Actor', 'Actress', 'Director', 'Award',
+        'Oscars', 'Grammys', 'Emmy', 'Streaming',
+        // Business/Finance
+        'Stock', 'Market', 'Economy', 'Finance', 'Investment', 'Startup',
+        'Funding', 'IPO', 'Revenue', 'Profit',
+        // Health
+        'Health', 'Medical', 'Doctor', 'Hospital', 'Research', 'Study',
+        'Treatment', 'Vaccine', 'Fitness', 'Nutrition',
+        // Lifestyle
+        'Lifestyle', 'Travel', 'Food', 'Recipe', 'Cooking', 'Fashion',
+        'Style', 'Home', 'Garden', 'Parenting'
     ];
 
-    return techTerms.filter(term =>
+    return commonKeywords.filter(term =>
         title.toLowerCase().includes(term.toLowerCase())
     );
 }

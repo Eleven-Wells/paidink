@@ -49,6 +49,14 @@ async function initializeDatabase() {
         fastify.log.info({ component: 'database' }, 'Database connected successfully');
 
         try {
+            const { seedDefaultData } = require('./services/ads/AdSimulationService');
+            await seedDefaultData();
+            fastify.log.info({ component: 'ads' }, 'Default ad data seeded');
+        } catch (err) {
+            fastify.log.warn({ component: 'ads', error: err.message }, 'Default ad data seeding failed');
+        }
+
+        try {
             if (!isFeatureEnabled('content', 'aiGeneration')) {
                 fastify.log.info({ component: 'init' }, 'AI generation disabled, skipping initial fetch');
             } else {
@@ -83,11 +91,9 @@ async function start() {
 
         await fastify.register(cronPlugin);
 
-        initializeRedis();
+        await initializeRedis();
 
-        initializeDatabase().catch(err => {
-            fastify.log.error({ component: 'init', error: err.message }, 'Database initialization error');
-        });
+        await initializeDatabase();
 
         if (!isFeatureEnabled('content', 'aiGeneration')) {
             fastify.log.info({ component: 'worker' }, 'AI generation disabled, worker not started');

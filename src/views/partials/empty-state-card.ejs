@@ -1,0 +1,167 @@
+<%
+    const emptyTitle = typeof title !== 'undefined' ? title : 'Nothing here yet';
+    const emptyCopy = typeof copy !== 'undefined' ? copy : 'When there is something new, it will show up here.';
+    const emptyCtaText = typeof ctaText !== 'undefined' ? ctaText : '';
+    const emptyCtaHref = typeof ctaHref !== 'undefined' ? ctaHref : '';
+    const emptyCompact = typeof compact !== 'undefined' && compact;
+%>
+<div class="nook-empty-state <%= emptyCompact ? 'nook-empty-state-compact' : '' %>">
+    <div class="nook-empty-illustration" aria-hidden="true">
+        <svg viewBox="0 0 220 150" role="img">
+            <path class="empty-shadow" d="M55 132c19-8 92-9 118 0 9 3 9 8-1 10-29 7-95 7-122 0-8-2-6-7 5-10z" />
+            <g class="empty-paper">
+                <path d="M68 31c0-6 5-11 11-11h64l32 32v67c0 6-5 11-11 11H79c-6 0-11-5-11-11V31z" />
+                <path d="M143 21v24c0 5 4 9 9 9h23" />
+                <path d="M88 70h62M88 88h52M88 106h35" />
+            </g>
+            <g class="empty-spark empty-spark-one">
+                <path d="M38 54l5 10 10 5-10 5-5 10-5-10-10-5 10-5 5-10z" />
+            </g>
+            <g class="empty-spark empty-spark-two">
+                <path d="M184 79l4 7 7 4-7 4-4 7-4-7-7-4 7-4 4-7z" />
+            </g>
+            <circle class="empty-dot empty-dot-one" cx="52" cy="34" r="4" />
+            <circle class="empty-dot empty-dot-two" cx="181" cy="34" r="3" />
+        </svg>
+    </div>
+    <h3><%= emptyTitle %></h3>
+    <p><%= emptyCopy %></p>
+    <% if (emptyCtaText && emptyCtaHref) { %>
+        <a href="<%= emptyCtaHref %>" class="nook-empty-link"><%= emptyCtaText %></a>
+    <% } %>
+</div>
+
+<style>
+    .nook-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 260px;
+        padding: 36px 22px;
+        text-align: center;
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        border-radius: 24px;
+        background: linear-gradient(180deg, #fffdfb, #fff7f1);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 18px 42px rgba(109, 10, 10, 0.06);
+    }
+
+    .nook-empty-state-compact {
+        min-height: 0;
+        padding: 24px 16px;
+        border-radius: 20px;
+        box-shadow: none;
+    }
+
+    .nook-empty-illustration {
+        width: min(220px, 72%);
+        margin-bottom: 12px;
+        color: #6d0a0a;
+    }
+
+    .nook-empty-state-compact .nook-empty-illustration {
+        width: min(150px, 70%);
+    }
+
+    .nook-empty-illustration svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .empty-shadow {
+        fill: rgba(109, 10, 10, 0.08);
+        animation: emptyShadow 2.8s ease-in-out infinite;
+        transform-origin: center;
+    }
+
+    .empty-paper {
+        fill: #ffffff;
+        stroke: currentColor;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        animation: emptyFloat 2.8s ease-in-out infinite;
+        transform-origin: center;
+    }
+
+    .empty-paper path:first-child {
+        fill: #fffaf7;
+    }
+
+    .empty-spark,
+    .empty-dot {
+        fill: rgba(109, 10, 10, 0.18);
+        animation: emptyTwinkle 2.2s ease-in-out infinite;
+        transform-origin: center;
+    }
+
+    .empty-spark-two,
+    .empty-dot-two {
+        animation-delay: 0.55s;
+    }
+
+    .nook-empty-state h3 {
+        margin: 0;
+        color: #1f1715;
+        font-family: 'Abhaya Libre', serif;
+        font-size: clamp(24px, 3vw, 34px);
+        font-weight: 700;
+        line-height: 1.05;
+    }
+
+    .nook-empty-state-compact h3 {
+        font-size: clamp(20px, 2.5vw, 26px);
+    }
+
+    .nook-empty-state p {
+        margin: 10px 0 0;
+        max-width: 420px;
+        color: rgba(31, 23, 21, 0.6);
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .nook-empty-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        margin-top: 18px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #6d0a0a;
+        color: #fff;
+        font-family: 'Abhaya Libre', serif;
+        font-size: 19px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    @keyframes emptyFloat {
+        0%, 100% { transform: translateY(0) rotate(-1deg); }
+        50% { transform: translateY(-8px) rotate(1deg); }
+    }
+
+    @keyframes emptyShadow {
+        0%, 100% { transform: scaleX(1); opacity: 0.9; }
+        50% { transform: scaleX(0.86); opacity: 0.55; }
+    }
+
+    @keyframes emptyTwinkle {
+        0%, 100% { transform: scale(0.9); opacity: 0.45; }
+        50% { transform: scale(1.14); opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .empty-shadow,
+        .empty-paper,
+        .empty-spark,
+        .empty-dot {
+            animation: none;
+        }
+    }
+</style>
