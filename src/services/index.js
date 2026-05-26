@@ -3,6 +3,7 @@ const contentService = require('./ContentService');
 const subscriptionService = require('./SubscriptionService');
 const searchService = require('./SearchService');
 const interestProfileService = require('./InterestProfileService');
+const coreadService = require('./CoreadService');
 
 module.exports = {
     postService,
@@ -10,10 +11,12 @@ module.exports = {
     subscriptionService,
     searchService,
     interestProfileService,
+    coreadService,
 
     PostService: postService.constructor,
     ContentService: contentService.constructor,
     SubscriptionService: subscriptionService.constructor,
     SearchService: searchService.constructor,
-    InterestProfileService: interestProfileService.constructor
+    InterestProfileService: interestProfileService.constructor,
+    CoreadService: coreadService.constructor
 };
