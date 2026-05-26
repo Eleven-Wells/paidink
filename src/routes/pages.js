@@ -1320,9 +1320,9 @@ async function pagesRoutes(fastify) {
             authorId: authorId?.toString?.() || (authorId ? String(authorId) : null)
         });
 
-        const { generateRelatedPostsHtml, getRelatedPosts, addInternalLinks } = require('../seo/internalLinking');
+        const { generateRelatedPostsHtml, addInternalLinks } = require('../seo/internalLinking');
 
-        const relatedPosts = await getRelatedPosts(post._id, post.tags || [], post.category, 5);
+        const relatedPosts = await recommendationService.getRelated(post._id, 5);
 
         let enhancedContent = post.content;
         try {
