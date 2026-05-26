@@ -5,6 +5,8 @@ const postService = require('../services/PostService');
 const NotificationService = require('../services/NotificationService');
 const DashboardService = require('../services/DashboardService');
 const User = require('../models/User');
+const recommendationService = require('../services/RecommendationService');
+const { isFeatureEnabled } = require('../config/features');
 const { buildSitemapXml, buildRobotsTxt } = require('../seo/seoManager');
 const fs = require('fs');
 const path = require('path');
@@ -876,11 +878,13 @@ async function pagesRoutes(fastify) {
 
             const currentUserId = req.currentUser.id;
 
-            const posts = await Post.find()
-                .sort({ publishedAt: -1 })
-                .limit(5)
-                .populate('author', 'displayName avatar role')
-                .lean();
+            const posts = isFeatureEnabled('content', 'recommendationEngine')
+                ? await recommendationService.getFeed(currentUserId, { limit: 5 })
+                : await Post.find()
+                    .sort({ publishedAt: -1 })
+                    .limit(5)
+                    .populate('author', 'displayName avatar role')
+                    .lean();
 
             const trendingPosts = await Post.find()
                 .sort({ 'stats.views': -1 })
