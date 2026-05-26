@@ -81,7 +81,7 @@ Nook is a reward-based content platform ("Read to Earn") built with Fastify + Mo
 **Mongoose model** (`src/models/UserInterestProfile.js`):
 ```js
 {
-  userId: ObjectId,          // ref User, unique index
+  user: ObjectId,            // ref User, unique index, required
   categoryAffinity: {        // Map<String, Number>
     backend: 0.8,
     "ai-tools": 0.3

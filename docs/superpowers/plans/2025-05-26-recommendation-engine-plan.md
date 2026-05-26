@@ -57,8 +57,8 @@ Create `src/models/UserInterestProfile.js`:
 ```js
 const mongoose = require('mongoose');
 
-const UserInterestProfileSchema = new mongoose.Schema({
-    userId: {
+const userInterestProfileSchema = new mongoose.Schema({
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
@@ -92,7 +92,8 @@ const UserInterestProfileSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('UserInterestProfile', UserInterestProfileSchema);
+const UserInterestProfile = mongoose.model('UserInterestProfile', userInterestProfileSchema);
+module.exports = UserInterestProfile;
 ```
 
 - [ ] **Step 3: Commit**
@@ -136,7 +137,7 @@ class InterestProfileService {
             }
         }
 
-        let profile = await UserInterestProfile.findOne({ userId });
+        let profile = await UserInterestProfile.findOne({ user: userId });
 
         if (!profile) {
             profile = await this._buildDefault(userId);
@@ -158,9 +159,9 @@ class InterestProfileService {
         const signal = (timeSpentSeconds / 60) * (completed ? 1 : 0.5);
         const ALPHA = 0.1;
 
-        let profile = await UserInterestProfile.findOne({ userId });
+        let profile = await UserInterestProfile.findOne({ user: userId });
         if (!profile) {
-            profile = new UserInterestProfile({ userId });
+            profile = new UserInterestProfile({ user: userId });
         }
 
         const category = post.category;
@@ -194,7 +195,7 @@ class InterestProfileService {
     }
 
     async _buildDefault(userId) {
-        const profile = new UserInterestProfile({ userId });
+        const profile = new UserInterestProfile({ user: userId });
         await profile.save();
         return profile;
     }
@@ -221,7 +222,7 @@ class InterestProfileService {
         }
 
         const data = sessions[0];
-        const profile = new UserInterestProfile({ userId });
+        const profile = new UserInterestProfile({ user: userId });
 
         const categoryCounts = {};
         const tagCounts = {};

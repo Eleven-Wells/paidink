@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-const UserInterestProfileSchema = new mongoose.Schema({
-    userId: {
+const userInterestProfileSchema = new mongoose.Schema({
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
@@ -35,4 +35,6 @@ const UserInterestProfileSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('UserInterestProfile', UserInterestProfileSchema);
+const UserInterestProfile = mongoose.model('UserInterestProfile', userInterestProfileSchema);
+
+module.exports = UserInterestProfile;
