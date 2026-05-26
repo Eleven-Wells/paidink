@@ -19,7 +19,11 @@ class InterestProfileService {
         if (redis) {
             const cached = await redis.get(cacheKey);
             if (cached) {
-                return JSON.parse(cached);
+                const data = JSON.parse(cached);
+                data.categoryAffinity = new Map(Object.entries(data.categoryAffinity || {}));
+                data.tagAffinity = new Map(Object.entries(data.tagAffinity || {}));
+                data.publisherAffinity = new Map(Object.entries(data.publisherAffinity || {}));
+                return data;
             }
         }
 
@@ -70,7 +74,20 @@ class InterestProfileService {
 
         profile.totalReads += 1;
         profile.lastReadAt = new Date();
-        await profile.save();
+        try {
+            await profile.save();
+        } catch (err) {
+            if (err.code === 11000 && !profile._id) {
+                profile = await UserInterestProfile.findOne({ user: userId });
+                if (profile) {
+                    profile.totalReads += 1;
+                    profile.lastReadAt = new Date();
+                    await profile.save();
+                }
+            } else {
+                throw err;
+            }
+        }
 
         const redis = this._redis();
         const cacheKey = `profile:${userId}`;
@@ -82,9 +99,16 @@ class InterestProfileService {
     }
 
     async _buildDefault(userId) {
-        const profile = new UserInterestProfile({ user: userId });
-        await profile.save();
-        return profile;
+        try {
+            const profile = new UserInterestProfile({ user: userId });
+            await profile.save();
+            return profile;
+        } catch (err) {
+            if (err.code === 11000) {
+                return await UserInterestProfile.findOne({ user: userId });
+            }
+            throw err;
+        }
     }
 
     async _rebuildFromSessions(userId) {
@@ -110,6 +134,8 @@ class InterestProfileService {
         }
 
         const data = sessions[0];
+
+        await UserInterestProfile.deleteOne({ user: userId });
         const profile = new UserInterestProfile({ user: userId });
 
         const categoryCounts = {};
