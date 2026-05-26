@@ -6,7 +6,10 @@ const CACHE_TTL_SECONDS = 3600; // 1 hour
 
 class InterestProfileService {
     _redis() {
-        try { return getRedisConnection(); } catch { return null; }
+        try { return getRedisConnection(); } catch (err) {
+            console.error('[InterestProfileService] Redis unavailable:', err.message);
+            return null;
+        }
     }
 
     async getProfile(userId) {
@@ -47,9 +50,10 @@ class InterestProfileService {
             profile = new UserInterestProfile({ user: userId });
         }
 
-        const category = post.category;
-        const currentCategoryAffinity = profile.categoryAffinity.get(category) || 0;
-        profile.categoryAffinity.set(category, currentCategoryAffinity * (1 - ALPHA) + signal * ALPHA);
+        if (post.category) {
+            const currentCategoryAffinity = profile.categoryAffinity.get(post.category) || 0;
+            profile.categoryAffinity.set(post.category, currentCategoryAffinity * (1 - ALPHA) + signal * ALPHA);
+        }
 
         if (post.tags && Array.isArray(post.tags)) {
             for (const tag of post.tags) {
@@ -84,8 +88,9 @@ class InterestProfileService {
     }
 
     async _rebuildFromSessions(userId) {
+        const ninetyDaysAgo = new Date(Date.now() - 90 * 86400000);
         const sessions = await ReadSession.aggregate([
-            { $match: { user: userId, completed: true } },
+            { $match: { user: userId, completed: true, endedAt: { $gte: ninetyDaysAgo } } },
             { $lookup: { from: 'posts', localField: 'post', foreignField: '_id', as: 'post' } },
             { $unwind: { path: '$post', preserveNullAndEmptyArrays: true } },
             { $match: { 'post.category': { $exists: true } } },
