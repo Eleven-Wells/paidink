@@ -16,12 +16,14 @@ async function createVectorIndex() {
     try {
         const result = await db.collection('posts').createSearchIndex({
             name: indexName,
-            type: 'autoEmbed',
+            type: 'vectorSearch',
             definition: {
                 fields: [
                     {
                         type: 'autoEmbedding',
                         path: 'embedding',
+                        numDimensions: 1024,
+                        similarity: 'cosine',
                         embedding: {
                             model: 'voyage-4'
                         },
