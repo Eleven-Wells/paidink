@@ -1,4 +1,3 @@
-// Debounce function to limit API calls
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -11,15 +10,13 @@ function debounce(func, wait) {
     };
 }
 
-// Search functionality
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const searchResults = document.getElementById('search-results');
-    if (!searchInput || !searchResults) return; // safe guard
+    if (!searchInput || !searchResults) return;
 
     let currentPage = 1;
 
-    // Show loading state
     const showSearchLoading = () => {
         searchResults.classList.remove('hidden');
         searchResults.innerHTML = `
@@ -40,41 +37,52 @@ document.addEventListener('DOMContentLoaded', () => {
         showSearchLoading();
 
         try {
-            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&page=${page}&limit=6`);
+            const [toolsRes, postsRes] = await Promise.all([
+                fetch(`/api/search?q=${encodeURIComponent(query)}&page=${page}&limit=3`),
+                fetch(`/api/search/posts?q=${encodeURIComponent(query)}&page=${page}&limit=3`)
+            ]);
 
-            if (!response.ok) {
-                throw new Error(`Search failed: ${response.status}`);
-            }
+            const toolsData = toolsRes.ok ? await toolsRes.json() : { results: [] };
+            const postsData = postsRes.ok ? await postsRes.json() : { results: [] };
 
-            const data = await response.json();
-            const results = data.results || [];
+            const tools = (toolsData.results || []).map(t => ({
+                href: t.link,
+                title: t.name,
+                description: t.description || 'No description available',
+                type: 'tool'
+            }));
+            const posts = (postsData.results || []).map(p => ({
+                href: '/post/' + p.slug,
+                title: p.title,
+                description: p.summary || 'No description available',
+                type: 'post'
+            }));
 
-            searchResults.innerHTML = results.length ? results.map(result => `
-                <a href="${result.link}" class="block p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <div class="font-semibold text-gray-900">${result.name}</div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${result.description || 'No description available'}</div>
+            const allResults = [...tools, ...posts];
+
+            searchResults.innerHTML = allResults.length ? allResults.map(r => `
+                <a href="${r.href}" class="block p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0">
+                    <div class="flex items-start gap-2">
+                        <span class="text-xs font-mono uppercase text-gray-400 mt-0.5 shrink-0">${r.type}</span>
+                        <div class="min-w-0">
+                            <div class="font-semibold text-gray-900 dark:text-white text-sm truncate">${r.title}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">${r.description}</div>
+                        </div>
+                    </div>
                 </a>
-            `).join('') : `
-                <div class="p-4 text-gray-600 dark:text-gray-400">
-                    <i class="fas fa-search mr-2"></i>No results found for "${query}"
+            `).join('') + `
+                <a href="/search?q=${encodeURIComponent(query)}" class="block p-3 text-center text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium">
+                    View all results →
+                </a>
+            ` : `
+                <div class="p-4 text-gray-500 dark:text-gray-400 text-sm">
+                    No results found for "${query}"
                 </div>
             `;
 
             searchResults.classList.remove('hidden');
         } catch (error) {
             console.error('Search error:', error);
-
-            // Show error toast
-            if (typeof showErrorToast === 'function') {
-                showErrorToast('Search failed. Please try again.', 'Search Error');
-            } else if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Search Error',
-                    text: 'Failed to search. Please try again.'
-                });
-            }
-
             searchResults.classList.add('hidden');
         }
     }, 300);
@@ -84,14 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
         performSearch(e.target.value, currentPage);
     });
 
-    // Close search results when clicking outside
     document.addEventListener('click', (e) => {
         if (!searchResults.contains(e.target) && !searchInput.contains(e.target)) {
             searchResults.classList.add('hidden');
         }
     });
 
-    // Keep search open when clicking on results
     if (searchResults) {
         searchResults.addEventListener('click', (e) => {
             e.stopPropagation();
