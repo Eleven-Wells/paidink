@@ -34,7 +34,8 @@
  * @class PostService
  */
 const Post = require('../models/Post');
-const { getRelatedPosts, addInternalLinks } = require('../seo/internalLinking');
+const recommendationService = require('./RecommendationService');
+const { addInternalLinks } = require('../seo/internalLinking');
 const { ValidationError, DatabaseError } = require('../errors/errors');
 const { CATEGORY_ENUM, CATEGORY_NAMES } = require('../config');
 
@@ -106,7 +107,7 @@ class PostService {
             return null;
         }
 
-        const relatedPosts = await getRelatedPosts(post._id, post.tags, post.category, 3);
+        const relatedPosts = await recommendationService.getRelated(post._id, 3);
         const enhancedContent = addInternalLinks(post.content, relatedPosts);
 
         return {

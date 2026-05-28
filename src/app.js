@@ -214,6 +214,7 @@ async function buildApp() {
     fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
     fastify.register(require('./routes/reads'), { prefix: '/api/reads' });
     fastify.register(require('./routes/admin'));
+    fastify.register(require('./routes/recommendations'));
 
     await fastify.after();
 }

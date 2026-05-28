@@ -22,6 +22,11 @@ const featureFlags = {
             enabled: process.env.FEATURE_INTERNAL_LINKING !== 'false',
             description: 'Enable automatic internal linking between posts',
             envVar: 'FEATURE_INTERNAL_LINKING'
+        },
+        recommendationEngine: {
+            enabled: process.env.FEATURE_RECOMMENDATION_ENGINE !== 'false',
+            description: 'Enable personalized recommendation engine',
+            envVar: 'FEATURE_RECOMMENDATION_ENGINE'
         }
     },
     seo: {

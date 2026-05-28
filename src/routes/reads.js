@@ -1,6 +1,7 @@
 const ReadSession = require('../models/ReadSession');
 const Post = require('../models/Post');
 const User = require('../models/User');
+const interestProfileService = require('../services/InterestProfileService');
 
 const READ_REWARD = 5;
 const MIN_READ_TIME_SECONDS = 30;
@@ -195,6 +196,20 @@ module.exports = async function readsRoutes(fastify) {
             }
 
             await session.markCompleted();
+
+            try {
+                const readPost = await Post.findById(session.post).lean();
+                if (readPost) {
+                    await interestProfileService.updateOnReadCompletion(
+                        userId,
+                        readPost,
+                        session.timeSpentSeconds,
+                        session.completed
+                    );
+                }
+            } catch (err) {
+                req.log.error({ error: err.message }, 'Failed to update interest profile');
+            }
 
             return reply.send({
                 success: true,
