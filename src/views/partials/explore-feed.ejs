@@ -33,14 +33,15 @@
                 <div style="display: flex; width: 100%; max-width: min(766px, 100%); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: clamp(12px, 2vw, 16px);">
                     <div style="display: flex; align-items: center; gap: clamp(16px, 3vw, 30px); flex-wrap: wrap;">
                         <button type="button" aria-label="Like" class="like-btn" data-post-id="<%= post._id %>" style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
-                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <% var liked = user && user._id && post.likes && post.likes.some(function(id) { return String(id) === String(user._id); }); %>
+                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24" fill="<%= liked ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
                             <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
                                 <%= post.likes ? post.likes.length : 0 %>
                             </span>
                         </button>
-                        <button type="button" aria-label="Comments" onclick="location.href='/post/<%= post.slug %>#comments'" style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
+                        <button type="button" aria-label="Comments" class="comment-btn" data-slug="<%= post.slug %>" style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
                             <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                             </svg>
@@ -70,7 +71,8 @@
                             </svg>
                         </button>
                         <button type="button" aria-label="Save post" class="save-btn" data-post-id="<%= post._id %>" style="background: none; border: none; cursor: pointer; color: #000;">
-                            <svg width="clamp(24px, 4vw, 33px)" height="clamp(24px, 4vw, 33px)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <% var saved = user && user.savedPosts && user.savedPosts.some(function(id) { return String(id) === String(post._id); }); %>
+                            <svg width="clamp(24px, 4vw, 33px)" height="clamp(24px, 4vw, 33px)" viewBox="0 0 24 24" fill="<%= saved ? '#6d0a0a' : 'none' %>" stroke="<%= saved ? '#6d0a0a' : 'currentColor' %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                             </svg>
                         </button>
@@ -123,163 +125,7 @@
     <% } %>
 </section>
 
-<script>
-(function() {
-    function attachFollowButtons(selector) {
-        var btns = document.querySelectorAll(selector);
-        btns.forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-                var userId = this.getAttribute('data-user-id');
-                if (!userId) return;
-                
-                try {
-                    var response = await fetch('/api/users/' + userId + '/follow', {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: '{}',
-                        credentials: 'same-origin'
-                    });
-                    
-                    if (response.status === 401) {
-                        showToast('Please log in to follow users');
-                        return;
-                    }
-                    
-                    var result = await response.json();
-                    if (result.success) {
-                        this.textContent = 'Following';
-                        this.style.opacity = '0.5';
-                        this.style.pointerEvents = 'none';
-                    }
-                } catch (err) {
-                    console.error('Follow failed:', err);
-                }
-            });
-        });
-    }
 
-    attachFollowButtons('.feed-follow-btn');
-    attachFollowButtons('.suggestion-follow-btn');
-
-     var likeBtns = document.querySelectorAll('.like-btn');
-    likeBtns.forEach(function(btn) {
-        btn.addEventListener('click', async function() {
-            var postId = this.getAttribute('data-post-id');
-            if (!postId) return;
-            
-            try {
-                var response = await fetch('/api/posts/' + postId + '/like', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: '{}',
-                    credentials: 'same-origin'
-                });
-                
-                if (response.status === 401) {
-                    showToast('Please log in to like this post');
-                    return;
-                }
-                
-                var result = await response.json();
-                if (result.success) {
-                    var countSpan = this.querySelector('span');
-                    countSpan.textContent = result.likesCount;
-                }
-            } catch (err) {
-                console.error('Like failed:', err);
-            }
-        });
-    });
-
-    var saveBtns = document.querySelectorAll('.save-btn');
-    saveBtns.forEach(function(btn) {
-        btn.addEventListener('click', async function() {
-            var postId = this.getAttribute('data-post-id');
-            if (!postId) return;
-            var svg = this.querySelector('svg');
-            
-            try {
-                var response = await fetch('/api/posts/' + postId + '/save', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: '{}',
-                    credentials: 'same-origin'
-                });
-                
-                if (response.status === 401) {
-                    showToast('Please log in to save this post');
-                    return;
-                }
-                
-                var result = await response.json();
-                if (result.success) {
-                    if (result.saved) {
-                        svg.setAttribute('fill', '#6d0a0a');
-                        svg.setAttribute('stroke', '#6d0a0a');
-                    } else {
-                        svg.setAttribute('fill', 'none');
-                        svg.setAttribute('stroke', 'currentColor');
-                    }
-                }
-            } catch (err) {
-                console.error('Save failed:', err);
-            }
-        });
-    });
-
-    var shareBtns = document.querySelectorAll('[aria-label="Reposts"]');
-    shareBtns.forEach(function(btn) {
-        btn.addEventListener('click', async function() {
-            var postUrl = window.location.origin + '/' + this.closest('article').querySelector('a[href*="/"]').getAttribute('href');
-            
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: document.title, url: postUrl });
-                } catch (err) {
-                    if (err.name !== 'AbortError') console.error('Share failed:', err);
-                }
-            } else {
-                navigator.clipboard.writeText(postUrl).then(function() {
-                    var span = btn.querySelector('span');
-                    var originalText = span.textContent;
-                    span.textContent = 'Copied!';
-                    setTimeout(function() { span.textContent = originalText; }, 2000);
-                }).catch(function(err) {
-                    console.error('Copy failed:', err);
-                });
-            }
-            
-            try {
-                var shareResponse = await fetch('/api/posts/' + this.getAttribute('data-post-id') + '/share', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: '{}',
-                    credentials: 'same-origin'
-                });
-                
-                if (shareResponse.status === 401) {
-                    showToast('Please log in to share this post');
-                    return;
-                }
-            } catch (err) {
-                console.error('Share count update failed:', err);
-            }
-        });
-    });
-})();
-</script>
 
 <style>
     .explore-feed {

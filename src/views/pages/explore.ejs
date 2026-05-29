@@ -398,7 +398,8 @@
             <%- include('../partials/explore-feed', { 
                 posts: posts, 
                 feedSuggestions: feedSuggestions,
-                feedAds: feedAds
+                feedAds: feedAds,
+                user: user
             }) %>
         </div>
         
@@ -469,6 +470,8 @@ function showToast(message, type = 'error') {
 }
 window.showToast = showToast;
 </script>
+
+<script src="/public/js/post-actions.js"></script>
 
 </body>
 </html>
