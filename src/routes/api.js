@@ -528,6 +528,44 @@ async function apiRoutes(fastify) {
         };
     });
 
+    fastify.get('/search/posts', {
+        schema: {
+            querystring: {
+                type: 'object',
+                required: ['q'],
+                properties: {
+                    q: { type: 'string', minLength: 1, maxLength: 200 },
+                    page: { type: 'integer', minimum: 1, default: 1 },
+                    limit: { type: 'integer', minimum: 1, maximum: 50, default: 10 }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        success: { type: 'boolean' },
+                        results: { type: 'array' },
+                        pagination: { type: 'object' },
+                        requestId: { type: 'string' }
+                    }
+                }
+            }
+        }
+    }, async (req, reply) => {
+        const { q, page = 1, limit = 10 } = req.query;
+
+        const result = await searchService.searchPosts(q, { page, limit });
+
+        await fastify.audit.apiAccess(req, 'search:posts', 'query');
+
+        return {
+            success: true,
+            results: result.results,
+            pagination: result.pagination,
+            requestId: req.requestId
+        };
+    });
+
     fastify.post('/update', {
         preHandler: [
             fastify.adminAuth.authenticate,

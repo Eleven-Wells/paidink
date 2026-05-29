@@ -12,8 +12,8 @@
 
         <!-- Search bar -->
         <section class="home-search" style="grid-area: search;" aria-label="Search">
-            <form role="search">
-                <label for="global-search" class="sr-only">Search</label>
+            <form action="/search" method="GET" role="search">
+                <label for="search-input" class="sr-only">Search</label>
                 <div class="home-search-shell">
                     <span class="home-search-icon" aria-hidden="true">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -22,9 +22,10 @@
                         <path d="m21 21-4.35-4.35" />
                     </svg>
                     </span>
-                    <input id="global-search" name="search" type="search" placeholder="Search Nook" aria-label="Search Nook" />
+                    <input id="search-input" name="q" type="search" placeholder="Search Nook" aria-label="Search Nook" />
                     <span class="home-search-scope" aria-hidden="true">Posts</span>
                 </div>
+                <div id="search-results" class="hidden"></div>
             </form>
         </section>
 
@@ -36,7 +37,7 @@
 
             <!-- Activity Feed -->
             <%- include('../partials/home-activity-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds:
-                feedAds }) %>
+                feedAds, user: user }) %>
 
                 <!-- Sidebar -->
                 <aside class="home-sidebar" style="grid-area: sidebar;">
@@ -415,4 +416,47 @@
                 display: none;
             }
         }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(16, 16, 16, 0.98), rgba(5, 5, 5, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 0.875rem;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
     </style>
+
+<div id="toast" class="toast"></div>
+
+<script>
+function showToast(message, type) {
+    var toast = document.getElementById('toast');
+    if (!toast) { return; }
+    toast.textContent = message;
+    toast.className = 'toast ' + (type || 'error') + ' show';
+    setTimeout(function() { toast.classList.remove('show'); }, 3000);
+}
+window.showToast = showToast;
+</script>
+
+<script src="/public/js/post-actions.js"></script>
