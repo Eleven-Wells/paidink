@@ -374,7 +374,7 @@
         
         <!-- Search Bar (visible only on tablet/mobile when right column is hidden) -->
         <div class="explore-search-wrapper explore-search-mobile">
-            <form role="search" class="explore-search-form">
+            <form action="/search" method="GET" role="search" class="explore-search-form">
                 <label for="search-nook-mobile" class="sr-only">Search</label>
                 <div class="explore-search-input-wrapper">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -383,7 +383,7 @@
                     </svg>
                     <input 
                         id="search-nook-mobile" 
-                        name="search" 
+                        name="q" 
                         type="search" 
                         placeholder="search Nook" 
                         aria-label="search Nook" 
@@ -408,22 +408,23 @@
     <aside class="explore-right-column">
         <!-- Search Bar -->
         <div class="explore-search-wrapper">
-            <form role="search" class="explore-search-form">
-                <label for="search-nook" class="sr-only">Search</label>
+            <form action="/search" method="GET" role="search" class="explore-search-form">
+                <label for="search-input" class="sr-only">Search</label>
                 <div class="explore-search-input-wrapper">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"/>
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                     <input 
-                        id="search-nook" 
-                        name="search" 
+                        id="search-input" 
+                        name="q" 
                         type="search" 
                         placeholder="search Nook" 
                         aria-label="search Nook" 
                         class="explore-search-input"
                     />
                 </div>
+                <div id="search-results" class="hidden"></div>
             </form>
         </div>
 

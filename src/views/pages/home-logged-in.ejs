@@ -12,8 +12,8 @@
 
         <!-- Search bar -->
         <section class="home-search" style="grid-area: search;" aria-label="Search">
-            <form role="search">
-                <label for="global-search" class="sr-only">Search</label>
+            <form action="/search" method="GET" role="search">
+                <label for="search-input" class="sr-only">Search</label>
                 <div class="home-search-shell">
                     <span class="home-search-icon" aria-hidden="true">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -22,9 +22,10 @@
                         <path d="m21 21-4.35-4.35" />
                     </svg>
                     </span>
-                    <input id="global-search" name="search" type="search" placeholder="Search Nook" aria-label="Search Nook" />
+                    <input id="search-input" name="q" type="search" placeholder="Search Nook" aria-label="Search Nook" />
                     <span class="home-search-scope" aria-hidden="true">Posts</span>
                 </div>
+                <div id="search-results" class="hidden"></div>
             </form>
         </section>
 

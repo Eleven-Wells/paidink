@@ -6,6 +6,7 @@ const NotificationService = require('../services/NotificationService');
 const DashboardService = require('../services/DashboardService');
 const User = require('../models/User');
 const recommendationService = require('../services/RecommendationService');
+const searchService = require('../services/SearchService');
 const { isFeatureEnabled } = require('../config/features');
 const { buildSitemapXml, buildRobotsTxt } = require('../seo/seoManager');
 const fs = require('fs');
@@ -1449,6 +1450,50 @@ async function pagesRoutes(fastify) {
         }
 
         return reply.redirect(301, `/post/${blog.slug}`);
+    });
+
+    fastify.get('/search', async (req, reply) => {
+        const lang = getLanguage(req);
+        const { q, page } = req.query;
+
+        if (!q || q.trim().length < 1) {
+            return reply.redirect('/browse');
+        }
+
+        const query = q.trim();
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        let results = [];
+        let pagination = { page: 1, limit: 12, total: 0, totalPages: 0, hasNext: false, hasPrev: false };
+
+        try {
+            const postsResult = await searchService.searchPosts(query, { page: pageNum, limit: 12 });
+            results = postsResult.results;
+            pagination = postsResult.pagination;
+        } catch (err) {
+            if (err.code !== 'INVALID_INPUT') throw err;
+        }
+
+        const pageContent = renderPage('search', {
+            query,
+            results,
+            pagination,
+            formatDate,
+            lang
+        });
+
+        return reply.view('layouts/default.ejs', {
+            body: pageContent,
+            title: `${query} — Search | NOOK`,
+            description: `Search results for "${query}" on NOOK.`,
+            isLoggedIn: req.isLoggedIn,
+            user: req.currentUser ? req.currentUser.toPublicJSON() : null,
+            unreadCount: req.unreadCount,
+            lang,
+            activeCategory: null,
+            theme: req.cookies?.theme || 'light',
+            canonical: `${process.env.BASE_URL || ''}/search?q=${encodeURIComponent(query)}`,
+            ogImage: '/public/images/og-default.png'
+        });
     });
 }
 
