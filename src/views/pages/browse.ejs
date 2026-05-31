@@ -1,4 +1,4 @@
-<% var categoriesList = (typeof CATEGORY_ENUM !== 'undefined') ? CATEGORY_ENUM : ['tech', 'news', 'sports', 'entertainment', 'politics', 'business', 'health', 'lifestyle']; %>
+<% var categoriesList = (typeof CATEGORY_ENUM !== 'undefined') ? CATEGORY_ENUM : []; %>
 <section class="relative min-h-[60vh] flex items-center justify-center px-6 pt-28 pb-16 overflow-hidden">
     <div class="max-w-4xl mx-auto text-center relative z-10">
         <div class="fade-up mb-6">
@@ -17,7 +17,7 @@
             <span class="font-mono text-sm"><%= categoriesList.length %> categories</span>
         </div>
     </div>
-<% var categoriesList = (typeof CATEGORY_ENUM !== 'undefined') ? CATEGORY_ENUM : ['tech', 'news', 'sports', 'entertainment', 'politics', 'business', 'health', 'lifestyle']; %>
+<% var categoriesList = (typeof CATEGORY_ENUM !== 'undefined') ? CATEGORY_ENUM : []; %>
 </section>
 
 <% categoriesList.forEach(function(category) { %>

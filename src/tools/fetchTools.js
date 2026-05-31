@@ -232,7 +232,7 @@ async function addToQueue(article, categoryMap) {
         return { status: 'skipped', reason: 'AI generation disabled', title: article.name };
     }
     
-    const category = categoryMap[article.category] || 'backend';
+    const category = categoryMap[article.category] || 'development';
     const slug = slugify(article.name, { lower: true, strict: true });
 
     const exists = await Post.findOne({ slug }).select('_id').lean();
@@ -273,9 +273,14 @@ async function fetchLatestBlog() {
         logger.info('Fetched articles', { count: allArticles.length });
 
         const categoryMap = {
-            'Tech News': 'backend',
-            'Dev.to': 'javascript',
-            'GitHub Trending': 'devops'
+            'Development': 'development',
+            'Business': 'business',
+            'Health': 'health',
+            'Lifestyle': 'lifestyle',
+            'News': 'news',
+            'Sports': 'sports',
+            'Entertainment': 'entertainment',
+            'Politics': 'politics'
         };
 
         const queuePromises = allArticles.map(article =>

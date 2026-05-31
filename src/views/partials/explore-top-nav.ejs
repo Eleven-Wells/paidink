@@ -1,24 +1,55 @@
-<nav class="explore-top-nav" aria-labelledby="explore-nav-label" style="display: flex; align-items: center; gap: clamp(8px, 1.5vw, 16px); width: 100%; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; padding: 8px 0;">
+<nav class="explore-top-nav" aria-labelledby="explore-nav-label" style="display: flex; align-items: center; gap: 0; width: 100%; padding: 8px 0;">
     <span id="explore-nav-label" class="sr-only">Content categories</span>
-    <% var currentTab = typeof activeTab !== 'undefined' && activeTab ? activeTab : 'Explore'; %>
-    <% var exploreTabs = typeof exploreTabs !== 'undefined' && exploreTabs ? exploreTabs : [
-        { label: 'Explore' },
-        { label: 'For you' },
-        { label: 'Trending' },
-        { label: 'Latest' },
-        { label: 'Development' },
-        { label: 'Business' },
-        { label: 'Health' },
-        { label: 'Lifestyle' },
-        { label: 'News' }
-    ]; %>
-    <% exploreTabs.forEach(function(tab) { %>
-        <button type="button" aria-pressed="<%= tab.label === currentTab %>" class="explore-tab-btn" style="display: flex; height: clamp(36px, 5vw, 52px); align-items: center; justify-content: center; gap: 10px; padding: clamp(6px, 1vw, 10px) clamp(12px, 2vw, 20px); border-radius: clamp(18px, 3vw, 58px); border: 1px solid #6d0a0a; background: <%= tab.label === currentTab ? '#6d0a0a' : 'transparent' %>; border-color: <%= tab.label === currentTab ? 'transparent' : '#6d0a0a' %>; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0;">
-            <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(14px, 1.8vw, 20px); text-align: center; white-space: nowrap; color: <%= tab.label === currentTab ? '#fff' : '#000' %>;">
-                <%= tab.label %>
-            </span>
-        </button>
-    <% }); %>
+    <% var currentTab = typeof activeTab !== 'undefined' && activeTab ? activeTab : 'explore'; %>
+
+    <!-- View pills (fixed, no scroll) -->
+    <div class="view-pills" style="display: flex; align-items: center; gap: clamp(6px, 1.2vw, 12px); flex-shrink: 0;">
+        <% var viewTabs = [
+            { slug: 'explore', label: 'Explore' },
+            { slug: 'for-you', label: 'For you' },
+            { slug: 'trending', label: 'Trending' },
+            { slug: 'latest', label: 'Latest' }
+        ]; %>
+        <% viewTabs.forEach(function(tab) { %>
+            <a href="/browse?tab=<%= tab.slug %>"
+               role="button"
+               aria-pressed="<%= tab.slug === currentTab %>"
+               class="explore-view-btn"
+               style="display: flex; height: clamp(36px, 5vw, 52px); align-items: center; justify-content: center; padding: clamp(6px, 1vw, 10px) clamp(12px, 2vw, 20px); border-radius: clamp(18px, 3vw, 58px); border: 1px solid <%= tab.slug === currentTab ? '#6d0a0a' : '#999' %>; background: <%= tab.slug === currentTab ? '#6d0a0a' : 'transparent' %>; cursor: pointer; transition: all 0.2s ease; text-decoration: none; flex-shrink: 0;">
+                <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(13px, 1.6vw, 18px); text-align: center; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.05em; color: <%= tab.slug === currentTab ? '#fff' : '#666' %>;">
+                    <%= tab.label %>
+                </span>
+            </a>
+        <% }); %>
+    </div>
+
+    <!-- Divider -->
+    <div class="pills-divider" style="width: 1px; height: 32px; background: #ccc; margin: 0 clamp(8px, 1.5vw, 16px); flex-shrink: 0;"></div>
+
+    <!-- Category pills (scrollable) -->
+    <div class="category-pills" style="display: flex; align-items: center; gap: clamp(6px, 1.2vw, 12px); overflow-x: auto; flex-shrink: 1; scrollbar-width: none; -ms-overflow-style: none; padding: 4px 0;">
+        <% var categoryTabs = [
+            { slug: 'development', label: 'Development' },
+            { slug: 'business', label: 'Business' },
+            { slug: 'health', label: 'Health' },
+            { slug: 'lifestyle', label: 'Lifestyle' },
+            { slug: 'news', label: 'News' },
+            { slug: 'sports', label: 'Sports' },
+            { slug: 'entertainment', label: 'Entertainment' },
+            { slug: 'politics', label: 'Politics' }
+        ]; %>
+        <% categoryTabs.forEach(function(tab) { %>
+            <a href="/browse?tab=<%= tab.slug %>"
+               role="button"
+               aria-pressed="<%= tab.slug === currentTab %>"
+               class="explore-tab-btn"
+               style="display: flex; height: clamp(36px, 5vw, 52px); align-items: center; justify-content: center; padding: clamp(6px, 1vw, 10px) clamp(12px, 2vw, 20px); border-radius: clamp(18px, 3vw, 58px); border: 1px solid <%= tab.slug === currentTab ? 'transparent' : '#6d0a0a' %>; background: <%= tab.slug === currentTab ? '#6d0a0a' : 'transparent' %>; cursor: pointer; transition: all 0.2s ease; text-decoration: none; flex-shrink: 0;">
+                <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(14px, 1.8vw, 20px); text-align: center; white-space: nowrap; color: <%= tab.slug === currentTab ? '#fff' : '#000' %>;">
+                    <%= tab.label %>
+                </span>
+            </a>
+        <% }); %>
+    </div>
 </nav>
 
 <style>
@@ -33,28 +64,25 @@
         white-space: nowrap;
         border: 0;
     }
-    .explore-top-nav {
-        overflow-x: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        padding: 4px 0;
-    }
-    .explore-top-nav::-webkit-scrollbar {
+    .category-pills::-webkit-scrollbar {
         display: none;
     }
-    .explore-tab-btn:hover {
+    .explore-tab-btn:hover, .explore-view-btn:hover {
         opacity: 0.85;
     }
     @media (max-width: 640px) {
         .explore-top-nav {
-            gap: 6px !important;
+            padding: 6px 0 !important;
         }
-        .explore-tab-btn {
+        .explore-tab-btn, .explore-view-btn {
             height: 32px !important;
             padding: 4px 10px !important;
         }
-        .explore-tab-btn span {
+        .explore-tab-btn span, .explore-view-btn span {
             font-size: 13px !important;
+        }
+        .pills-divider {
+            height: 24px !important;
         }
     }
 </style>

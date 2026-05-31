@@ -8,8 +8,8 @@ jest.mock('../../src/config', () => ({
     })),
     getAllowedOrigins: jest.fn(() => ['http://localhost:3000']),
     getContentSources: jest.fn(() => [
-        { url: 'https://dev.to/feed', category: 'javascript', type: 'rss' },
-        { url: 'https://github.com/trending', category: 'devops', type: 'url' }
+        { url: 'https://dev.to/feed', category: 'development', type: 'rss' },
+        { url: 'https://github.com/trending', category: 'development', type: 'url' }
     ])
 }));
 
@@ -105,11 +105,11 @@ describe('API Routes Integration Tests', () => {
 
             const response = await fastify.inject({
                 method: 'GET',
-                url: '/api/posts?category=javascript'
+                url: '/api/posts?category=development'
             });
 
             expect(response.statusCode).toBe(200);
-            expect(Post.find).toHaveBeenCalledWith({ category: 'javascript' });
+            expect(Post.find).toHaveBeenCalledWith({ category: 'development' });
         });
 
         test('should reject invalid category', async () => {

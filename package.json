@@ -1,7 +1,7 @@
 {
   "name": "Nook",
   "version": "1.0.0",
-  "description": "AI-powered automated content platform for tech news",
+  "description": "A community reading and writing platform for discovering and sharing stories across all topics",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

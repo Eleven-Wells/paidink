@@ -19,12 +19,14 @@ const translations = {
             },
             categories: {
                 title: 'Categories',
-                backend: 'Backend Development',
-                javascript: 'JavaScript',
-                performance: 'Web Performance',
-                'ai-tools': 'AI for Developers',
-                devops: 'DevOps',
-                career: 'Career & Learning'
+                development: 'Development',
+                business: 'Business',
+                health: 'Health',
+                lifestyle: 'Lifestyle',
+                news: 'News',
+                sports: 'Sports',
+                entertainment: 'Entertainment',
+                politics: 'Politics'
             },
             posts: {
                 readMore: 'Read More',
@@ -64,12 +66,14 @@ const translations = {
             },
             categories: {
                 title: 'Categorias',
-                backend: 'Desarrollo Backend',
-                javascript: 'JavaScript',
-                performance: 'Rendimiento Web',
-                'ai-tools': 'IA para Desarrolladores',
-                devops: 'DevOps',
-                career: 'Carrera y Aprendizaje'
+                development: 'Desarrollo',
+                business: 'Negocios',
+                health: 'Salud',
+                lifestyle: 'Estilo de Vida',
+                news: 'Noticias',
+                sports: 'Deportes',
+                entertainment: 'Entretenimiento',
+                politics: 'Politica'
             },
             posts: {
                 readMore: 'Leer Mas',

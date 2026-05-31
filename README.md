@@ -1,25 +1,26 @@
-# Nook - AI-Powered Tech News Platform
+# Nook
 
-A modern, SEO-optimized blog platform that automatically generates content using AI, sources articles from RSS feeds, and manages everything through background workers.
+A modern community platform for reading, writing, and engaging with stories across all topics. Readers discover content through personalized feeds, categories, and search. Writers publish and grow their audience.
 
 ## Features
 
-- **AI Content Generation** - OpenAI GPT-powered blog post generation
-- **RSS Content Sourcing** - Automatic content ingestion from multiple feeds
-- **Background Processing** - BullMQ job queue for reliable content processing
+- **Read & Earn** - Earn credits for reading, commenting, and engaging with content
+- **Personalized Feeds** - Recommendation engine tailors content to your interests
+- **Category Browsing** - Explore stories across 8 categories
+- **Writer Tools** - Create and manage posts with a dedicated publisher dashboard
+- **Admin Dashboard** - Full content management, analytics, and moderation
 - **SEO Optimized** - Automatic sitemap generation and search engine ping
 - **Dark/Light Theme** - System preference detection with manual toggle
 - **Newsletter Subscription** - Email collection with validation
 - **RESTful API** - Full API documentation with OpenAPI spec
-- **Responsive Design** - Mobile-first Tailwind CSS
+- **Responsive Design** - Mobile-first layout
 - **Internationalization** - EN/ES language support
-- **Real-time Updates** - Polling for new content
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Nook Architecture                             │
+│                           Nook Architecture                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                    │
@@ -43,28 +44,15 @@ A modern, SEO-optimized blog platform that automatically generates content using
 │          │         ┌───────────────────────────────┘                       │
 │          │         │                                                       │
 │          ▼         ▼                                                       │
-│  ┌───────────────┐     ┌───────────────┐     ┌───────────────┐             │
-│  │   MongoDB    │     │    Redis     │     │  BullMQ      │             │
-│  │  (Posts,     │     │  (Jobs,      │     │  (Worker)    │             │
-│  │   Audit)     │     │   Cache)      │     │              │             │
-│  └───────────────┘     └───────────────┘     └───────┬───────┘             │
-│                                                   │                       │
-│                                                   ▼                       │
-│                              ┌────────────────────────────────┐           │
-│                              │      External Services          │           │
-│                              │  ┌──────────┐ ┌──────────┐   │           │
-│                              │  │ OpenAI   │ │ Unsplash │   │           │
-│                              │  │ (GPT-4) │ │ (Images) │   │           │
-│                              │  └──────────┘ └──────────┘   │           │
-│                              │  ┌──────────┐ ┌──────────┐   │           │
-│                              │  │ Dev.to   │ │ GitHub   │   │           │
-│                              │  │  (RSS)   │ │ (API)    │   │           │
-│                              │  └──────────┘ └──────────┘   │           │
-│                              └────────────────────────────────┘           │
+│  ┌───────────────┐     ┌──────────────┐     ┌───────────────┐             │
+│  │   MongoDB    │     │    Redis     │     │  BullMQ       │             │
+│  │  (Posts,     │     │  (Jobs,      │     │  (Background  │             │
+│  │   Users)     │     │   Cache)     │     │   Workers)    │             │
+│  └───────────────┘     └──────────────┘     └───────────────┘             │
 │                                                                              │
 │  ┌────────────────────────────────────────────────────────────────┐         │
 │  │                     Scheduled Jobs (Cron)                       │         │
-│  │  Content Ingestion (6h) │ Feed Update (2h) │ SEO Update (3AM)  │         │
+│  │  Co-read Mining │ Feed Update │ SEO Update │ Cleanup            │         │
 │  └────────────────────────────────────────────────────────────────┘         │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -75,11 +63,9 @@ A modern, SEO-optimized blog platform that automatically generates content using
 |-------|------------|
 | **Backend** | Node.js, Fastify |
 | **Database** | MongoDB (Mongoose ODM) |
-| **Queue** | BullMQ, Redis |
-| **AI** | OpenAI GPT-4o-mini |
-| **Images** | Unsplash API |
+| **Cache/Queue** | Redis, BullMQ |
 | **Frontend** | EJS, Tailwind CSS, Vanilla JS |
-| **Deployment** | Docker, Render |
+| **Deployment** | Docker, Vercel |
 
 ## Quick Start
 
@@ -122,8 +108,7 @@ pnpm dev
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `MONGO_URI` | MongoDB connection string | `mongodb://admin:password@localhost:27017/simpleblog` |
-| `OPENAI_API_KEY` | OpenAI API key for content generation | `sk-...` |
+| `MONGO_URI` | MongoDB connection string | `mongodb://admin:password@localhost:27017/nook` |
 | `ADMIN_API_KEY` | API key for admin endpoints (generate: `openssl rand -hex 32`) | `a1b2c3...` |
 
 ### Optional API Keys
@@ -132,6 +117,7 @@ pnpm dev
 |----------|-------------|--------------|
 | `UNSPLASH_ACCESS_KEY` | Unsplash API key for images | [unsplash.com/developers](https://unsplash.com/developers) |
 | `NEWS_API_KEY` | NewsAPI key for news articles | [newsapi.org](https://newsapi.org) |
+| `OPENAI_API_KEY` | OpenAI API key (optional, for AI-assisted features) | [platform.openai.com](https://platform.openai.com) |
 
 ### Server Configuration
 
@@ -165,7 +151,7 @@ pnpm dev
 |----------|---------|-------------|
 | `LOG_LEVEL` | `info` | Log level: debug, info, warn, error, fatal |
 
-### Content Settings
+### Content Settings (AI-Assisted Features)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -264,24 +250,18 @@ All API responses follow this structure:
 }
 ```
 
-## Content Sources
+## Content Sources (Optional)
 
-The platform automatically fetches content from:
-
-1. **Dev.to RSS** - Latest JavaScript articles
-2. **GitHub Trending** - Top starred repositories
-3. **NewsAPI** (optional) - Technology news
-
-### Adding Custom Sources
+The platform can optionally fetch content from external sources via RSS and APIs. Content is queued for processing by background workers.
 
 ```javascript
-// Add to ContentSource collection
+// Example: Add a custom content source
 const ContentSource = require('./src/models/ContentSource');
 await ContentSource.create({
-  name: 'TechCrunch',
-  url: 'https://techcrunch.com/feed/',
+  name: 'My Feed',
+  url: 'https://example.com/feed/',
   type: 'rss',
-  category: 'tech-news',
+  category: 'development',
   active: true
 });
 ```
@@ -289,60 +269,47 @@ await ContentSource.create({
 ## Project Structure
 
 ```
-Latest-Tech-News/
+Nook/
 ├── src/
 │   ├── config/           # Configuration modules
 │   │   ├── index.js      # Main config with validation
 │   │   └── redis.js      # Redis connection
 │   ├── models/           # Mongoose schemas
 │   │   ├── Post.js       # Blog post model
+│   │   ├── User.js       # User accounts
 │   │   ├── Tool.js       # Tools/blog model
 │   │   ├── Subscriber.js # Newsletter subscribers
-│   │   ├── JobLog.js     # Job execution logs
+│   │   ├── Credit.js     # Reader credit system
 │   │   ├── AuditLog.js   # Audit trail
 │   │   └── ContentSource.js
 │   ├── routes/           # Fastify routes
 │   │   ├── api.js        # API endpoints
-│   │   └── pages.js      # Page routes
-│   ├── utils/            # Utility functions
-│   │   ├── ai.js         # OpenAI integration
-│   │   ├── fetchTools.js  # Content fetching
-│   │   ├── contentSourcer.js
-│   │   ├── imageFetcher.js
-│   │   ├── contentSanitizer.js
-│   │   ├── internalLinking.js
-│   │   ├── seoManager.js
-│   │   └── errors.js     # Error classes
-│   ├── plugins/           # Fastify plugins
-│   │   ├── admin-auth.js
-│   │   ├── audit.js
-│   │   ├── cache.js
-│   │   ├── error-handler.js
-│   │   ├── logger.js
-│   │   ├── request-id.js
-│   │   ├── sentry.js
-│   │   ├── swagger.js
-│   │   ├── validation.js
-│   │   └── cron-plugin.js
-│   ├── views/             # EJS templates
-│   ├── server.js          # Main entry
-│   ├── worker.js          # Background worker
-│   ├── cron.js           # Cron job handlers
-│   └── db.js             # Database connection
-├── queue/
-│   └── contentQueue.js   # BullMQ queue config
-├── public/                # Static assets
-│   ├── css/
-│   └── js/
+│   │   ├── pages.js      # Page routes
+│   │   ├── admin.js      # Admin panel routes
+│   │   ├── reads.js      # Read tracking routes
+│   │   └── recommendations.js
+│   ├── services/         # Business logic
+│   │   ├── PostService.js
+│   │   ├── SearchService.js
+│   │   ├── RecommendationService.js
+│   │   ├── InterestProfileService.js
+│   │   ├── CreditService.js
+│   │   └── ...
+│   ├── views/            # EJS templates
+│   │   ├── pages/        # Full page templates
+│   │   ├── partials/     # Reusable fragments
+│   │   └── layouts/      # Layout wrappers
+│   ├── queue/            # BullMQ job definitions
+│   ├── public/           # Static assets (CSS, JS, images)
+│   ├── server.js         # Main entry point
+│   ├── worker.js         # Background worker
+│   └── cron.js           # Cron job handlers
 ├── tests/                # Test files
 │   ├── unit/
 │   ├── integration/
 │   └── e2e/
-├── .github/
-│   └── workflows/        # CI/CD pipelines
-├── docker-compose.yml
-├── jest.config.js
-├── playwright.config.js
+├── scripts/              # Utility scripts
+├── docs/                 # Documentation
 └── package.json
 ```
 
@@ -350,7 +317,7 @@ Latest-Tech-News/
 
 ### Common Issues
 
-#### 1. Database Connection Failed
+#### 4. Database Connection Failed
 
 **Error**: `MongoDB connection failed`
 
@@ -363,10 +330,10 @@ docker-compose ps mongodb
 # Format: mongodb://user:password@host:27017/database
 
 # Test connection
-mongosh "mongodb://localhost:27017/simpleblog"
+mongosh "mongodb://localhost:27017/nook"
 ```
 
-#### 2. Redis Connection Failed
+#### 5. Redis Connection Failed
 
 **Error**: `Worker not initialized - Redis connection failed`
 
@@ -381,23 +348,7 @@ redis-cli ping
 # Check REDIS_HOST and REDIS_PORT in .env
 ```
 
-#### 3. OpenAI API Errors
-
-**Error**: `AI content generation failed`
-
-**Solutions**:
-```bash
-# Verify API key is set
-echo $OPENAI_API_KEY
-
-# Check OpenAI credits
-# Visit: https://platform.openai.com/account/usage
-
-# Check rate limits
-# Free tier: 3 RPM, 200 RPM
-```
-
-#### 4. Port Already in Use
+#### 3. Port Already in Use
 
 **Error**: `EADDRINUSE: address already in use :::5050`
 
@@ -412,7 +363,7 @@ kill -9 <PID>
 # Or change PORT in .env
 ```
 
-#### 5. Rate Limit Exceeded
+#### 4. Rate Limit Exceeded
 
 **Error**: `Rate limit exceeded`
 
@@ -425,7 +376,7 @@ ADMIN_RATE_LIMIT_MAX=200
 ADMIN_RATE_LIMIT_WINDOW=60000
 ```
 
-#### 6. Images Not Loading
+#### 5. Images Not Loading
 
 **Error**: `Failed to fetch image`
 
@@ -438,7 +389,7 @@ echo $UNSPLASH_ACCESS_KEY
 # Free tier: 50 requests/hour
 ```
 
-#### 7. Worker Not Processing Jobs
+#### 6. Worker Not Processing Jobs
 
 **Solutions**:
 ```bash
@@ -452,7 +403,7 @@ redis-cli LLEN bullmq:content-generation
 pnpm start
 ```
 
-#### 8. Build CSS Fails
+#### 7. Build CSS Fails
 
 **Error**: Tailwind CSS build errors
 

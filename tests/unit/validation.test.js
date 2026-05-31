@@ -28,16 +28,19 @@ describe('Validation Plugin', () => {
 
     describe('isValidCategory', () => {
         test('should return true for valid categories', () => {
-            expect(isValidCategory('backend')).toBe(true);
-            expect(isValidCategory('javascript')).toBe(true);
-            expect(isValidCategory('performance')).toBe(true);
-            expect(isValidCategory('ai-tools')).toBe(true);
-            expect(isValidCategory('devops')).toBe(true);
-            expect(isValidCategory('career')).toBe(true);
+            expect(isValidCategory('development')).toBe(true);
+            expect(isValidCategory('business')).toBe(true);
+            expect(isValidCategory('health')).toBe(true);
+            expect(isValidCategory('lifestyle')).toBe(true);
+            expect(isValidCategory('news')).toBe(true);
+            expect(isValidCategory('sports')).toBe(true);
+            expect(isValidCategory('entertainment')).toBe(true);
+            expect(isValidCategory('politics')).toBe(true);
         });
 
         test('should return false for invalid categories', () => {
             expect(isValidCategory('invalid')).toBe(false);
+            expect(isValidCategory('backend')).toBe(false);
             expect(isValidCategory('backend ')).toBe(false);
             expect(isValidCategory('')).toBe(false);
             expect(isValidCategory(null)).toBe(false);
@@ -75,16 +78,18 @@ describe('Validation Plugin', () => {
 
     describe('CATEGORY_ENUM', () => {
         test('should contain all expected categories', () => {
-            expect(CATEGORY_ENUM).toContain('backend');
-            expect(CATEGORY_ENUM).toContain('javascript');
-            expect(CATEGORY_ENUM).toContain('performance');
-            expect(CATEGORY_ENUM).toContain('ai-tools');
-            expect(CATEGORY_ENUM).toContain('devops');
-            expect(CATEGORY_ENUM).toContain('career');
+            expect(CATEGORY_ENUM).toContain('development');
+            expect(CATEGORY_ENUM).toContain('business');
+            expect(CATEGORY_ENUM).toContain('health');
+            expect(CATEGORY_ENUM).toContain('lifestyle');
+            expect(CATEGORY_ENUM).toContain('news');
+            expect(CATEGORY_ENUM).toContain('sports');
+            expect(CATEGORY_ENUM).toContain('entertainment');
+            expect(CATEGORY_ENUM).toContain('politics');
         });
 
-        test('should have exactly 6 categories', () => {
-            expect(CATEGORY_ENUM.length).toBe(6);
+        test('should have exactly 8 categories', () => {
+            expect(CATEGORY_ENUM.length).toBe(8);
         });
     });
 });

@@ -11,12 +11,14 @@ async function buildSitemapXml() {
     const baseUrl = (config.BASE_URL || '').replace(/\/$/, '');
 
     const categoryPages = [
-        { slug: 'backend', name: 'Backend Development' },
-        { slug: 'javascript', name: 'JavaScript' },
-        { slug: 'performance', name: 'Web Performance' },
-        { slug: 'ai-tools', name: 'AI for Developers' },
-        { slug: 'devops', name: 'DevOps' },
-        { slug: 'career', name: 'Career & Learning' }
+        { slug: 'development', name: 'Development' },
+        { slug: 'business', name: 'Business' },
+        { slug: 'health', name: 'Health' },
+        { slug: 'lifestyle', name: 'Lifestyle' },
+        { slug: 'news', name: 'News' },
+        { slug: 'sports', name: 'Sports' },
+        { slug: 'entertainment', name: 'Entertainment' },
+        { slug: 'politics', name: 'Politics' }
     ];
 
     const staticPages = [

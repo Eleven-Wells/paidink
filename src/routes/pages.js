@@ -1012,6 +1012,17 @@ async function pagesRoutes(fastify) {
         const Post = require('../models/Post');
         const User = require('../models/User');
 
+        let sortField = { publishedAt: -1 };
+        let filterQuery = {};
+
+        if (tab) {
+            if (CATEGORY_ENUM.includes(tab)) {
+                filterQuery.category = tab;
+            } else if (tab === 'trending') {
+                sortField = { 'stats.views': -1 };
+            }
+        }
+
         function getAvatarWithFallback(user) {
             if (user && user.avatar) return user.avatar;
             var initial = '?';
@@ -1021,8 +1032,8 @@ async function pagesRoutes(fastify) {
             return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><circle cx="40" cy="40" r="40" fill="#e5e5e5"/><text x="40" y="52" text-anchor="middle" fill="#6d0a0a" font-size="36" font-family="sans-serif">' + initial + '</text></svg>');
         }
 
-        const posts = await Post.find()
-            .sort({ publishedAt: -1 })
+        const posts = await Post.find(filterQuery)
+            .sort(sortField)
             .limit(5)
             .populate('author', 'displayName avatar role')
             .lean();
@@ -1097,7 +1108,7 @@ async function pagesRoutes(fastify) {
         }
 
         return reply.view('pages/explore.ejs', {
-            activeTab: tab || 'Explore',
+            activeTab: tab || 'explore',
             posts: postsWithPublicAuthors,
             feedSuggestions: feedSuggestionsWithAvatar,
             trendingPosts: trendingWithAuthors,
