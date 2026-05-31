@@ -75,16 +75,18 @@ describe('Validation Plugin', () => {
 
     describe('CATEGORY_ENUM', () => {
         test('should contain all expected categories', () => {
-            expect(CATEGORY_ENUM).toContain('backend');
-            expect(CATEGORY_ENUM).toContain('javascript');
-            expect(CATEGORY_ENUM).toContain('performance');
-            expect(CATEGORY_ENUM).toContain('ai-tools');
-            expect(CATEGORY_ENUM).toContain('devops');
-            expect(CATEGORY_ENUM).toContain('career');
+            expect(CATEGORY_ENUM).toContain('development');
+            expect(CATEGORY_ENUM).toContain('business');
+            expect(CATEGORY_ENUM).toContain('health');
+            expect(CATEGORY_ENUM).toContain('lifestyle');
+            expect(CATEGORY_ENUM).toContain('news');
+            expect(CATEGORY_ENUM).toContain('sports');
+            expect(CATEGORY_ENUM).toContain('entertainment');
+            expect(CATEGORY_ENUM).toContain('politics');
         });
 
-        test('should have exactly 6 categories', () => {
-            expect(CATEGORY_ENUM.length).toBe(6);
+        test('should have exactly 8 categories', () => {
+            expect(CATEGORY_ENUM.length).toBe(8);
         });
     });
 });

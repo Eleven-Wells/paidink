@@ -21,7 +21,7 @@ const samplePosts = [
 await fastify.listen({ port: 3000 });</code></pre>
 <p>That's it! You now have a running server.</p>`,
         summary: 'Learn how to build high-performance web applications with Fastify, the fast and low overhead web framework for Node.js.',
-        category: 'backend',
+        category: 'development',
         tags: ['nodejs', 'fastify', 'javascript', 'api'],
         image: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&h=400&fit=crop',
         imageMetadata: {
@@ -52,7 +52,7 @@ await fastify.listen({ port: 3000 });</code></pre>
 <h2>Conclusion</h2>
 <p>These features make JavaScript more expressive and help you write cleaner code.</p>`,
         summary: 'Explore the modern JavaScript features that will help you write cleaner, more efficient code in 2026.',
-        category: 'javascript',
+        category: 'development',
         tags: ['javascript', 'es2026', 'programming'],
         image: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=800&h=400&fit=crop',
         imageMetadata: {
@@ -84,7 +84,7 @@ await fastify.listen({ port: 3000 });</code></pre>
 <h2>Tools for Testing</h2>
 <p>Lighthouse, WebPageTest, and Chrome DevTools are essential for measuring and debugging performance.</p>`,
         summary: 'Master web performance optimization with this comprehensive guide covering Core Web Vitals, optimization techniques, and best practices.',
-        category: 'performance',
+        category: 'development',
         tags: ['performance', 'web', 'optimization', 'seo'],
         image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop',
         imageMetadata: {
@@ -115,7 +115,7 @@ await fastify.listen({ port: 3000 });</code></pre>
 <h2>Best Practices</h2>
 <p>Always implement rate limiting, handle errors gracefully, and sanitize user inputs before sending to the API.</p>`,
         summary: 'Learn how to integrate OpenAI API into your applications for AI-powered features like content generation and smart assistants.',
-        category: 'ai-tools',
+        category: 'development',
         tags: ['ai', 'openai', 'gpt', 'api'],
         image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=400&fit=crop',
         imageMetadata: {
@@ -147,7 +147,7 @@ services:
 <h2>Tools of the Trade</h2>
 <p>Docker, Kubernetes, GitHub Actions, Terraform, and Prometheus are essential DevOps tools.</p>`,
         summary: 'Discover DevOps best practices including CI/CD, infrastructure as code, and monitoring for modern development teams.',
-        category: 'devops',
+        category: 'development',
         tags: ['devops', 'docker', 'kubernetes', 'ci-cd'],
         image: 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&h=400&fit=crop',
         imageMetadata: {
@@ -177,7 +177,7 @@ services:
 <h2>Continuous Learning</h2>
 <p>The tech industry evolves constantly. Stay current with blogs, podcasts, and hands-on projects.</p>`,
         summary: 'Navigate your developer career from junior to senior level with insights on technical and soft skills growth.',
-        category: 'career',
+        category: 'lifestyle',
         tags: ['career', 'development', 'growth', 'soft-skills'],
         image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=400&fit=crop',
         imageMetadata: {

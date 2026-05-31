@@ -42,12 +42,14 @@ const { withSession, isTransactionSupported } = require('../database/dbTransacti
 const { isFeatureEnabled } = require('../config/features');
 
 const CATEGORY_MAP = {
-    'Backend Development': 'backend',
-    'JavaScript': 'javascript',
-    'Web Performance': 'performance',
-    'AI for Developers': 'ai-tools',
-    'DevOps': 'devops',
-    'Career & Learning': 'career'
+    'Development': 'development',
+    'Business': 'business',
+    'Health': 'health',
+    'Lifestyle': 'lifestyle',
+    'News': 'news',
+    'Sports': 'sports',
+    'Entertainment': 'entertainment',
+    'Politics': 'politics'
 };
 
 const FALLBACK_IMAGE = {
@@ -164,7 +166,7 @@ class ContentService {
     }
 
     mapCategory(aiCategory) {
-        return CATEGORY_MAP[aiCategory] || 'backend';
+        return CATEGORY_MAP[aiCategory] || 'development';
     }
 
     async createPost(generatedContent, imageData, options = {}) {

@@ -60,12 +60,14 @@
                         <label class="block text-sm font-medium mb-2">Category</label>
                         <select name="category" class="input-dark w-full" required data-custom-select>
                             <option value="">Select category</option>
-                            <option value="javascript" <%= typeof post !== 'undefined' && post.category === 'javascript' ? 'selected' : '' %>>JavaScript</option>
-                            <option value="backend" <%= typeof post !== 'undefined' && post.category === 'backend' ? 'selected' : '' %>>Backend</option>
-                            <option value="ai-tools" <%= typeof post !== 'undefined' && post.category === 'ai-tools' ? 'selected' : '' %>>AI Tools</option>
-                            <option value="devops" <%= typeof post !== 'undefined' && post.category === 'devops' ? 'selected' : '' %>>DevOps</option>
-                            <option value="performance" <%= typeof post !== 'undefined' && post.category === 'performance' ? 'selected' : '' %>>Performance</option>
-                            <option value="career" <%= typeof post !== 'undefined' && post.category === 'career' ? 'selected' : '' %>>Career</option>
+                            <option value="development" <%= typeof post !== 'undefined' && post.category === 'development' ? 'selected' : '' %>>Development</option>
+                            <option value="business" <%= typeof post !== 'undefined' && post.category === 'business' ? 'selected' : '' %>>Business</option>
+                            <option value="health" <%= typeof post !== 'undefined' && post.category === 'health' ? 'selected' : '' %>>Health</option>
+                            <option value="lifestyle" <%= typeof post !== 'undefined' && post.category === 'lifestyle' ? 'selected' : '' %>>Lifestyle</option>
+                            <option value="news" <%= typeof post !== 'undefined' && post.category === 'news' ? 'selected' : '' %>>News</option>
+                            <option value="sports" <%= typeof post !== 'undefined' && post.category === 'sports' ? 'selected' : '' %>>Sports</option>
+                            <option value="entertainment" <%= typeof post !== 'undefined' && post.category === 'entertainment' ? 'selected' : '' %>>Entertainment</option>
+                            <option value="politics" <%= typeof post !== 'undefined' && post.category === 'politics' ? 'selected' : '' %>>Politics</option>
                         </select>
                     </div>
                     
