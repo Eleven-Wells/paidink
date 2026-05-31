@@ -61,7 +61,7 @@ describe('Config Module', () => {
             const devToSource = sources.find(s => s.url.includes('dev.to'));
             expect(devToSource).toBeDefined();
             expect(devToSource.type).toBe('rss');
-            expect(devToSource.category).toBe('javascript');
+            expect(devToSource.category).toBe('development');
         });
 
         test('should include GitHub trending source', () => {
@@ -69,7 +69,7 @@ describe('Config Module', () => {
             const githubSource = sources.find(s => s.url.includes('github.com'));
             expect(githubSource).toBeDefined();
             expect(githubSource.type).toBe('url');
-            expect(githubSource.category).toBe('devops');
+            expect(githubSource.category).toBe('development');
         });
 
         test('should not include NewsAPI source when key is not set', () => {

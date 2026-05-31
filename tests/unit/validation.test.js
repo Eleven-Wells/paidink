@@ -28,16 +28,19 @@ describe('Validation Plugin', () => {
 
     describe('isValidCategory', () => {
         test('should return true for valid categories', () => {
-            expect(isValidCategory('backend')).toBe(true);
-            expect(isValidCategory('javascript')).toBe(true);
-            expect(isValidCategory('performance')).toBe(true);
-            expect(isValidCategory('ai-tools')).toBe(true);
-            expect(isValidCategory('devops')).toBe(true);
-            expect(isValidCategory('career')).toBe(true);
+            expect(isValidCategory('development')).toBe(true);
+            expect(isValidCategory('business')).toBe(true);
+            expect(isValidCategory('health')).toBe(true);
+            expect(isValidCategory('lifestyle')).toBe(true);
+            expect(isValidCategory('news')).toBe(true);
+            expect(isValidCategory('sports')).toBe(true);
+            expect(isValidCategory('entertainment')).toBe(true);
+            expect(isValidCategory('politics')).toBe(true);
         });
 
         test('should return false for invalid categories', () => {
             expect(isValidCategory('invalid')).toBe(false);
+            expect(isValidCategory('backend')).toBe(false);
             expect(isValidCategory('backend ')).toBe(false);
             expect(isValidCategory('')).toBe(false);
             expect(isValidCategory(null)).toBe(false);

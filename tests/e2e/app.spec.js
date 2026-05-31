@@ -106,7 +106,7 @@ test.describe('Posts API E2E Tests', () => {
     });
 
     test('should filter by category', async ({ request }) => {
-        const response = await request.get(`${BASE_URL}/api/posts?category=javascript`);
+        const response = await request.get(`${BASE_URL}/api/posts?category=development`);
         expect(response.ok()).toBeTruthy();
 
         const body = await response.json();
