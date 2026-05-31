@@ -1,28 +1,28 @@
 const dotenv = require('dotenv');
 dotenv.config();
 
-const CATEGORY_ENUM = ['tech', 'news', 'sports', 'entertainment', 'politics', 'business', 'health', 'lifestyle'];
+const CATEGORY_ENUM = ['development', 'business', 'health', 'lifestyle', 'news', 'sports', 'entertainment', 'politics'];
 
 const CATEGORY_NAMES = {
     en: {
-        tech: 'Technology',
+        development: 'Development',
+        business: 'Business',
+        health: 'Health',
+        lifestyle: 'Lifestyle',
         news: 'News',
         sports: 'Sports',
         entertainment: 'Entertainment',
-        politics: 'Politics',
-        business: 'Business',
-        health: 'Health',
-        lifestyle: 'Lifestyle'
+        politics: 'Politics'
     },
     es: {
-        tech: 'Tecnología',
+        development: 'Desarrollo',
+        business: 'Negocios',
+        health: 'Salud',
+        lifestyle: 'Estilo de Vida',
         news: 'Noticias',
         sports: 'Deportes',
         entertainment: 'Entretenimiento',
-        politics: 'Política',
-        business: 'Negocios',
-        health: 'Salud',
-        lifestyle: 'Estilo de Vida'
+        politics: 'Política'
     }
 };
 
