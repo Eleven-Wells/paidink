@@ -130,7 +130,7 @@ const apiDocumentation = {
                         description: 'Filter by category',
                         schema: {
                             type: 'string',
-                            enum: ['backend', 'javascript', 'performance', 'ai-tools', 'devops', 'career']
+                            enum: ['development', 'business', 'health', 'lifestyle', 'news', 'sports', 'entertainment', 'politics']
                         }
                     }
                 ],
@@ -241,7 +241,7 @@ const apiDocumentation = {
                         in: 'query',
                         schema: {
                             type: 'string',
-                            enum: ['backend', 'javascript', 'performance', 'ai-tools', 'devops', 'career']
+                            enum: ['development', 'business', 'health', 'lifestyle', 'news', 'sports', 'entertainment', 'politics']
                         }
                     }
                 ],
@@ -496,7 +496,7 @@ const apiDocumentation = {
                     summary: { type: 'string' },
                     category: {
                         type: 'string',
-                        enum: ['backend', 'javascript', 'performance', 'ai-tools', 'devops', 'career']
+                        enum: ['development', 'business', 'health', 'lifestyle', 'news', 'sports', 'entertainment', 'politics']
                     },
                     tags: { type: 'array', items: { type: 'string' } },
                     image: { type: 'string' },

@@ -174,13 +174,13 @@ function loadConfig() {
 function getContentSources() {
     const config = getConfig();
     const sources = [
-        { url: 'https://dev.to/feed', category: 'javascript', type: 'rss' }
+        { url: 'https://dev.to/feed', category: 'development', type: 'rss' }
     ];
 
     if (config.NEWS_API_KEY) {
         sources.push({
             url: 'https://newsapi.org/v2/everything?q=technology&language=en&sortBy=publishedAt',
-            category: 'backend',
+            category: 'development',
             type: 'url',
             requiresAuth: true
         });
@@ -188,7 +188,7 @@ function getContentSources() {
 
     sources.push({
         url: 'https://api.github.com/search/repositories?q=created:>2023-10-01&sort=stars&order=desc',
-        category: 'devops',
+        category: 'development',
         type: 'url'
     });
 

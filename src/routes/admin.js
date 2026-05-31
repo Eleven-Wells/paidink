@@ -69,12 +69,14 @@ async function getStats() {
         });
 
         const categoryStats = {
-            javascript: await Post.countDocuments({ category: 'javascript' }),
-            backend: await Post.countDocuments({ category: 'backend' }),
-            aiTools: await Post.countDocuments({ category: 'ai-tools' }),
-            devops: await Post.countDocuments({ category: 'devops' }),
-            performance: await Post.countDocuments({ category: 'performance' }),
-            career: await Post.countDocuments({ category: 'career' })
+            development: await Post.countDocuments({ category: 'development' }),
+            business: await Post.countDocuments({ category: 'business' }),
+            health: await Post.countDocuments({ category: 'health' }),
+            lifestyle: await Post.countDocuments({ category: 'lifestyle' }),
+            news: await Post.countDocuments({ category: 'news' }),
+            sports: await Post.countDocuments({ category: 'sports' }),
+            entertainment: await Post.countDocuments({ category: 'entertainment' }),
+            politics: await Post.countDocuments({ category: 'politics' })
         };
 
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -155,7 +157,7 @@ async function getStats() {
         console.error('Stats error:', e);
         return {
             totalPosts: 0, postsThisWeek: 0, publishedPosts: 0,
-            categoryStats: { javascript: 0, backend: 0, aiTools: 0, devops: 0, performance: 0, career: 0 },
+            categoryStats: { development: 0, business: 0, health: 0, lifestyle: 0, news: 0, sports: 0, entertainment: 0, politics: 0 },
             viewsThisMonth: 0, viewsGrowth: 0, activeUsers: 0,
             unreadNotifications: 0, totalUsers: 0, pendingWithdrawals: 0, totalReads: 0,
             queueWaiting: 0, queueActive: 0, queueCompleted: 0, queueFailed: 0

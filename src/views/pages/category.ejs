@@ -76,7 +76,7 @@
             <span class="font-mono text-xs uppercase tracking-[0.2em] text-muted mb-6 block">Explore More</span>
             <h2 class="font-heading text-3xl sm:text-4xl mb-8">OTHER CATEGORIES</h2>
             <div class="flex flex-wrap justify-center gap-4">
-                <% const allCategories = ['ai-tools', 'javascript', 'backend', 'devops', 'performance']; %>
+                <% const allCategories = ['development', 'business', 'health', 'lifestyle', 'news', 'sports', 'entertainment', 'politics']; %>
                 <% const categoryLabels = {}; CATEGORY_ENUM.forEach(c => categoryLabels[c] = c); %>
                 <% allCategories.filter(cat => cat !== category).forEach(cat => { %>
                     <a href="/?category=<%= encodeURIComponent(cat) %>" class="tag-chip px-6 py-3 rounded-full text-sm hover:bg-white/10">

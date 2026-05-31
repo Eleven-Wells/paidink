@@ -89,11 +89,14 @@
         <h3 class="font-heading text-lg font-semibold mb-6">Posts by Category</h3>
         <div class="space-y-4">
             <% const catData = [
-                { name: 'JavaScript', count: stats.categoryStats.javascript, color: 'bg-yellow-500' },
-                { name: 'Backend', count: stats.categoryStats.backend, color: 'bg-blue-500' },
-                { name: 'AI Tools', count: stats.categoryStats.aiTools, color: 'bg-purple-500' },
-                { name: 'DevOps', count: stats.categoryStats.devops, color: 'bg-orange-500' },
-                { name: 'Performance', count: stats.categoryStats.performance, color: 'bg-green-500' }
+                { name: 'Development', count: stats.categoryStats.development, color: 'bg-blue-500' },
+                { name: 'Business', count: stats.categoryStats.business, color: 'bg-green-500' },
+                { name: 'Health', count: stats.categoryStats.health, color: 'bg-red-500' },
+                { name: 'Lifestyle', count: stats.categoryStats.lifestyle, color: 'bg-purple-500' },
+                { name: 'News', count: stats.categoryStats.news, color: 'bg-yellow-500' },
+                { name: 'Sports', count: stats.categoryStats.sports, color: 'bg-orange-500' },
+                { name: 'Entertainment', count: stats.categoryStats.entertainment, color: 'bg-pink-500' },
+                { name: 'Politics', count: stats.categoryStats.politics, color: 'bg-indigo-500' }
             ]; %>
             <% const maxCount = Math.max(...catData.map(c => c.count), 1); %>
             <% catData.forEach(cat => { %>

@@ -207,7 +207,7 @@ async function apiRoutes(fastify) {
             slug,
             content: finalContent,
             summary,
-            category: 'career',
+            category: 'development',
             image: image && typeof image === 'string' ? image : undefined,
             author: req.user.id,
             publishedAt: new Date()
