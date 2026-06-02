@@ -5,6 +5,10 @@
             "destination": "/favicon.svg"
         },
         {
+            "source": "/favicon.png",
+            "destination": "/favicon.svg"
+        },
+        {
             "source": "/public/(.*)",
             "destination": "/$1"
         },
