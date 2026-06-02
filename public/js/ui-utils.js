@@ -49,8 +49,17 @@ function getShimmerLoaderHTML() {
     `;
 }
 
-// Show success toast using SweetAlert2
+function showNookAlert(message, type) {
+    if (typeof showToast === 'function') {
+        showToast(message, type);
+        return true;
+    }
+    return false;
+}
+
+// Show success toast using nook-alert, then SweetAlert2
 function showSuccessToast(message, title = 'Success') {
+    if (showNookAlert(message, 'success')) return;
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'success',
@@ -76,6 +85,7 @@ function showSuccessToast(message, title = 'Success') {
 
 // Show error toast
 function showErrorToast(message, title = 'Error') {
+    if (showNookAlert(message, 'error')) return;
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'error',
@@ -100,6 +110,7 @@ function showErrorToast(message, title = 'Error') {
 
 // Show warning toast
 function showWarningToast(message, title = 'Warning') {
+    if (showNookAlert(message, 'warning')) return;
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'warning',
@@ -122,6 +133,7 @@ function showWarningToast(message, title = 'Warning') {
 
 // Show info toast
 function showInfoToast(message, title = 'Info') {
+    if (showNookAlert(message, 'info')) return;
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             icon: 'info',

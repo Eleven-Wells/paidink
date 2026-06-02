@@ -1,0 +1,174 @@
+<% const nookAlertLight = (typeof dashboardTheme !== 'undefined' && dashboardTheme === 'light') || (typeof isLightTheme !== 'undefined' && isLightTheme); %>
+<style>
+    :root {
+        <% if (nookAlertLight) { %>
+        --nook-alert-bg: rgba(255, 255, 255, 0.92);
+        --nook-alert-border: rgba(109, 10, 10, 0.12);
+        --nook-alert-text: #181211;
+        --nook-alert-muted: #6f6560;
+        --nook-alert-shadow: 0 20px 50px rgba(109, 10, 10, 0.14), 0 0 0 1px rgba(109, 10, 10, 0.06);
+        --nook-alert-dismiss-hover: rgba(109, 10, 10, 0.08);
+        <% } else { %>
+        --nook-alert-bg: rgba(18, 18, 18, 0.88);
+        --nook-alert-border: rgba(255, 255, 255, 0.12);
+        --nook-alert-text: #ffffff;
+        --nook-alert-muted: rgba(255, 255, 255, 0.55);
+        --nook-alert-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
+        --nook-alert-dismiss-hover: rgba(255, 255, 255, 0.1);
+        <% } %>
+        --nook-alert-success: #22c55e;
+        --nook-alert-error: #ef4444;
+        --nook-alert-warning: #f59e0b;
+        --nook-alert-info: #3b82f6;
+    }
+
+    .nook-alert {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        padding-top: max(12px, env(safe-area-inset-top, 0px));
+        pointer-events: none;
+    }
+
+    .nook-alert[hidden] {
+        display: none;
+    }
+
+    .nook-alert__pill {
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        gap: 0;
+        max-width: 44px;
+        min-height: 36px;
+        padding: 8px;
+        overflow: hidden;
+        background: var(--nook-alert-bg);
+        border: 1px solid var(--nook-alert-border);
+        color: var(--nook-alert-text);
+        border-radius: 999px;
+        box-shadow: var(--nook-alert-shadow);
+        backdrop-filter: blur(24px) saturate(160%);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        transform: translateY(calc(-100% - 28px)) scale(0.92);
+        opacity: 0;
+        transition:
+            transform 0.52s cubic-bezier(0.22, 1.12, 0.36, 1),
+            opacity 0.32s ease,
+            max-width 0.48s cubic-bezier(0.22, 1.08, 0.36, 1),
+            min-height 0.35s ease,
+            padding 0.48s cubic-bezier(0.22, 1.08, 0.36, 1),
+            gap 0.35s ease,
+            border-radius 0.42s ease;
+    }
+
+    .nook-alert.is-visible .nook-alert__pill {
+        transform: translateY(10px) scale(1);
+        opacity: 1;
+    }
+
+    .nook-alert.is-expanded .nook-alert__pill {
+        max-width: min(calc(100vw - 32px), 420px);
+        min-height: 44px;
+        padding: 11px 12px 11px 14px;
+        gap: 10px;
+        border-radius: 22px;
+    }
+
+    .nook-alert__icon {
+        flex-shrink: 0;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        opacity: 0;
+        transform: scale(0.6);
+        transition: opacity 0.28s ease 0.12s, transform 0.38s cubic-bezier(0.22, 1.12, 0.36, 1) 0.1s;
+    }
+
+    .nook-alert.is-expanded .nook-alert__icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .nook-alert--success .nook-alert__icon { color: var(--nook-alert-success); }
+    .nook-alert--error .nook-alert__icon { color: var(--nook-alert-error); }
+    .nook-alert--warning .nook-alert__icon { color: var(--nook-alert-warning); }
+    .nook-alert--info .nook-alert__icon { color: var(--nook-alert-info); }
+
+    .nook-alert__message {
+        flex: 1;
+        min-width: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.4;
+        letter-spacing: -0.01em;
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        transition: max-width 0.48s cubic-bezier(0.22, 1.08, 0.36, 1), opacity 0.3s ease 0.1s;
+    }
+
+    .nook-alert.is-expanded .nook-alert__message {
+        max-width: 340px;
+        opacity: 1;
+        white-space: normal;
+    }
+
+    .nook-alert__dismiss {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 0;
+        height: 28px;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--nook-alert-muted);
+        cursor: pointer;
+        overflow: hidden;
+        opacity: 0;
+        transition: opacity 0.25s ease, width 0.35s ease, background 0.2s ease, color 0.2s ease;
+    }
+
+    .nook-alert.is-expanded .nook-alert__dismiss {
+        width: 28px;
+        opacity: 1;
+    }
+
+    .nook-alert__dismiss:hover {
+        background: var(--nook-alert-dismiss-hover);
+        color: var(--nook-alert-text);
+    }
+
+    .nook-alert__dismiss:focus-visible {
+        outline: 2px solid var(--nook-alert-info);
+        outline-offset: 2px;
+    }
+
+    .nook-alert.is-leaving .nook-alert__pill {
+        transform: translateY(calc(-100% - 28px)) scale(0.92);
+        opacity: 0;
+        transition-duration: 0.38s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .nook-alert__pill,
+        .nook-alert__icon,
+        .nook-alert__message,
+        .nook-alert__dismiss {
+            transition-duration: 0.01ms !important;
+        }
+    }
+</style>
