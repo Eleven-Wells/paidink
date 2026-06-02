@@ -432,31 +432,6 @@
         overflow: hidden;
     }
 
-    .toast {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        padding: 16px 24px;
-        border-radius: 12px;
-        background: var(--dash-toast-bg);
-        border: 1px solid var(--dash-toast-border);
-        color: var(--dash-toast-text);
-        font-size: 0.875rem;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, <%= isLightDashboard ? '0.12' : '0.5' %>);
-        z-index: 2000;
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.3s ease;
-    }
-
-    .toast.show {
-        transform: translateY(0);
-        opacity: 1;
-    }
-
-    .toast.success { border-left: 4px solid #22c55e; }
-    .toast.error { border-left: 4px solid #ef4444; }
-
     .method-card {
         border: 1px solid var(--dash-method-border);
         transition: all 0.2s ease;
@@ -479,3 +454,4 @@
         }
     }
 </style>
+<%- include('./nook-alert-css') %>

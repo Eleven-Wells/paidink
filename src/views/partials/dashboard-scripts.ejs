@@ -1,3 +1,4 @@
+<script src="/public/js/nook-alert.js"></script>
 <script>
     function toggleMobileMenu() {
         const menu = document.getElementById('mobileMenu');
@@ -7,16 +8,6 @@
             overlay.classList.toggle('active');
             document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
         }
-    }
-
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
-        toast.textContent = message;
-        toast.className = 'toast ' + type + ' show';
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
     }
 
     function initCustomSelects() {

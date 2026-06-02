@@ -1,15 +1,11 @@
 (function() {
   'use strict';
 
-  function toast(msg) {
-    var el = document.getElementById('toast');
-    if (el) {
-      el.textContent = msg;
-      el.className = 'toast show';
-      setTimeout(function() { el.classList.remove('show'); }, 2500);
+  function toast(msg, type) {
+    if (typeof showToast === 'function') {
+      showToast(msg, type || 'info');
       return;
     }
-    if (typeof showToast === 'function') { showToast(msg); }
   }
 
   function handleLike(btn) {
