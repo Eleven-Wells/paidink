@@ -1,0 +1,35 @@
+<% var iconSize = typeof size !== 'undefined' ? size : 24; %>
+<% if (icon === 'home') { %>
+    <svg class="animated-nav-icon animated-nav-icon-home" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path class="nav-icon-path nav-icon-home-roof" d="M3 10.2 12 3l9 7.2" />
+        <path class="nav-icon-path nav-icon-home-frame" d="M5.2 9.4V20a1.8 1.8 0 0 0 1.8 1.8h10a1.8 1.8 0 0 0 1.8-1.8V9.4" />
+        <path class="nav-icon-path nav-icon-home-door" d="M9.2 21.8v-7.1a1 1 0 0 1 1-1h3.6a1 1 0 0 1 1 1v7.1" />
+    </svg>
+<% } else if (icon === 'explore') { %>
+    <svg class="animated-nav-icon animated-nav-icon-explore" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <circle class="nav-icon-path nav-icon-compass-ring" cx="12" cy="12" r="9.2" />
+        <path class="nav-icon-path nav-icon-compass-needle" d="M16.4 7.6 14 14l-6.4 2.4L10 10l6.4-2.4Z" />
+        <circle class="nav-icon-compass-dot" cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+<% } else if (icon === 'activity') { %>
+    <svg class="animated-nav-icon animated-nav-icon-activity" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path class="nav-icon-path nav-icon-bell-body" d="M18 15.7V11a6 6 0 0 0-12 0v4.7L4.5 18h15L18 15.7Z" />
+        <path class="nav-icon-path nav-icon-bell-cap" d="M10 4.2a2 2 0 0 1 4 0" />
+        <path class="nav-icon-path nav-icon-bell-clapper" d="M9.8 20a2.4 2.4 0 0 0 4.4 0" />
+        <path class="nav-icon-bell-ring nav-icon-bell-ring-left" d="M4.2 8.3 2.8 7" />
+        <path class="nav-icon-bell-ring nav-icon-bell-ring-right" d="M19.8 8.3 21.2 7" />
+    </svg>
+<% } else if (icon === 'dashboard') { %>
+    <svg class="animated-nav-icon animated-nav-icon-dashboard" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <rect class="nav-icon-tile nav-icon-tile-1" x="3.5" y="3.5" width="7" height="7" rx="1.2" />
+        <rect class="nav-icon-tile nav-icon-tile-2" x="13.5" y="3.5" width="7" height="7" rx="1.2" />
+        <rect class="nav-icon-tile nav-icon-tile-3" x="13.5" y="13.5" width="7" height="7" rx="1.2" />
+        <rect class="nav-icon-tile nav-icon-tile-4" x="3.5" y="13.5" width="7" height="7" rx="1.2" />
+    </svg>
+<% } else if (icon === 'profile') { %>
+    <svg class="animated-nav-icon animated-nav-icon-profile" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <circle class="nav-icon-path nav-icon-profile-head" cx="12" cy="7.4" r="3.6" />
+        <path class="nav-icon-path nav-icon-profile-shoulders" d="M4.5 20.7v-1.2a5.2 5.2 0 0 1 5.2-5.2h4.6a5.2 5.2 0 0 1 5.2 5.2v1.2" />
+        <path class="nav-icon-profile-spark" d="M18.7 5.1v2.2M17.6 6.2h2.2" />
+    </svg>
+<% } %>
