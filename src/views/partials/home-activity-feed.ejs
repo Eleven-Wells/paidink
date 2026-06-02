@@ -7,7 +7,10 @@
                     
                     <div class="feed-post-body">
                         <div class="feed-post-meta">
-                            <h3><%= post.author ? post.author.displayName : 'Anonymous' %></h3>
+                            <div class="feed-author-copy">
+                                <h3><%= post.author ? post.author.displayName : 'Anonymous' %></h3>
+                                <p><%= post.readTime || '5m' %> read</p>
+                            </div>
                             <button type="button" class="feed-follow-btn" data-user-id="<%= post.author ? post.author._id : '' %>">
                                 Follow
                             </button>
@@ -51,6 +54,9 @@
                     </div>
                     
                     <div class="feed-post-options">
+                        <a href="/post/<%= post.slug %>" class="feed-read-cta" aria-label="Read <%= post.title %>">
+                            Read post
+                        </a>
                         <button type="button" aria-label="More options">
                             <svg width="52" height="52" viewBox="0 0 24 24" fill="currentColor">
                                 <circle cx="12" cy="5" r="2"/>
@@ -153,7 +159,14 @@
         min-width: 0;
     }
 
-    .feed-post-meta > h3 {
+    .feed-author-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .feed-author-copy > h3 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 800;
@@ -165,16 +178,41 @@
         min-width: 0;
     }
 
-    .feed-follow-btn {
+    .feed-author-copy > p {
+        margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 500;
-        font-size: 30px;
-        color: #000;
-        background: none;
-        border: none;
+        font-size: 18px;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.54);
+        white-space: nowrap;
+    }
+
+    .feed-follow-btn {
+        display: inline-flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(109, 10, 10, 0.35);
+        background: rgba(109, 10, 10, 0.06);
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 500;
+        font-size: 20px;
+        line-height: 1;
+        color: #6d0a0a;
         cursor: pointer;
         white-space: nowrap;
         flex-shrink: 0;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .feed-follow-btn:hover,
+    .feed-follow-btn:focus {
+        background: #6d0a0a;
+        border-color: #6d0a0a;
+        color: #fff;
     }
 
     .feed-post-link {
@@ -255,6 +293,32 @@
         border: none;
         cursor: pointer;
         color: #000;
+    }
+
+    .feed-read-cta {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 20px;
+        border-radius: 999px;
+        background: #6d0a0a;
+        color: #fff;
+        text-decoration: none;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 600;
+        font-size: 22px;
+        line-height: 1;
+        white-space: nowrap;
+        box-shadow: 0 12px 24px rgba(109, 10, 10, 0.14);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .feed-read-cta:hover,
+    .feed-read-cta:focus {
+        background: #4f0707;
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(109, 10, 10, 0.2);
     }
 
     .feed-divider {
@@ -367,11 +431,14 @@
         .home-activity-feed {
             max-width: 900px;
         }
-        .feed-post-meta > h3 {
+        .feed-author-copy > h3 {
             font-size: 28px;
         }
+        .feed-author-copy > p {
+            font-size: 16px;
+        }
         .feed-follow-btn {
-            font-size: 24px;
+            font-size: 18px;
         }
         .feed-post-link > h4 {
             font-size: 24px;
@@ -388,11 +455,11 @@
         .feed-post-header {
             gap: 20px;
         }
-        .feed-post-meta > h3 {
+        .feed-author-copy > h3 {
             font-size: 24px;
         }
         .feed-follow-btn {
-            font-size: 20px;
+            font-size: 17px;
         }
         .feed-post-link > h4 {
             font-size: 20px;
@@ -413,11 +480,19 @@
         .feed-post-header {
             gap: 16px;
         }
-        .feed-post-meta > h3 {
+        .feed-post-meta {
+            align-items: center;
+        }
+        .feed-author-copy > h3 {
             font-size: 20px;
         }
+        .feed-author-copy > p {
+            font-size: 14px;
+        }
         .feed-follow-btn {
-            font-size: 16px;
+            min-height: 34px;
+            padding-inline: 14px;
+            font-size: 15px;
         }
         .feed-post-link > h4 {
             font-size: 18px;
@@ -429,6 +504,21 @@
             height: 140px;
         }
         .feed-post-interactions > button > span {
+            font-size: 18px;
+        }
+        .feed-post-actions {
+            align-items: flex-start;
+            gap: 18px;
+            flex-direction: column;
+        }
+        .feed-post-options {
+            width: 100%;
+            justify-content: flex-start;
+            gap: 14px;
+        }
+        .feed-read-cta {
+            min-height: 40px;
+            padding-inline: 18px;
             font-size: 18px;
         }
         .suggestion-card {
@@ -447,5 +537,4 @@
         }
     }
 </style>
-
 

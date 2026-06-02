@@ -6,11 +6,14 @@
                     <%- include('../partials/avatar', { user: post.author, size: 'clamp(48px, 8vw, 80px)' }) %>
                     
                     <div style="display: flex; flex-direction: column; width: 100%; max-width: min(786px, 100%); align-items: flex-start; gap: clamp(10px, 2vw, 18px);">
-                        <div style="display: flex; width: 100%; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                            <h3 style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 800; font-size: clamp(20px, 3.5vw, 32px); color: #000;">
-                                <%= post.author ? post.author.displayName : 'Anonymous' %>
-                            </h3>
-                            <button type="button" class="feed-follow-btn" data-user-id="<%= post.author ? post.author._id : '' %>" style="font-family: 'Abhaya Libre', serif; font-weight: 500; font-size: clamp(18px, 2.5vw, 30px); color: #000; background: none; border: none; cursor: pointer; white-space: nowrap;">
+                        <div class="explore-post-meta">
+                            <div class="explore-author-copy">
+                                <h3>
+                                    <%= post.author ? post.author.displayName : 'Anonymous' %>
+                                </h3>
+                                <p><%= post.readTime || '5m' %> read</p>
+                            </div>
+                            <button type="button" class="feed-follow-btn" data-user-id="<%= post.author ? post.author._id : '' %>">
                                 Follow
                             </button>
                         </div>
@@ -62,7 +65,10 @@
                         </button>
                     </div>
                     
-                    <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="explore-post-options" style="display: flex; align-items: center; gap: 12px;">
+                        <a href="/post/<%= post.slug %>" class="feed-read-cta" aria-label="Read <%= post.title %>">
+                            Read post
+                        </a>
                         <button type="button" aria-label="More options" style="background: none; border: none; cursor: pointer; color: #000;">
                             <svg width="clamp(32px, 5vw, 52px)" height="clamp(32px, 5vw, 52px)" viewBox="0 0 24 24" fill="currentColor">
                                 <circle cx="12" cy="5" r="2"/>
@@ -142,6 +148,86 @@
         max-width: 100%;
         box-sizing: border-box;
     }
+    .explore-post-meta {
+        display: flex;
+        width: 100%;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .explore-author-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+    .explore-author-copy > h3 {
+        margin: 0;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 800;
+        font-size: clamp(20px, 3.5vw, 32px);
+        color: #000;
+        min-width: 0;
+    }
+    .explore-author-copy > p {
+        margin: 0;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 500;
+        font-size: clamp(14px, 1.8vw, 18px);
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.54);
+        white-space: nowrap;
+    }
+    .explore-feed-card .feed-follow-btn {
+        display: inline-flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(109, 10, 10, 0.35);
+        background: rgba(109, 10, 10, 0.06);
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 500;
+        font-size: clamp(15px, 2vw, 20px);
+        line-height: 1;
+        color: #6d0a0a;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .explore-feed-card .feed-follow-btn:hover,
+    .explore-feed-card .feed-follow-btn:focus {
+        background: #6d0a0a;
+        border-color: #6d0a0a;
+        color: #fff;
+    }
+    .feed-read-cta {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 20px;
+        border-radius: 999px;
+        background: #6d0a0a;
+        color: #fff;
+        text-decoration: none;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 600;
+        font-size: clamp(18px, 2.4vw, 22px);
+        line-height: 1;
+        white-space: nowrap;
+        box-shadow: 0 12px 24px rgba(109, 10, 10, 0.14);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .feed-read-cta:hover,
+    .feed-read-cta:focus {
+        background: #4f0707;
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(109, 10, 10, 0.2);
+    }
     .explore-suggestions {
         margin: 0 auto;
     }
@@ -179,7 +265,7 @@
             font-size: 24px !important;
         }
         .explore-feed-card .feed-follow-btn {
-            font-size: 22px !important;
+            font-size: 17px !important;
         }
         .explore-feed-card .like-btn span,
         .explore-feed-card [aria-label="Comments"] span,
@@ -230,6 +316,9 @@
         .explore-feed-card > div:first-child > div > div:first-child {
             flex-wrap: wrap;
         }
+        .explore-post-meta {
+            align-items: center;
+        }
         .explore-feed-card a {
             width: 100% !important;
         }
@@ -256,6 +345,9 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .explore-author-copy > p {
+            font-size: 14px !important;
+        }
         .explore-feed-card h4 {
             font-size: 18px !important;
         }
@@ -263,7 +355,9 @@
             font-size: 16px !important;
         }
         .explore-feed-card .feed-follow-btn {
-            font-size: 16px !important;
+            min-height: 34px !important;
+            padding-inline: 14px !important;
+            font-size: 15px !important;
         }
         .explore-feed-card [aria-label="More options"] svg {
             width: 32px !important;
@@ -283,6 +377,17 @@
         .explore-feed-card .save-btn svg {
             width: 24px !important;
             height: 24px !important;
+        }
+        .explore-post-options {
+            width: 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        .feed-read-cta {
+            width: auto !important;
+            min-height: 40px;
+            padding-inline: 18px;
+            font-size: 18px !important;
         }
         .explore-feed-card [role="img"] {
             max-width: 100% !important;
