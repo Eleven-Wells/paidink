@@ -1,21 +1,24 @@
 const { fastify, buildApp } = require('../src/app');
 const { connectDB } = require('../src/db');
 
-const INIT_TIMEOUT = 25000;
+const INIT_TIMEOUT = 8500;
 let initialized = false;
 let initError = null;
 let initPromise = null;
 
 async function initialize() {
     try {
-        await connectDB();
-        await buildApp();
+        await Promise.all([connectDB(), buildApp()]);
         await fastify.ready();
         initialized = true;
         initError = null;
     } catch (err) {
-        initError = err;
-        throw err;
+        if (err instanceof AggregateError) {
+            initError = err.errors[0] || err;
+        } else {
+            initError = err;
+        }
+        throw initError;
     }
 }
 
