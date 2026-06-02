@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-mongoose.set('bufferTimeoutMS', 3000);
+mongoose.set('bufferTimeoutMS', 60000);
 
 const fastify = require('fastify')({
     logger: {
