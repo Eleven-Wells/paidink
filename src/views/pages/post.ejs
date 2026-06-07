@@ -61,8 +61,8 @@
     <header class="post-hero">
         <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
             <div class="post-back-row fade-up">
-                <button type="button" id="postBackButton" class="post-back-btn" aria-label="Go back to previous page"
-                    onclick="goBack(event)">
+                <button type="button" id="postBackButton" class="post-back-btn" aria-label="Go back to previous page">
+
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         aria-hidden="true">
@@ -1193,7 +1193,7 @@
 </style>
 
 <script>
-    <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+     if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { 
         let readSessionId = null;
         let sessionStarted = false;
         let hasCompleted = false;
@@ -1342,7 +1342,7 @@
                 }
             }, 1000);
         });
-    <% } else { %>
+    } else { 
         window.addEventListener('scroll', function () {
             const scrollTop = window.pageYOffset;
             const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -1350,7 +1350,7 @@
             const progressBar = document.getElementById('scrollProgressPost');
             if (progressBar) progressBar.style.width = scrollPercent + '%';
         });
-    <% } %>
+     } 
 
         document.querySelectorAll('.share-btn').forEach(btn => {
             btn.addEventListener('click', function () {
@@ -1378,38 +1378,48 @@
             });
         });
 
-    const postBackButton = document.getElementById('postBackButton');
-    if (postBackButton) {
-        postBackButton.addEventListener('click', function (e) {
-            // fallback to global handler
-            if (typeof goBack === 'function') return goBack(e);
-        });
-    }
+    document.addEventListener('DOMContentLoaded', () => {
 
-    // Global goBack function used by inline onclick and as a fallback
-    function goBack(e) {
-        try {
-            if (e && typeof e.preventDefault === 'function') e.preventDefault();
-        } catch (er) { }
+        const postBackButton = document.getElementById('postBackButton');
 
-        const fallbackUrl = document.referrer && document.referrer.startsWith(window.location.origin)
-            ? document.referrer
-            : '/browse';
-
-        if (window.history && window.history.length > 1) {
-            window.history.back();
-
-            window.setTimeout(function () {
-                if (document.visibilityState === 'visible') {
-                    window.location.href = fallbackUrl;
-                }
-            }, 400);
-
+        if (!postBackButton) {
+            console.warn('postBackButton not found');
             return;
         }
 
-        window.location.href = fallbackUrl;
-    }
+        function goBack(e) {
+            e.preventDefault();
+
+            try {
+                const fallbackUrl =
+                    document.referrer &&
+                        document.referrer.startsWith(window.location.origin)
+                        ? document.referrer
+                        : '/browse';
+
+                if (window.history.length > 1) {
+                    window.history.back();
+
+                    setTimeout(() => {
+                        if (document.visibilityState === 'visible') {
+                            window.location.href = fallbackUrl;
+                        }
+                    }, 400);
+
+                    return;
+                }
+
+                window.location.href = fallbackUrl;
+
+            } catch (error) {
+                console.error('Back navigation failed:', error);
+                window.location.href = '/browse';
+            }
+        }
+
+        postBackButton.addEventListener('click', goBack);
+
+    });
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -1422,9 +1432,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         (function () {
             var postId = '<%= String(post._id) %>';
-            var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>;
+            var isLoggedIn = typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' ;
             var currentUser = null;
-            try { currentUser = <% - typeof user !== 'undefined' && user ? JSON.stringify(typeof user.toJSON === 'function' ? user.toJSON() : user) : 'null' %>; } catch (e) { }
+            try { currentUser = - typeof user !== 'undefined' && user ? JSON.stringify(typeof user.toJSON === 'function' ? user.toJSON() : user) : 'null' ; } catch (e) { }
 
             function escapeHtml(text) {
                 var div = document.createElement('div');
