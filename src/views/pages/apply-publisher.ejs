@@ -4,270 +4,913 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apply for Publisher | NOOK</title>
+    <title>Apply to Write | NOOK</title>
+    <meta name="description" content="Apply to become a NOOK publisher — share your stories and earn from your writing.">
+    <meta name="theme-color" content="#6d0a0a">
     <%- include('../partials/dashboard-css') %>
     <style>
-        .apply-back-link {
+        .pub-apply-shell {
+            color: var(--dash-text);
+            max-width: 72rem;
+            margin: 0 auto;
+            padding: 0 clamp(1rem, 2vw, 1.5rem) 3rem;
+        }
+
+        .pub-apply-back {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 0.45rem;
+            padding: 0.6rem 0.85rem;
+            margin-bottom: 1.25rem;
+            border-radius: 999px;
+            border: 1px solid rgba(109, 10, 10, 0.12);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
             color: var(--dash-accent);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             text-decoration: none;
-            margin-bottom: 24px;
-            transition: color 0.2s ease;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .apply-back-link:hover {
-            color: var(--dash-accent-strong);
+        .pub-apply-back:hover {
+            transform: translateY(-1px);
+            background: var(--dash-accent);
+            border-color: var(--dash-accent);
+            color: #fff;
+            box-shadow: 0 14px 30px rgba(109, 10, 10, 0.12);
         }
 
-        .apply-card {
-            border-radius: 16px;
-            border: 1px solid var(--dash-card-border);
-            background: var(--dash-card-bg);
-            padding: 32px;
-            box-shadow: var(--dash-card-shadow);
+        .pub-apply-hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.25rem;
+            padding: 1.75rem 1.5rem;
+            margin-bottom: 1.5rem;
+            background:
+                radial-gradient(circle at top right, rgba(109, 10, 10, 0.14), transparent 34%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 246, 239, 0.98));
         }
 
-        .apply-icon-wrap {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 24px;
+        .pub-apply-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
+            background-size: 72px 72px;
+            mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .pub-apply-hero__inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1.25rem;
+        }
+
+        .pub-apply-kicker {
+            color: var(--dash-accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .pub-apply-title {
+            margin: 0;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.65rem, 3vw, 2.25rem);
+            font-weight: 700;
+            letter-spacing: -0.035em;
+            color: var(--dash-text);
+        }
+
+        .pub-apply-lead {
+            margin: 0.65rem 0 0;
+            max-width: 36rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--dash-muted);
+        }
+
+        .pub-apply-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            flex-shrink: 0;
+        }
+
+        .pub-apply-status-pill--open {
+            background: rgba(22, 163, 74, 0.1);
+            color: #15803d;
+            border: 1px solid rgba(22, 163, 74, 0.2);
+        }
+
+        .pub-apply-status-pill--pending {
+            background: rgba(234, 179, 8, 0.12);
+            color: #a16207;
+            border: 1px solid rgba(234, 179, 8, 0.25);
+        }
+
+        .pub-apply-status-pill--rejected {
+            background: rgba(220, 38, 38, 0.08);
+            color: #b91c1c;
+            border: 1px solid rgba(220, 38, 38, 0.18);
+        }
+
+        .pub-apply-status-pill--approved {
+            background: rgba(22, 163, 74, 0.12);
+            color: #15803d;
+            border: 1px solid rgba(22, 163, 74, 0.22);
+        }
+
+        .pub-apply-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .pub-apply-panel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.15rem;
+            padding: 1.35rem;
+        }
+
+        .pub-apply-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+            pointer-events: none;
+        }
+
+        .pub-apply-panel__title {
+            margin: 0 0 1rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dash-text);
+        }
+
+        .pub-apply-benefits {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .pub-apply-benefit {
+            padding: 1rem;
+            border-radius: 0.9rem;
+            border: 1px solid rgba(109, 10, 10, 0.1);
+            background: rgba(255, 255, 255, 0.55);
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .pub-apply-benefit:hover {
+            border-color: rgba(109, 10, 10, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .pub-apply-benefit__icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.65rem;
+            background: rgba(109, 10, 10, 0.08);
+            color: var(--dash-accent);
+        }
+
+        .pub-apply-benefit h4 {
+            margin: 0 0 0.25rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--dash-text);
+        }
+
+        .pub-apply-benefit p {
+            margin: 0;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: var(--dash-muted);
+        }
+
+        .pub-apply-steps {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .pub-apply-step {
+            display: grid;
+            grid-template-columns: 2rem 1fr;
+            gap: 0.85rem;
+            padding: 0.85rem 0;
+            position: relative;
+        }
+
+        .pub-apply-step:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            left: 0.95rem;
+            top: 2.6rem;
+            bottom: -0.2rem;
+            width: 2px;
+            background: rgba(109, 10, 10, 0.12);
+        }
+
+        .pub-apply-step__dot {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            background: rgba(109, 10, 10, 0.08);
+            color: var(--dash-accent);
+            border: 2px solid rgba(109, 10, 10, 0.14);
+            z-index: 1;
+        }
+
+        .pub-apply-step.is-done .pub-apply-step__dot {
+            background: var(--dash-accent);
+            color: #fff;
+            border-color: var(--dash-accent);
+        }
+
+        .pub-apply-step.is-current .pub-apply-step__dot {
+            background: #fff;
+            color: var(--dash-accent);
+            border-color: var(--dash-accent);
+            box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.1);
+        }
+
+        .pub-apply-step__title {
+            margin: 0;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--dash-text);
+        }
+
+        .pub-apply-step__copy {
+            margin: 0.2rem 0 0;
+            font-size: 0.8rem;
+            line-height: 1.45;
+            color: var(--dash-muted);
+        }
+
+        .pub-apply-checklist {
+            list-style: none;
+            margin: 0 0 1.25rem;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+
+        .pub-apply-checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            font-size: 0.84rem;
+            line-height: 1.45;
+            color: var(--dash-muted);
+        }
+
+        .pub-apply-checklist li svg {
+            flex-shrink: 0;
+            margin-top: 0.15rem;
+            width: 1rem;
+            height: 1rem;
+            color: var(--dash-success);
+        }
+
+        .pub-apply-ack {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(109, 10, 10, 0.12);
+            background: rgba(109, 10, 10, 0.03);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pub-apply-ack input {
+            margin-top: 0.2rem;
+            accent-color: var(--dash-accent);
+            flex-shrink: 0;
+        }
+
+        .pub-apply-ack span {
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: var(--dash-muted);
+        }
+
+        .pub-apply-submit {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            border: none;
+            border-radius: 999px;
+            background: var(--dash-primary-bg);
+            color: var(--dash-primary-text);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            box-shadow: var(--dash-primary-shadow);
+        }
+
+        .pub-apply-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            background: var(--dash-primary-hover);
+        }
+
+        .pub-apply-submit:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .pub-apply-submit.is-loading {
+            pointer-events: none;
+        }
+
+        .pub-apply-submit__spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: pubApplySpin 0.7s linear infinite;
+            display: none;
+        }
+
+        .pub-apply-submit.is-loading .pub-apply-submit__spinner { display: block; }
+        .pub-apply-submit.is-loading .pub-apply-submit__label { opacity: 0.7; }
+
+        @keyframes pubApplySpin { to { transform: rotate(360deg); } }
+
+        .pub-apply-note {
+            margin-top: 0.85rem;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            color: var(--dash-muted);
+            text-align: center;
+        }
+
+        .pub-apply-callout {
+            padding: 1rem 1.1rem;
+            border-radius: 0.85rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.85rem;
+            line-height: 1.55;
+        }
+
+        .pub-apply-callout--warn {
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.22);
+            color: #854d0e;
+        }
+
+        .pub-apply-callout--error {
+            background: rgba(220, 38, 38, 0.06);
+            border: 1px solid rgba(220, 38, 38, 0.16);
+            color: #991b1b;
+        }
+
+        .pub-apply-callout--success {
+            background: rgba(22, 163, 74, 0.08);
+            border: 1px solid rgba(22, 163, 74, 0.18);
+            color: #166534;
+        }
+
+        .pub-apply-callout strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 700;
+        }
+
+        .pub-apply-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 1.25rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.25rem;
+            border-radius: 0.85rem;
+            background: rgba(109, 10, 10, 0.04);
+            border: 1px solid rgba(109, 10, 10, 0.1);
+            font-size: 0.8rem;
+        }
+
+        .pub-apply-meta dt {
+            color: var(--dash-muted);
+            font-weight: 600;
+        }
+
+        .pub-apply-meta dd {
+            margin: 0;
+            color: var(--dash-text);
+            font-weight: 600;
+        }
+
+        .pub-apply-meta > div {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+
+        .pub-apply-cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
+
+        .pub-apply-cta-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.85rem 1.25rem;
+            border-radius: 999px;
+            border: 1px solid var(--dash-secondary-border);
+            background: var(--dash-secondary-bg);
+            color: var(--dash-secondary-text);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .pub-apply-cta-secondary:hover {
+            background: var(--dash-secondary-hover-bg);
+            border-color: var(--dash-card-border-strong);
+        }
+
+        .pub-apply-status-center {
+            text-align: center;
+            padding: 0.5rem 0 1rem;
+        }
+
+        .pub-apply-status-icon {
+            width: 4.5rem;
+            height: 4.5rem;
+            margin: 0 auto 1.25rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .apply-icon-wrap--pending {
-            background: rgba(234, 179, 8, 0.12);
+        .pub-apply-status-icon--pending {
+            background: rgba(234, 179, 8, 0.14);
+            color: #ca8a04;
         }
 
-        .apply-icon-wrap--rejected {
+        .pub-apply-status-icon--rejected {
             background: rgba(220, 38, 38, 0.1);
+            color: #dc2626;
         }
 
-        .apply-icon-wrap--approved {
-            background: rgba(22, 163, 74, 0.1);
+        .pub-apply-status-icon--approved {
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
         }
 
-        .apply-icon-wrap--default {
-            background: linear-gradient(135deg, #16a34a, #059669);
-        }
-
-        .apply-heading {
-            font-family: 'Abhaya Libre', serif;
-            font-size: 24px;
+        .pub-apply-status-heading {
+            margin: 0 0 0.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--dash-text);
-            margin-bottom: 8px;
+            letter-spacing: -0.03em;
         }
 
-        .apply-copy {
-            color: var(--dash-muted);
-            margin-bottom: 24px;
+        .pub-apply-status-copy {
+            margin: 0 0 1.25rem;
+            font-size: 0.92rem;
             line-height: 1.6;
-        }
-
-        .apply-info-box {
-            border-radius: 12px;
-            padding: 16px;
-            background: var(--dash-bg-alt);
-            border: 1px solid var(--dash-card-border);
-            font-size: 14px;
             color: var(--dash-muted);
-            text-align: left;
         }
 
-        .apply-info-box strong {
-            color: var(--dash-text);
-        }
-
-        .apply-perks {
-            text-align: left;
-            border-radius: 12px;
-            padding: 16px;
-            background: var(--dash-bg-alt);
-            border: 1px solid var(--dash-card-border);
-            margin-bottom: 24px;
-        }
-
-        .apply-perks h3 {
-            font-weight: 600;
-            color: var(--dash-text);
-            margin-bottom: 12px;
-        }
-
-        .apply-perks ul {
+        .pub-apply-quickstart {
             list-style: none;
+            margin: 0 0 1.25rem;
             padding: 0;
-            margin: 0;
+            text-align: left;
         }
 
-        .apply-perks li {
+        .pub-apply-quickstart li {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: var(--dash-muted);
-            padding: 6px 0;
+            gap: 0.65rem;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid rgba(109, 10, 10, 0.08);
+            font-size: 0.85rem;
+            color: var(--dash-text);
         }
 
-        .apply-perks li svg {
-            width: 16px;
-            height: 16px;
-            color: var(--dash-success);
+        .pub-apply-quickstart li:last-child { border-bottom: none; }
+
+        .pub-apply-quickstart__num {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(109, 10, 10, 0.08);
+            color: var(--dash-accent);
             flex-shrink: 0;
         }
 
-        .apply-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 24px;
-            border-radius: 999px;
-            background: var(--dash-primary-bg);
-            color: var(--dash-primary-text);
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: var(--dash-primary-shadow);
+        @media (max-width: 900px) {
+            .pub-apply-layout { grid-template-columns: 1fr; }
+            .pub-apply-benefits { grid-template-columns: 1fr; }
         }
 
-        .apply-btn:hover {
-            background: var(--dash-primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .apply-btn:active {
-            transform: translateY(0);
-        }
-
-        .apply-btn--full {
-            width: 100%;
+        @media (max-width: 640px) {
+            .pub-apply-hero { padding: 1.25rem; }
+            .pub-apply-cta-row { flex-direction: column; }
+            .pub-apply-cta-row .pub-apply-submit,
+            .pub-apply-cta-row .pub-apply-cta-secondary { width: 100%; }
         }
     </style>
 </head>
 
-<body class="min-h-screen" style="background: var(--dash-bg);">
+<body class="min-h-screen dashboard-page">
     <div class="bg-noise"></div>
     <div class="bg-grid"></div>
 
     <%- include('../partials/app-utility-bar', { pageTitle: 'Apply to Write', unreadCount: unreadCount, user: user }) %>
 
-    <main class="relative pt-16 pb-16">
-        <div class="max-w-2xl mx-auto px-6">
-            <a href="/dashboard" class="apply-back-link">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <main class="relative z-10 pt-20 pb-12">
+        <div class="pub-apply-shell">
+            <a href="/dashboard" class="pub-apply-back">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-                Back to Dashboard
+                Dashboard
             </a>
 
-            <div class="apply-card">
-                <% if (status === 'pending') { %>
-                    <div class="text-center">
-                        <div class="apply-icon-wrap apply-icon-wrap--pending">
-                            <svg class="w-10 h-10" style="color: #ca8a04;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <h1 class="apply-heading">Application Under Review</h1>
-                        <p class="apply-copy">Your publisher application is being reviewed. You'll be notified once it's approved.</p>
-                        <div class="apply-info-box">
-                            Applied on: <%= appliedAt ? new Date(appliedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A' %>
-                        </div>
+            <% const displayStatus = status || 'none'; %>
+            <% const firstName = (user && user.displayName) ? user.displayName.split(' ')[0] : 'there'; %>
+
+            <section class="glass-card pub-apply-hero">
+                <div class="pub-apply-hero__inner">
+                    <div>
+                        <p class="pub-apply-kicker">Publisher program</p>
+                        <% if (displayStatus === 'pending') { %>
+                            <h1 class="pub-apply-title">We're reviewing your application</h1>
+                            <p class="pub-apply-lead">Thanks <%= firstName %> — your request is in the queue. We'll notify you as soon as a decision is made.</p>
+                        <% } else if (displayStatus === 'rejected') { %>
+                            <h1 class="pub-apply-title">Application not approved</h1>
+                            <p class="pub-apply-lead">This round didn't go through, but you can reapply when you're ready. Review the feedback below and try again.</p>
+                        <% } else if (displayStatus === 'approved') { %>
+                            <h1 class="pub-apply-title">You're a publisher, <%= firstName %>!</h1>
+                            <p class="pub-apply-lead">Your application was approved. Start drafting, publish to Nook, and earn when readers engage with your work.</p>
+                        <% } else { %>
+                            <h1 class="pub-apply-title">Share your voice on Nook</h1>
+                            <p class="pub-apply-lead">Join our publisher program to write original stories, reach engaged readers, and earn from views and completed reads.</p>
+                        <% } %>
                     </div>
-                <% } else if (status === 'rejected') { %>
-                    <div class="text-center">
-                        <div class="apply-icon-wrap apply-icon-wrap--rejected">
-                            <svg class="w-10 h-10" style="color: #dc2626;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
+                    <% if (displayStatus === 'pending') { %>
+                        <span class="pub-apply-status-pill pub-apply-status-pill--pending">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Under review
+                        </span>
+                    <% } else if (displayStatus === 'rejected') { %>
+                        <span class="pub-apply-status-pill pub-apply-status-pill--rejected">Not approved</span>
+                    <% } else if (displayStatus === 'approved') { %>
+                        <span class="pub-apply-status-pill pub-apply-status-pill--approved">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Approved
+                        </span>
+                    <% } else { %>
+                        <span class="pub-apply-status-pill pub-apply-status-pill--open">Applications open</span>
+                    <% } %>
+                </div>
+            </section>
+
+            <% if (displayStatus === 'pending') { %>
+                <div class="pub-apply-layout">
+                    <div class="glass-card pub-apply-panel">
+                        <h2 class="pub-apply-panel__title">Application progress</h2>
+                        <ol class="pub-apply-steps">
+                            <li class="pub-apply-step is-done">
+                                <span class="pub-apply-step__dot">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </span>
+                                <div>
+                                    <p class="pub-apply-step__title">Application submitted</p>
+                                    <p class="pub-apply-step__copy">Your request was received and logged in our review queue.</p>
+                                </div>
+                            </li>
+                            <li class="pub-apply-step is-current">
+                                <span class="pub-apply-step__dot">2</span>
+                                <div>
+                                    <p class="pub-apply-step__title">Team review</p>
+                                    <p class="pub-apply-step__copy">We verify account standing and program fit. Most reviews complete within 2–5 business days.</p>
+                                </div>
+                            </li>
+                            <li class="pub-apply-step">
+                                <span class="pub-apply-step__dot">3</span>
+                                <div>
+                                    <p class="pub-apply-step__title">Publisher access</p>
+                                    <p class="pub-apply-step__copy">Once approved, you'll get the publisher dashboard and can publish your first article.</p>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="glass-card pub-apply-panel">
+                        <div class="pub-apply-status-center">
+                            <div class="pub-apply-status-icon pub-apply-status-icon--pending">
+                                <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h2 class="pub-apply-status-heading">Sit tight</h2>
+                            <p class="pub-apply-status-copy">You'll receive an in-app notification when your status changes. No further action needed right now.</p>
                         </div>
-                        <h1 class="apply-heading">Application Not Approved</h1>
-                        <p class="apply-copy">Your publisher application was not approved at this time.</p>
+                        <dl class="pub-apply-meta">
+                            <div>
+                                <dt>Submitted</dt>
+                                <dd><%= appliedAt ? new Date(appliedAt).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A' %></dd>
+                            </div>
+                            <div>
+                                <dt>Status</dt>
+                                <dd>Pending review</dd>
+                            </div>
+                        </dl>
+                        <div class="pub-apply-callout pub-apply-callout--warn">
+                            <strong>While you wait</strong>
+                            Keep reading and engaging on Nook — active readers often make great publishers.
+                        </div>
+                        <a href="/browse" class="pub-apply-cta-secondary" style="width:100%;text-align:center;">Browse the feed</a>
+                    </div>
+                </div>
+
+            <% } else if (displayStatus === 'rejected') { %>
+                <div class="pub-apply-layout">
+                    <div class="glass-card pub-apply-panel">
+                        <h2 class="pub-apply-panel__title">Before you reapply</h2>
+                        <ul class="pub-apply-checklist">
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                Review the feedback from our team below
+                            </li>
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                Stay active on Nook — read, save, and follow writers you admire
+                            </li>
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                Have a clear topic or niche in mind for your first articles
+                            </li>
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                Ensure your profile is complete with a bio and username
+                            </li>
+                        </ul>
+                        <a href="/profile#settings" class="pub-apply-cta-secondary">Update your profile</a>
+                    </div>
+                    <div class="glass-card pub-apply-panel">
+                        <div class="pub-apply-status-center">
+                            <div class="pub-apply-status-icon pub-apply-status-icon--rejected">
+                                <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </div>
+                            <h2 class="pub-apply-status-heading">Not approved this time</h2>
+                            <p class="pub-apply-status-copy">Don't be discouraged — many successful publishers reapply after building their presence on the platform.</p>
+                        </div>
                         <% if (notes) { %>
-                            <div class="apply-info-box" style="margin-bottom: 24px;">
-                                <strong>Reason:</strong> <%= notes %>
+                            <div class="pub-apply-callout pub-apply-callout--error">
+                                <strong>Feedback from our team</strong>
+                                <%= notes %>
                             </div>
                         <% } %>
-                        <form method="POST" action="/apply-publisher">
-                            <button type="submit" class="apply-btn">
-                                Apply Again
+                        <form method="POST" action="/apply-publisher" id="reapplyForm">
+                            <label class="pub-apply-ack">
+                                <input type="checkbox" name="ack" id="reapplyAck">
+                                <span>I've read the feedback and I'm ready to submit a new application.</span>
+                            </label>
+                            <button type="submit" class="pub-apply-submit" id="reapplyBtn" disabled>
+                                <span class="pub-apply-submit__spinner" aria-hidden="true"></span>
+                                <span class="pub-apply-submit__label">Apply again</span>
                             </button>
                         </form>
                     </div>
-                <% } else if (status === 'approved') { %>
-                    <div class="text-center">
-                        <div class="apply-icon-wrap apply-icon-wrap--approved">
-                            <svg class="w-10 h-10" style="color: #16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
+                </div>
+
+            <% } else if (displayStatus === 'approved') { %>
+                <div class="pub-apply-layout">
+                    <div class="glass-card pub-apply-panel">
+                        <h2 class="pub-apply-panel__title">Quick start guide</h2>
+                        <ol class="pub-apply-quickstart">
+                            <li><span class="pub-apply-quickstart__num">1</span> Open your publisher dashboard</li>
+                            <li><span class="pub-apply-quickstart__num">2</span> Draft your first article with title, summary, and cover image</li>
+                            <li><span class="pub-apply-quickstart__num">3</span> Publish and share — earnings track automatically</li>
+                        </ol>
+                        <div class="pub-apply-callout pub-apply-callout--success">
+                            <strong>Tip</strong>
+                            Strong summaries and clear categories help readers discover your work faster.
                         </div>
-                        <h1 class="apply-heading">You're a Publisher!</h1>
-                        <p class="apply-copy">Your application has been approved. You can now create and publish content.</p>
-                        <a href="/publisher" class="apply-btn">
-                            Go to Publisher Dashboard
-                        </a>
                     </div>
-                <% } else { %>
-                    <div class="text-center">
-                        <div class="apply-icon-wrap apply-icon-wrap--default">
-                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.49 3.49l5 5a2 2 0 002.82 0l2.83-2.83a2 2 0 000-2.83l-5-5a2 2 0 00-2.82 0l-2.83 2.83a2 2 0 000 2.83z"/>
-                            </svg>
+                    <div class="glass-card pub-apply-panel">
+                        <div class="pub-apply-status-center">
+                            <div class="pub-apply-status-icon pub-apply-status-icon--approved">
+                                <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                            <h2 class="pub-apply-status-heading">You're all set</h2>
+                            <p class="pub-apply-status-copy">Publisher tools are unlocked on your account. Head to the dashboard to create your first post.</p>
                         </div>
-                        <h1 class="apply-heading">Become a Publisher</h1>
-                        <p class="apply-copy">Apply to become a publisher and share your content with the world. Earn from your articles.</p>
-
-                        <div class="apply-perks">
-                            <h3>What you'll get:</h3>
-                            <ul>
-                                <li>
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    Create and publish your own articles
-                                </li>
-                                <li>
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    Earn from views and reads
-                                </li>
-                                <li>
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    Access to publisher analytics
-                                </li>
-                                <li>
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    Dedicated dashboard
-                                </li>
-                            </ul>
+                        <% if (typeof approvedAt !== 'undefined' && approvedAt) { %>
+                            <dl class="pub-apply-meta">
+                                <div>
+                                    <dt>Approved</dt>
+                                    <dd><%= new Date(approvedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></dd>
+                                </div>
+                            </dl>
+                        <% } %>
+                        <div class="pub-apply-cta-row">
+                            <a href="/publisher" class="pub-apply-submit" style="text-decoration:none;flex:1;">Publisher dashboard</a>
+                            <a href="/publisher/create-post" class="pub-apply-cta-secondary" style="flex:1;text-align:center;">Write a post</a>
                         </div>
+                    </div>
+                </div>
 
-                        <form method="POST" action="/apply-publisher">
-                            <button type="submit" class="apply-btn apply-btn--full">
-                                Apply Now
+            <% } else { %>
+                <div class="pub-apply-layout">
+                    <div>
+                        <div class="glass-card pub-apply-panel" style="margin-bottom:1.25rem;">
+                            <h2 class="pub-apply-panel__title">What publishers get</h2>
+                            <div class="pub-apply-benefits">
+                                <div class="pub-apply-benefit">
+                                    <div class="pub-apply-benefit__icon">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </div>
+                                    <h4>Publish original work</h4>
+                                    <p>Write articles with rich formatting, images, and categories that reach Nook readers.</p>
+                                </div>
+                                <div class="pub-apply-benefit">
+                                    <div class="pub-apply-benefit__icon">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <h4>Earn from engagement</h4>
+                                    <p>Get paid when readers view and complete your articles — attention returned to you.</p>
+                                </div>
+                                <div class="pub-apply-benefit">
+                                    <div class="pub-apply-benefit__icon">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    </div>
+                                    <h4>Publisher analytics</h4>
+                                    <p>Track views, reads, and earnings from a dedicated workspace built for writers.</p>
+                                </div>
+                                <div class="pub-apply-benefit">
+                                    <div class="pub-apply-benefit__icon">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </div>
+                                    <h4>Built-in audience</h4>
+                                    <p>Your work surfaces in Explore and feeds where readers already discover stories.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card pub-apply-panel">
+                            <h2 class="pub-apply-panel__title">How it works</h2>
+                            <ol class="pub-apply-steps">
+                                <li class="pub-apply-step is-current">
+                                    <span class="pub-apply-step__dot">1</span>
+                                    <div>
+                                        <p class="pub-apply-step__title">Submit your application</p>
+                                        <p class="pub-apply-step__copy">One click — we review your account and program fit.</p>
+                                    </div>
+                                </li>
+                                <li class="pub-apply-step">
+                                    <span class="pub-apply-step__dot">2</span>
+                                    <div>
+                                        <p class="pub-apply-step__title">Get reviewed</p>
+                                        <p class="pub-apply-step__copy">Our team typically responds within 2–5 business days.</p>
+                                    </div>
+                                </li>
+                                <li class="pub-apply-step">
+                                    <span class="pub-apply-step__dot">3</span>
+                                    <div>
+                                        <p class="pub-apply-step__title">Start publishing</p>
+                                        <p class="pub-apply-step__copy">Access the publisher dashboard and share your first story.</p>
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="glass-card pub-apply-panel">
+                        <h2 class="pub-apply-panel__title">Ready to apply?</h2>
+                        <ul class="pub-apply-checklist">
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                You have an active Nook reader account
+                            </li>
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                You agree to publish original, quality content
+                            </li>
+                            <li>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                You understand earnings depend on reader engagement
+                            </li>
+                        </ul>
+                        <form method="POST" action="/apply-publisher" id="applyForm">
+                            <label class="pub-apply-ack">
+                                <input type="checkbox" name="ack" id="applyAck">
+                                <span>I want to join the Nook publisher program and will publish original content that follows community guidelines.</span>
+                            </label>
+                            <button type="submit" class="pub-apply-submit" id="applyBtn" disabled>
+                                <span class="pub-apply-submit__spinner" aria-hidden="true"></span>
+                                <span class="pub-apply-submit__label">Submit application</span>
                             </button>
+                            <p class="pub-apply-note">Free to apply · No payment required · Review in 2–5 business days</p>
                         </form>
                     </div>
-                <% } %>
-            </div>
+                </div>
+            <% } %>
         </div>
     </main>
 
     <%- include('../partials/nook-alert') %>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('submitted') === '1' && typeof showToast === 'function') {
+                showToast('Application submitted — we\'ll notify you when it\'s reviewed.', 'success');
+                history.replaceState(null, '', window.location.pathname);
+            }
+
+            function wireForm(checkboxId, btnId, formId) {
+                var checkbox = document.getElementById(checkboxId);
+                var btn = document.getElementById(btnId);
+                var form = document.getElementById(formId);
+                if (!checkbox || !btn || !form) return;
+
+                checkbox.addEventListener('change', function () {
+                    btn.disabled = !checkbox.checked;
+                });
+
+                form.addEventListener('submit', function () {
+                    btn.classList.add('is-loading');
+                    btn.disabled = true;
+                });
+            }
+
+            wireForm('applyAck', 'applyBtn', 'applyForm');
+            wireForm('reapplyAck', 'reapplyBtn', 'reapplyForm');
+        });
+    </script>
 
     <%- include('../partials/dashboard-scripts') %>
 </body>
