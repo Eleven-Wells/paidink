@@ -484,6 +484,17 @@ async function apiRoutes(fastify) {
         currentUser.following.push(id);
         await currentUser.save();
 
+        if (!targetUser.followers) {
+            targetUser.followers = [];
+        }
+        const followerIndex = targetUser.followers.findIndex(
+            (followerId) => String(followerId) === String(req.user.id)
+        );
+        if (followerIndex === -1) {
+            targetUser.followers.push(req.user.id);
+            await targetUser.save();
+        }
+
         return {
             success: true,
             message: 'Successfully followed user'

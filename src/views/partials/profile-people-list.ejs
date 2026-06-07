@@ -1,0 +1,33 @@
+<% const people = typeof peopleList !== 'undefined' ? peopleList : []; %>
+<% const peopleType = typeof listType !== 'undefined' ? listType : 'following'; %>
+
+<% if (people && people.length > 0) { %>
+    <ul class="profile-people-list">
+        <% people.forEach(function(person) { %>
+            <li class="profile-people-item glass-card">
+                <div class="profile-people-item__main">
+                    <%- include('./avatar', { user: person, size: '48px' }) %>
+                    <div class="profile-people-item__copy">
+                        <span class="profile-people-item__name"><%= person.displayName || 'Nook reader' %></span>
+                        <% if (person.username) { %>
+                            <span class="profile-people-item__handle">@<%= person.username %></span>
+                        <% } %>
+                        <% if (person.bio) { %>
+                            <p class="profile-people-item__bio"><%= person.bio %></p>
+                        <% } %>
+                    </div>
+                </div>
+                <span class="profile-people-item__role"><%= person.role === 'publisher' ? 'Publisher' : 'Reader' %></span>
+            </li>
+        <% }); %>
+    </ul>
+<% } else { %>
+    <%- include('./empty-state-card', {
+        title: peopleType === 'followers' ? 'No followers yet' : 'Not following anyone yet',
+        copy: peopleType === 'followers'
+            ? 'When others follow you, they will appear here.'
+            : 'Discover writers and readers on Explore and follow people you enjoy.',
+        ctaText: peopleType === 'followers' ? '' : 'Explore Nook',
+        ctaHref: peopleType === 'followers' ? '' : '/explore'
+    }) %>
+<% } %>

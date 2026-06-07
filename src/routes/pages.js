@@ -292,14 +292,74 @@ async function pagesRoutes(fastify) {
     fastify.get('/profile', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
+        const Post = require('../models/Post');
+        const userId = req.user.id;
+
+        const fullUser = await User.findById(userId)
+            .select('displayName username email bio phone country avatar wallet stats createdAt referralCode savedPosts following role publisherStatus')
+            .lean();
+
+        const savedPostIds = (fullUser && fullUser.savedPosts) ? fullUser.savedPosts : [];
+        const followingIds = (fullUser && fullUser.following) ? fullUser.following : [];
+
+        const [savedPosts, followingUsers, followersUsers, followersCount] = await Promise.all([
+            savedPostIds.length
+                ? Post.find({ _id: { $in: savedPostIds } })
+                    .sort({ publishedAt: -1 })
+                    .limit(24)
+                    .populate('author', 'displayName username avatar role')
+                    .lean()
+                : [],
+            followingIds.length
+                ? User.find({ _id: { $in: followingIds } })
+                    .select('displayName username avatar role bio')
+                    .sort({ displayName: 1 })
+                    .lean()
+                : [],
+            User.find({ following: userId })
+                .select('displayName username avatar role bio')
+                .sort({ displayName: 1 })
+                .limit(50)
+                .lean(),
+            User.countDocuments({ following: userId })
+        ]);
+
+        const savedPostsPrepared = savedPosts.map((post) => {
+            if (post.author) {
+                post.author.avatar = getAvatarWithFallback(post.author);
+            }
+            post.readTime = post.content
+                ? `${Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200))}m`
+                : '5m';
+            return post;
+        });
+
+        const mapPerson = (person) => ({
+            ...person,
+            avatar: getAvatarWithFallback(person)
+        });
+
+        const publicUser = req.user.toPublicJSON();
+        if (publicUser) {
+            publicUser.avatar = getAvatarWithFallback(publicUser);
+        }
+
         return reply.view('pages/profile.ejs', {
-            user: req.user.toPublicJSON(),
+            user: publicUser,
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
             title: 'Profile | NOOK',
-            description: 'Manage your NOOK profile, settings, and public page.',
-            canonical: `${process.env.BASE_URL || ''}/profile`
+            description: 'Manage your NOOK profile, saved posts, and connections.',
+            canonical: `${process.env.BASE_URL || ''}/profile`,
+            savedPosts: savedPostsPrepared,
+            followingUsers: followingUsers.map(mapPerson),
+            followersUsers: followersUsers.map(mapPerson),
+            profileStats: {
+                followingCount: followingIds.length,
+                followersCount,
+                savedCount: savedPostIds.length
+            }
         });
     });
 
