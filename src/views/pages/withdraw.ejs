@@ -305,9 +305,9 @@
 
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <%- include('../partials/dashboard-header') %>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Withdraw', unreadCount: unreadCount, user: user }) %>
 
-    <main class="withdraw-shell relative z-10 pt-24 pb-16">
+    <main class="withdraw-shell relative z-10 pt-16 pb-16">
         <div class="max-w-3xl mx-auto px-6">
             <section class="glass-card withdraw-hero rounded-2xl p-6 md:p-8 mb-6">
                 <div class="relative z-10">
