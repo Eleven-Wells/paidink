@@ -20,10 +20,10 @@
     <style>
         .profile-sidebar-column {
             position: fixed;
-            top: 0;
+            top: var(--util-bar-height, 48px);
             left: 0;
             width: clamp(220px, 22vw, 300px);
-            height: 100vh;
+            height: calc(100vh - var(--util-bar-height, 48px));
             overflow-y: auto;
             background: #fff;
             z-index: 40;
@@ -608,13 +608,14 @@
 <body class="min-h-screen dashboard-page">
     <div class="bg-noise"></div>
     <div class="bg-grid"></div>
-    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Profile', unreadCount: unreadCount, user: user }) %>
 
     <aside class="profile-sidebar-column">
         <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
     </aside>
 
-    <main class="profile-page relative z-10 pt-20 pb-12">
+    <main class="profile-page relative z-10 pt-16 pb-12">
         <div class="profile-shell">
             <% const stats = typeof profileStats !== 'undefined' ? profileStats : { followingCount: 0, followersCount: 0, savedCount: 0 }; %>
             <% const roleLabel = user?.role === 'publisher' ? 'Publisher' : (user?.role === 'admin' ? 'Admin' : 'Reader'); %>

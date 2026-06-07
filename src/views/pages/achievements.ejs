@@ -303,9 +303,9 @@
     <div class="bg-grid"></div>
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <%- include('../partials/dashboard-header') %>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Achievements', unreadCount: unreadCount, user: user }) %>
 
-    <main class="achievements-page relative z-10 pt-24 pb-16">
+    <main class="achievements-page relative z-10 pt-16 pb-16">
         <div class="max-w-4xl mx-auto px-6">
             <section class="glass-card achievements-hero rounded-2xl p-6 md:p-8 mb-8">
                 <div class="relative z-10">

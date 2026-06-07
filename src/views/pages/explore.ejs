@@ -39,7 +39,7 @@
         .explore-top-nav-bar {
             grid-column: 1 / -1;
             position: sticky;
-            top: 0;
+            top: var(--util-bar-height, 48px);
             z-index: 100;
             background: #fff;
             border-bottom: 1px solid #e5e5e5;
@@ -84,10 +84,10 @@
         /* ========== LEFT COLUMN - SIDE NAV (fixed, outside grid) ========== */
         .explore-left-column {
             position: fixed;
-            top: 0;
+            top: var(--util-bar-height, 48px);
             left: 0;
             width: var(--explore-nav-width);
-            height: 100vh;
+            height: calc(100vh - var(--util-bar-height, 48px));
             overflow-y: auto;
             padding: 0;
             background: #fff;
@@ -326,6 +326,8 @@
     <%- include('../partials/nook-alert-css') %>
 </head>
 <body>
+
+<%- include('../partials/app-utility-bar', { pageTitle: 'Explore', unreadCount: unreadCount, user: user }) %>
 
 <!-- Main Grid Container -->
 <div class="explore-container">

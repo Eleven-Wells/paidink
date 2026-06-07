@@ -264,6 +264,7 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/dashboard.ejs', {
             user: user.toPublicJSON(),
+            pageTitle: 'Dashboard',
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
@@ -346,6 +347,7 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/profile.ejs', {
             user: publicUser,
+            pageTitle: 'Profile',
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
@@ -451,6 +453,7 @@ async function pagesRoutes(fastify) {
     }, async (req, reply) => {
         return reply.view('pages/withdraw.ejs', {
             user: req.user.toPublicJSON(),
+            pageTitle: 'Withdraw',
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
@@ -510,6 +513,7 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/achievements.ejs', {
             user: req.user.toPublicJSON(),
+            pageTitle: 'Achievements',
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
@@ -1006,6 +1010,7 @@ async function pagesRoutes(fastify) {
 
             return reply.view('pages/home-logged-in.ejs', {
                 posts: postsWithPublicAuthors,
+                pageTitle: 'Home',
                 trendingPosts: trendingWithAuthors,
                 suggestedUsers: sidebarSuggestions,
                 feedSuggestions,
@@ -1169,6 +1174,7 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/explore.ejs', {
             activeTab: tab || 'explore',
+            pageTitle: 'Explore',
             posts: postsWithPublicAuthors,
             feedSuggestions: feedSuggestionsWithAvatar,
             trendingPosts: trendingWithAuthors,
@@ -1332,6 +1338,7 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/activity.ejs', {
             activeFilter: activeFilter,
+            pageTitle: 'Activity',
             groupedActivities: groupedActivities,
             unreadCount: req.unreadCount,
             totalUnread: req.unreadCount,

@@ -1,12 +1,6 @@
-<div class="home-layout">
-    <!-- Brand header -->
-    <header class="home-brand" style="grid-area: brand;">
-        <a href="/"
-            style="font-family: 'Zen Tokyo Zoo', cursive; font-size: 90px; letter-spacing: -14.4px; color: #6d0a0a; text-decoration: none; white-space: nowrap;">
-            nook
-        </a>
-    </header>
+<%- include('../partials/app-utility-bar', { pageTitle: 'Home', unreadCount: unreadCount, user: user }) %>
 
+<div class="home-layout">
     <!-- Side Navigation -->
     <%- include('../partials/home-side-nav') %>
 
@@ -82,15 +76,15 @@
         }
 
         .home-layout {
-            --home-top-row: 96px;
+            --home-top-row: 0px;
             --home-nav-width: clamp(220px, 22vw, 300px);
             --home-divider-left: var(--home-nav-width);
             --home-content-gutter: 28px;
             display: grid;
             grid-template-columns: var(--home-nav-width) minmax(0, 1fr) minmax(260px, 340px);
-            grid-template-rows: var(--home-top-row) auto auto 1fr;
+            grid-template-rows: auto auto auto 1fr;
             grid-template-areas:
-                "brand search search"
+                "search search search"
                 "nav composer composer"
                 "nav feed sidebar"
                 "nav feed sidebar";
@@ -100,19 +94,6 @@
             position: relative;
             width: 100%;
             box-sizing: border-box;
-        }
-
-        .home-brand {
-            align-self: center;
-            padding: 8px 24px 6px;
-            background: #fff;
-            position: relative;
-            z-index: 2;
-        }
-
-        .home-brand a {
-            display: inline-block;
-            line-height: 0.9;
         }
 
         .home-search {
@@ -218,8 +199,8 @@
 
         .home-side-nav {
             grid-area: nav;
-            top: var(--home-top-row);
-            height: calc(100vh - var(--home-top-row));
+            top: calc(var(--home-top-row) + var(--util-bar-height, 48px));
+            height: calc(100vh - var(--home-top-row) - var(--util-bar-height, 48px));
             overflow: hidden;
         }
 
@@ -290,14 +271,9 @@
                 grid-template-columns: 1fr 300px;
                 grid-template-rows: auto auto auto 1fr;
                 grid-template-areas:
-                    "brand brand"
                     "search search"
                     "composer composer"
                     "feed sidebar";
-            }
-
-            .home-brand {
-                padding: 0 24px;
             }
 
             .home-search {
@@ -341,20 +317,10 @@
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto auto 1fr;
                 grid-template-areas:
-                    "brand"
                     "search"
                     "composer"
                     "feed";
                 width: 100%;
-            }
-
-            .home-brand {
-                padding: 16px 20px;
-            }
-
-            .home-brand a {
-                font-size: 48px !important;
-                letter-spacing: -8px !important;
             }
 
             .home-search {
