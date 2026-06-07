@@ -4,116 +4,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apply for Publisher | NOOK Rewards</title>
+    <title>Apply for Publisher | NOOK</title>
     <%- include('../partials/dashboard-css') %>
+    <style>
+        .apply-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--dash-accent);
+            text-decoration: none;
+            margin-bottom: 24px;
+            transition: color 0.2s ease;
+        }
+
+        .apply-back-link:hover {
+            color: var(--dash-accent-strong);
+        }
+
+        .apply-card {
+            border-radius: 16px;
+            border: 1px solid var(--dash-card-border);
+            background: var(--dash-card-bg);
+            padding: 32px;
+            box-shadow: var(--dash-card-shadow);
+        }
+
+        .apply-icon-wrap {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .apply-icon-wrap--pending {
+            background: rgba(234, 179, 8, 0.12);
+        }
+
+        .apply-icon-wrap--rejected {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .apply-icon-wrap--approved {
+            background: rgba(22, 163, 74, 0.1);
+        }
+
+        .apply-icon-wrap--default {
+            background: linear-gradient(135deg, #16a34a, #059669);
+        }
+
+        .apply-heading {
+            font-family: 'Abhaya Libre', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dash-text);
+            margin-bottom: 8px;
+        }
+
+        .apply-copy {
+            color: var(--dash-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .apply-info-box {
+            border-radius: 12px;
+            padding: 16px;
+            background: var(--dash-bg-alt);
+            border: 1px solid var(--dash-card-border);
+            font-size: 14px;
+            color: var(--dash-muted);
+            text-align: left;
+        }
+
+        .apply-info-box strong {
+            color: var(--dash-text);
+        }
+
+        .apply-perks {
+            text-align: left;
+            border-radius: 12px;
+            padding: 16px;
+            background: var(--dash-bg-alt);
+            border: 1px solid var(--dash-card-border);
+            margin-bottom: 24px;
+        }
+
+        .apply-perks h3 {
+            font-weight: 600;
+            color: var(--dash-text);
+            margin-bottom: 12px;
+        }
+
+        .apply-perks ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .apply-perks li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--dash-muted);
+            padding: 6px 0;
+        }
+
+        .apply-perks li svg {
+            width: 16px;
+            height: 16px;
+            color: var(--dash-success);
+            flex-shrink: 0;
+        }
+
+        .apply-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 999px;
+            background: var(--dash-primary-bg);
+            color: var(--dash-primary-text);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--dash-primary-shadow);
+        }
+
+        .apply-btn:hover {
+            background: var(--dash-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .apply-btn:active {
+            transform: translateY(0);
+        }
+
+        .apply-btn--full {
+            width: 100%;
+        }
+    </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen" style="background: var(--dash-bg);">
     <div class="bg-noise"></div>
     <div class="bg-grid"></div>
 
-    <div class="mobile-overlay" id="mobileOverlay"></div>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Apply to Write', unreadCount: unreadCount, user: user }) %>
 
-    <%- include('../partials/dashboard-header') %>
-
-    <main class="relative pt-24 pb-16">
+    <main class="relative pt-16 pb-16">
         <div class="max-w-2xl mx-auto px-6">
-            <a href="/dashboard" class="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white mb-6">
+            <a href="/dashboard" class="apply-back-link">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
                 Back to Dashboard
             </a>
-            
-            <div class="glass-card rounded-2xl p-8">
+
+            <div class="apply-card">
                 <% if (status === 'pending') { %>
                     <div class="text-center">
-                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                            <svg class="w-10 h-10 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="apply-icon-wrap apply-icon-wrap--pending">
+                            <svg class="w-10 h-10" style="color: #ca8a04;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <h1 class="font-heading text-2xl font-bold mb-2">Application Under Review</h1>
-                        <p class="text-muted mb-6">Your publisher application is being reviewed. You'll be notified once it's approved.</p>
-                        <div class="bg-white/5 rounded-xl p-4 text-sm text-muted">
+                        <h1 class="apply-heading">Application Under Review</h1>
+                        <p class="apply-copy">Your publisher application is being reviewed. You'll be notified once it's approved.</p>
+                        <div class="apply-info-box">
                             Applied on: <%= appliedAt ? new Date(appliedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A' %>
                         </div>
                     </div>
                 <% } else if (status === 'rejected') { %>
                     <div class="text-center">
-                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-red-500/20 flex items-center justify-center">
-                            <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="apply-icon-wrap apply-icon-wrap--rejected">
+                            <svg class="w-10 h-10" style="color: #dc2626;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </div>
-                        <h1 class="font-heading text-2xl font-bold mb-2">Application Not Approved</h1>
-                        <p class="text-muted mb-4">Your publisher application was not approved at this time.</p>
+                        <h1 class="apply-heading">Application Not Approved</h1>
+                        <p class="apply-copy">Your publisher application was not approved at this time.</p>
                         <% if (notes) { %>
-                            <div class="bg-white/5 rounded-xl p-4 text-sm text-muted mb-6">
+                            <div class="apply-info-box" style="margin-bottom: 24px;">
                                 <strong>Reason:</strong> <%= notes %>
                             </div>
                         <% } %>
                         <form method="POST" action="/apply-publisher">
-                            <button type="submit" class="btn-primary">
+                            <button type="submit" class="apply-btn">
                                 Apply Again
                             </button>
                         </form>
                     </div>
                 <% } else if (status === 'approved') { %>
                     <div class="text-center">
-                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="apply-icon-wrap apply-icon-wrap--approved">
+                            <svg class="w-10 h-10" style="color: #16a34a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
                         </div>
-                        <h1 class="font-heading text-2xl font-bold mb-2">You're a Publisher!</h1>
-                        <p class="text-muted mb-6">Your application has been approved. You can now create and publish content.</p>
-                        <a href="/publisher" class="btn-primary">
+                        <h1 class="apply-heading">You're a Publisher!</h1>
+                        <p class="apply-copy">Your application has been approved. You can now create and publish content.</p>
+                        <a href="/publisher" class="apply-btn">
                             Go to Publisher Dashboard
                         </a>
                     </div>
                 <% } else { %>
                     <div class="text-center">
-                        <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <div class="apply-icon-wrap apply-icon-wrap--default">
                             <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.49 3.49l5 5a2 2 0 002.82 0l2.83-2.83a2 2 0 000-2.83l-5-5a2 2 0 00-2.82 0l-2.83 2.83a2 2 0 000 2.83z"/>
                             </svg>
                         </div>
-                        <h1 class="font-heading text-2xl font-bold mb-2">Become a Publisher</h1>
-                        <p class="text-muted mb-6">Apply to become a publisher and share your content with the world. Earn from your articles.</p>
-                        
-                        <div class="text-left bg-white/5 rounded-xl p-4 mb-6">
-                            <h3 class="font-semibold text-white mb-3">What you'll get:</h3>
-                            <ul class="text-sm text-muted space-y-2">
-                                <li class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h1 class="apply-heading">Become a Publisher</h1>
+                        <p class="apply-copy">Apply to become a publisher and share your content with the world. Earn from your articles.</p>
+
+                        <div class="apply-perks">
+                            <h3>What you'll get:</h3>
+                            <ul>
+                                <li>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                     Create and publish your own articles
                                 </li>
-                                <li class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <li>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                     Earn from views and reads
                                 </li>
-                                <li class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <li>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                     Access to publisher analytics
                                 </li>
-                                <li class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <li>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
                                     Dedicated dashboard
                                 </li>
                             </ul>
                         </div>
-                        
+
                         <form method="POST" action="/apply-publisher">
-                            <button type="submit" class="btn-primary w-full">
+                            <button type="submit" class="apply-btn apply-btn--full">
                                 Apply Now
                             </button>
                         </form>
