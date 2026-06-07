@@ -558,7 +558,7 @@ async function pagesRoutes(fastify) {
             dailyViews = await AuditLog.aggregate([
                 {
                     $match: {
-                        action: 'post:view',
+                        action: { $regex: /^api:post:view/ },
                         'details.postId': { $in: postIdStrings },
                         timestamp: { $gte: thirtyDaysAgo }
                     }
