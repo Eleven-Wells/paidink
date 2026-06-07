@@ -1,0 +1,37 @@
+<% if (typeof savedPosts !== 'undefined' && savedPosts && savedPosts.length > 0) { %>
+    <div class="profile-saved-grid">
+        <% savedPosts.forEach(function(post) { %>
+            <article class="profile-saved-card glass-card">
+                <% if (post.image) { %>
+                    <a href="/post/<%= post.slug %>" class="profile-saved-card__image" style="background-image: url('<%= post.image %>');" aria-label="<%= post.title %>"></a>
+                <% } %>
+                <div class="profile-saved-card__body">
+                    <div class="profile-saved-card__meta">
+                        <% if (post.author) { %>
+                            <%- include('./avatar', { user: post.author, size: '32px' }) %>
+                            <span><%= post.author.displayName || 'Anonymous' %></span>
+                        <% } %>
+                        <span class="profile-saved-card__dot" aria-hidden="true">·</span>
+                        <span><%= post.readTime || '5m' %></span>
+                    </div>
+                    <a href="/post/<%= post.slug %>" class="profile-saved-card__title"><%= post.title %></a>
+                    <p class="profile-saved-card__summary"><%= post.summary %></p>
+                    <div class="profile-saved-card__actions">
+                        <a href="/post/<%= post.slug %>" class="profile-saved-card__read">Read</a>
+                        <button type="button" class="save-btn profile-saved-card__unsave" data-post-id="<%= post._id %>" aria-label="Remove from saved">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#6d0a0a" stroke="#6d0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                            Saved
+                        </button>
+                    </div>
+                </div>
+            </article>
+        <% }); %>
+    </div>
+<% } else { %>
+    <%- include('./empty-state-card', {
+        title: 'No saved posts yet',
+        copy: 'Tap the bookmark on any post in your feed to save it here for later.',
+        ctaText: 'Explore posts',
+        ctaHref: '/explore'
+    }) %>
+<% } %>

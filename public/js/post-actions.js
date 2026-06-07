@@ -97,6 +97,9 @@
         }
       }
       toast(result.saved ? 'Saved!' : 'Removed');
+      document.dispatchEvent(new CustomEvent('nook:post-save', {
+        detail: { postId: postId, saved: result.saved }
+      }));
     }).catch(function(err) { console.error('Save failed:', err); });
   }
 
