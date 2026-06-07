@@ -405,11 +405,14 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/apply-publisher.ejs', {
             user: req.user.toPublicJSON(),
+            pageTitle: 'Apply to Write',
+            unreadCount: req.unreadCount,
+            dashboardTheme: 'light',
             isLoggedIn: true,
             status: user.publisherStatus,
             appliedAt: user.publisherAppliedAt,
+            approvedAt: user.publisherApprovedAt,
             notes: user.publisherNotes,
-            isPublisher: user.isPublisher()
         });
     });
 
@@ -424,9 +427,10 @@ async function pagesRoutes(fastify) {
 
         user.publisherStatus = 'pending';
         user.publisherAppliedAt = new Date();
+        user.publisherNotes = undefined;
         await user.save();
 
-        return reply.redirect('/apply-publisher');
+        return reply.redirect('/apply-publisher?submitted=1');
     });
 
     fastify.get('/switch-role', {
