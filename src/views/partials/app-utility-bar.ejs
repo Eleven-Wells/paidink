@@ -18,6 +18,99 @@
       <button type="button" class="util-bar-avatar" id="utilBarAvatar" aria-label="User menu" aria-haspopup="true" aria-expanded="false">
         <%= (user && user.displayName) ? user.displayName.charAt(0).toUpperCase() : 'U' %>
       </button>
+
+      <div class="util-dropdown" id="utilDropdown" role="menu" aria-labelledby="utilBarAvatar">
+        <div class="util-dropdown-header">
+          <div class="util-dd-avatar">
+            <%= (user && user.displayName) ? user.displayName.charAt(0).toUpperCase() : 'U' %>
+          </div>
+          <div class="util-dd-user">
+            <span class="util-dd-name"><%= user ? user.displayName : 'User' %></span>
+            <span class="util-dd-handle">@<%= user ? user.username : 'user' %></span>
+          </div>
+          <div class="util-dd-reads">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span><%= typeof readsThisWeek !== 'undefined' ? readsThisWeek : '--' %> reads this week</span>
+          </div>
+        </div>
+
+        <div class="util-dropdown-items">
+          <a href="/settings" class="util-dd-item" role="menuitem" tabindex="-1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span class="util-dd-item-label">Settings</span>
+            <% if (typeof user !== 'undefined' && user) { %>
+              <span class="util-dd-badge">Soon</span>
+            <% } %>
+          </a>
+
+          <% if (user && user.role === 'publisher' && user.publisherStatus === 'approved') { %>
+            <a href="/publisher" class="util-dd-item" role="menuitem" tabindex="-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span class="util-dd-item-label">Publisher Dashboard</span>
+            </a>
+          <% } else if (user && (user.role === 'reader' || !user.role) && (!user.publisherStatus || user.publisherStatus === 'none' || user.publisherStatus === 'rejected')) { %>
+            <a href="/apply-publisher" class="util-dd-item" role="menuitem" tabindex="-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              <span class="util-dd-item-label">Apply to Write</span>
+              <span class="util-dd-badge util-dd-badge-earn">Earn</span>
+            </a>
+          <% } else if (user && user.publisherStatus === 'pending') { %>
+            <a href="/apply-publisher" class="util-dd-item" role="menuitem" tabindex="-1">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span class="util-dd-item-label">Application Pending</span>
+            </a>
+          <% } %>
+
+          <button type="button" class="util-dd-item" id="utilReferBtn" role="menuitem" tabindex="-1" data-referral-link="<%= user && user.referralCode ? '/register?ref=' + user.referralCode : '' %>">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            <span class="util-dd-item-label" id="utilReferLabel">Refer a Friend</span>
+            <span class="util-dd-badge util-dd-badge-earn" id="utilReferBadge">+₦50</span>
+          </button>
+
+          <div class="util-dd-divider"></div>
+
+          <div class="util-dd-item util-dd-theme-row" role="menuitem" tabindex="-1">
+            <div class="util-dd-theme-left">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path id="utilThemePath" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+              <span class="util-dd-item-label" id="utilThemeLabel">Dark Mode</span>
+            </div>
+            <label class="util-dd-toggle" aria-label="Toggle dark mode">
+              <input type="checkbox" id="utilThemeToggle" />
+              <span class="util-dd-toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="util-dd-divider"></div>
+
+          <a href="/logout" class="util-dd-item util-dd-logout" role="menuitem" tabindex="-1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            <span class="util-dd-item-label">Logout</span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -79,6 +172,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  position: relative;
 }
 
 .util-bar-bell {
@@ -125,6 +219,7 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
 }
 
 .util-bar-avatar:hover {
@@ -137,6 +232,209 @@
   outline-offset: 2px;
 }
 
+.util-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(109, 10, 10, 0.1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+  z-index: 60;
+}
+
+.util-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.util-dropdown-header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(109, 10, 10, 0.08);
+}
+
+.util-dd-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #6d0a0a;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.util-dd-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.util-dd-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+.util-dd-handle {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.util-dd-reads {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.util-dd-reads svg {
+  color: #6d0a0a;
+  flex-shrink: 0;
+}
+
+.util-dropdown-items {
+  padding: 6px;
+}
+
+.util-dd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.util-dd-item:hover {
+  background: rgba(109, 10, 10, 0.06);
+}
+
+.util-dd-item svg {
+  color: rgba(0, 0, 0, 0.55);
+  flex-shrink: 0;
+}
+
+.util-dd-item-label {
+  flex: 1;
+  text-align: left;
+}
+
+.util-dd-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(109, 10, 10, 0.08);
+  color: #6d0a0a;
+  white-space: nowrap;
+}
+
+.util-dd-badge-earn {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
+.util-dd-divider {
+  height: 1px;
+  background: rgba(109, 10, 10, 0.08);
+  margin: 4px 10px;
+}
+
+.util-dd-logout {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.util-dd-logout:hover {
+  background: rgba(220, 38, 38, 0.06) !important;
+}
+
+.util-dd-logout svg {
+  color: #dc2626;
+}
+
+.util-dd-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.util-dd-theme-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.util-dd-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.util-dd-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.util-dd-toggle-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.15);
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.util-dd-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.util-dd-toggle input:checked + .util-dd-toggle-track {
+  background: #6d0a0a;
+}
+
+.util-dd-toggle input:checked + .util-dd-toggle-track::after {
+  transform: translateX(16px);
+}
+
 @media (max-width: 640px) {
   .util-bar-inner {
     padding: 8px 16px;
@@ -145,5 +443,119 @@
   .util-bar-title {
     font-size: 17px;
   }
+
+  .util-dropdown {
+    width: 260px;
+    right: 0;
+  }
 }
 </style>
+
+<script>
+(function() {
+  var avatar = document.getElementById('utilBarAvatar');
+  var dropdown = document.getElementById('utilDropdown');
+
+  if (!avatar || !dropdown) return;
+
+  function toggleDropdown(e) {
+    e.stopPropagation();
+    var isOpen = dropdown.classList.contains('is-open');
+    dropdown.classList.toggle('is-open');
+    avatar.setAttribute('aria-expanded', !isOpen);
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('is-open');
+    avatar.setAttribute('aria-expanded', 'false');
+  }
+
+  avatar.addEventListener('click', toggleDropdown);
+
+  document.addEventListener('click', function(e) {
+    if (!avatar.contains(e.target) && !dropdown.contains(e.target)) {
+      closeDropdown();
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDropdown();
+  });
+
+  var referBtn = document.getElementById('utilReferBtn');
+  var referLabel = document.getElementById('utilReferLabel');
+  var referBadge = document.getElementById('utilReferBadge');
+
+  if (referBtn) {
+    referBtn.addEventListener('click', function() {
+      var link = referBtn.getAttribute('data-referral-link');
+      if (!link) return;
+      var fullUrl = window.location.origin + link;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullUrl).then(function() {
+          showCopied();
+        }).catch(function() {
+          fallbackCopy(fullUrl);
+        });
+      } else {
+        fallbackCopy(fullUrl);
+      }
+    });
+
+    function fallbackCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showCopied();
+      } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    function showCopied() {
+      referLabel.textContent = '\u2705 Copied!';
+      if (referBadge) referBadge.style.display = 'none';
+      setTimeout(function() {
+        referLabel.textContent = 'Refer a Friend';
+        if (referBadge) referBadge.style.display = '';
+      }, 2000);
+    }
+  }
+
+  var themeToggle = document.getElementById('utilThemeToggle');
+  var themePath = document.getElementById('utilThemePath');
+  var themeLabel = document.getElementById('utilThemeLabel');
+
+  if (themeToggle) {
+    var currentTheme = (function() {
+      var c = document.cookie.match(/(?:^| )theme=([^;]*)/);
+      return c ? c[1] : 'light';
+    })();
+
+    var isDark = currentTheme === 'dark';
+
+    function applyTheme(dark) {
+      isDark = dark;
+      themeToggle.checked = dark;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      themeLabel.textContent = dark ? 'Light Mode' : 'Dark Mode';
+      var moonPath = 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z';
+      var sunPath = 'M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12z';
+      if (themePath) themePath.setAttribute('d', dark ? sunPath : moonPath);
+    }
+
+    applyTheme(isDark);
+
+    themeToggle.addEventListener('change', function() {
+      var dark = themeToggle.checked;
+      document.cookie = 'theme=' + (dark ? 'dark' : 'light') + ';path=/;max-age=31536000';
+      try { localStorage.setItem('nook-theme', dark ? 'dark' : 'light'); } catch(e) {}
+      applyTheme(dark);
+    });
+  }
+})();
+</script>

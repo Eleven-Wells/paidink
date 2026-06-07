@@ -265,6 +265,7 @@ async function pagesRoutes(fastify) {
         return reply.view('pages/dashboard.ejs', {
             user: user.toPublicJSON(),
             pageTitle: 'Dashboard',
+            readsThisWeek: summary.reads.last7Days,
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
