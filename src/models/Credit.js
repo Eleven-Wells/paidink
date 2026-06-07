@@ -122,7 +122,7 @@ creditSchema.statics.earnCredit = async function(userId, action, options = {}) {
 creditSchema.statics.getMonthlyCredits = async function(userId, month) {
     const User = mongoose.model('User');
     const result = await this.aggregate([
-        { $match: { user: userId, month: month, status: 'active' } },
+        { $match: { user: new mongoose.Types.ObjectId(userId), month: month, status: 'active' } },
         { $group: { _id: '$category', total: { $sum: '$points' } } }
     ]);
     
