@@ -835,12 +835,12 @@ fastify.get('/admin/analytics', async (req, reply) => {
         user.publisherApprovedAt = new Date();
         await user.save();
         
-        await NotificationService.createNotification({
-            user: user._id,
-            type: 'publisher_approved',
-            title: 'Publisher Application Approved!',
-            message: 'Congratulations! Your publisher application has been approved. You can now access the publisher dashboard.'
-        });
+        await NotificationService.createNotification(
+            user._id,
+            'publisher_approved',
+            'Publisher Application Approved!',
+            'Congratulations! Your publisher application has been approved. You can now access the publisher dashboard.'
+        );
         
         return reply.redirect('/admin/publisher-requests');
     });
@@ -858,12 +858,12 @@ fastify.get('/admin/analytics', async (req, reply) => {
         user.publisherNotes = notes || 'Your application was not approved.';
         await user.save();
         
-        await NotificationService.createNotification({
-            user: user._id,
-            type: 'publisher_rejected',
-            title: 'Publisher Application Update',
-            message: 'Your publisher application was not approved. Please contact support for more information.'
-        });
+        await NotificationService.createNotification(
+            user._id,
+            'publisher_rejected',
+            'Publisher Application Update',
+            'Your publisher application was not approved. Please contact support for more information.'
+        );
         
         return reply.redirect('/admin/publisher-requests');
     });
