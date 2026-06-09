@@ -1,4 +1,4 @@
-<section class="home-composer" aria-label="Post composer">
+<section class="home-composer" aria-label="Post composer" id="home-composer-section">
     <form id="postComposerForm">
         <div class="composer-avatar" aria-hidden="true">
             <%= user?.displayName?.charAt(0).toUpperCase() || 'N' %>
@@ -37,7 +37,7 @@
 
 <style>
     .home-composer {
-        padding: 0 0 clamp(20px, 3vw, 28px);
+        padding: 0;
         width: 100%;
         min-width: 0;
     }

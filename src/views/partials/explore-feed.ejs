@@ -1,134 +1,185 @@
 <section class="explore-feed" aria-label="Live news feed">
-    <% if (typeof posts !== 'undefined' && posts && posts.length > 0) { %>
+    <% if (typeof posts !=='undefined' && posts && posts.length> 0) { %>
         <% posts.forEach(function(post, index) { %>
-            <article class="explore-feed-card" style="display: flex; flex-direction: column; width: 100%; max-width: min(897px, 100%); align-items: flex-end; gap: clamp(28px, 4vw, 45px);">
+            <article class="explore-feed-card"
+                style="display: flex; flex-direction: column; width: 100%; max-width: min(897px, 100%); align-items: flex-end; gap: clamp(28px, 4vw, 45px);">
                 <div style="display: flex; align-items: flex-start; gap: clamp(16px, 3vw, 31px); width: 100%;">
                     <%- include('../partials/avatar', { user: post.author, size: 'clamp(48px, 8vw, 80px)' }) %>
-                    
-                    <div style="display: flex; flex-direction: column; width: 100%; max-width: min(786px, 100%); align-items: flex-start; gap: clamp(10px, 2vw, 18px);">
-                        <div class="explore-post-meta">
-                            <div class="explore-author-copy">
-                                <h3>
-                                    <%= post.author ? post.author.displayName : 'Anonymous' %>
-                                </h3>
-                                <p><%= post.readTime || '5m' %> read</p>
+
+                        <div
+                            style="display: flex; flex-direction: column; width: 100%; max-width: min(786px, 100%); align-items: flex-start; gap: clamp(10px, 2vw, 18px);">
+                            <div class="explore-post-meta">
+                                <div class="explore-author-copy">
+                                    <h3>
+                                        <%= post.author ? post.author.displayName : 'Anonymous' %>
+                                    </h3>
+                                    <p>
+                                        <%= post.readTime || '5m' %> read
+                                    </p>
+                                </div>
+                                <button type="button" class="feed-follow-btn"
+                                    data-user-id="<%= post.author ? post.author._id : '' %>">
+                                    Follow
+                                </button>
                             </div>
-                            <button type="button" class="feed-follow-btn" data-user-id="<%= post.author ? post.author._id : '' %>">
-                                Follow
-                            </button>
+
+                            <a href="/post/<%= post.slug %>"
+                                style="text-decoration: none; color: inherit; display: block; width: 100%;">
+                                <h4
+                                    style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 600; font-size: clamp(18px, 3vw, 28px); color: #000; line-height: 1.3;">
+                                    <%= post.title %>
+                                </h4>
+                                <p
+                                    style="margin: 8px 0 0; font-family: 'Abhaya Libre', serif; font-weight: 500; font-size: clamp(16px, 2.5vw, 22px); color: #000; line-height: 1.4;">
+                                    <%= post.summary %>
+                                </p>
+                            </a>
+
+                            <% if (post.image) { %>
+                                <div style="width: 100%; max-width: min(481px, 100%); aspect-ratio: 16/9; background-size: cover; background-position: center; border-radius: clamp(8px, 1.5vw, 12px); background-image: url('<%= post.image %>');"
+                                    role="img" aria-label="Post attachment"></div>
+                                <% } %>
                         </div>
-                        
-                        <a href="/post/<%= post.slug %>" style="text-decoration: none; color: inherit; display: block; width: 100%;">
-                            <h4 style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 600; font-size: clamp(18px, 3vw, 28px); color: #000; line-height: 1.3;">
-                                <%= post.title %>
-                            </h4>
-                            <p style="margin: 8px 0 0; font-family: 'Abhaya Libre', serif; font-weight: 500; font-size: clamp(16px, 2.5vw, 22px); color: #000; line-height: 1.4;">
-                                <%= post.summary %>
-                            </p>
-                        </a>
-                        
-                        <% if (post.image) { %>
-                            <div style="width: 100%; max-width: min(481px, 100%); aspect-ratio: 16/9; background-size: cover; background-position: center; border-radius: clamp(8px, 1.5vw, 12px); background-image: url('<%= post.image %>');" role="img" aria-label="Post attachment"></div>
-                        <% } %>
-                    </div>
                 </div>
-                
-                <div style="display: flex; width: 100%; max-width: min(766px, 100%); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: clamp(12px, 2vw, 16px);">
-                    <div style="display: flex; align-items: center; gap: clamp(16px, 3vw, 30px); flex-wrap: wrap;">
-                        <button type="button" aria-label="Like" class="like-btn" data-post-id="<%= post._id %>" style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
-                            <% var liked = user && user._id && post.likes && post.likes.some(function(id) { return String(id) === String(user._id); }); %>
-                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24" fill="<%= liked ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                            <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
-                                <%= post.likes ? post.likes.length : 0 %>
-                            </span>
+
+                <div class="explore-feed-actions">
+                    <div class="explore-post-interactions">
+                        <button type="button" aria-label="Like" class="like-btn" data-post-id="<%= post._id %>"
+                            style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
+                            <% var liked=user && user._id && post.likes && post.likes.some(function(id) { return
+                                String(id)===String(user._id); }); %>
+                                <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24"
+                                    fill="<%= liked ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                                <span
+                                    style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
+                                    <%= post.likes ? post.likes.length : 0 %>
+                                </span>
                         </button>
-                        <button type="button" aria-label="Comments" class="comment-btn" data-slug="<%= post.slug %>" style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
-                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <button type="button" aria-label="Comments" class="comment-btn" data-slug="<%= post.slug %>"
+                            style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
+                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                             </svg>
-                            <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
+                            <span
+                                style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
                                 <%= post.comments ? post.comments.length : 0 %>
                             </span>
                         </button>
-                        <button type="button" aria-label="Reposts" class="share-btn" data-post-id="<%= post._id %>" style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
-                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="17 1 21 5 17 9"/>
-                                <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                                <polyline points="7 23 3 19 7 15"/>
-                                <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                        <button type="button" aria-label="Reposts" class="share-btn" data-post-id="<%= post._id %>"
+                            style="display: flex; align-items: center; justify-content: space-between; background: none; border: none; cursor: pointer; color: #000; gap: 8px;">
+                            <svg width="clamp(24px, 4vw, 35px)" height="clamp(24px, 4vw, 35px)" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="17 1 21 5 17 9" />
+                                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                                <polyline points="7 23 3 19 7 15" />
+                                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
                             </svg>
-                            <span style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
+                            <span
+                                style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2.5vw, 24px); color: #000; white-space: nowrap;">
                                 <%= post.shares || 0 %>
                             </span>
                         </button>
                     </div>
-                    
-                    <div class="explore-post-options" style="display: flex; align-items: center; gap: 12px;">
+
+                    <div class="explore-post-options">
                         <a href="/post/<%= post.slug %>" class="feed-read-cta" aria-label="Read <%= post.title %>">
                             Read post
                         </a>
-                        <button type="button" aria-label="More options" style="background: none; border: none; cursor: pointer; color: #000;">
-                            <svg width="clamp(32px, 5vw, 52px)" height="clamp(32px, 5vw, 52px)" viewBox="0 0 24 24" fill="currentColor">
-                                <circle cx="12" cy="5" r="2"/>
-                                <circle cx="12" cy="12" r="2"/>
-                                <circle cx="12" cy="19" r="2"/>
+                        <button type="button" aria-label="More options"
+                            style="background: none; border: none; cursor: pointer; color: #000;">
+                            <svg width="clamp(32px, 5vw, 52px)" height="clamp(32px, 5vw, 52px)" viewBox="0 0 24 24"
+                                fill="currentColor">
+                                <circle cx="12" cy="5" r="2" />
+                                <circle cx="12" cy="12" r="2" />
+                                <circle cx="12" cy="19" r="2" />
                             </svg>
                         </button>
-                        <button type="button" aria-label="Save post" class="save-btn" data-post-id="<%= post._id %>" style="background: none; border: none; cursor: pointer; color: #000;">
-                            <% var saved = user && user.savedPosts && user.savedPosts.some(function(id) { return String(id) === String(post._id); }); %>
-                            <svg width="clamp(24px, 4vw, 33px)" height="clamp(24px, 4vw, 33px)" viewBox="0 0 24 24" fill="<%= saved ? '#6d0a0a' : 'none' %>" stroke="<%= saved ? '#6d0a0a' : 'currentColor' %>" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                            </svg>
+                        <button type="button" aria-label="Save post" class="save-btn" data-post-id="<%= post._id %>"
+                            style="background: none; border: none; cursor: pointer; color: #000;">
+                            <% var saved=user && user.savedPosts && user.savedPosts.some(function(id) { return
+                                String(id)===String(post._id); }); %>
+                                <svg width="clamp(24px, 4vw, 33px)" height="clamp(24px, 4vw, 33px)" viewBox="0 0 24 24"
+                                    fill="<%= saved ? '#6d0a0a' : 'none' %>"
+                                    stroke="<%= saved ? '#6d0a0a' : 'currentColor' %>" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                                </svg>
                         </button>
                     </div>
                 </div>
             </article>
-            
-            <% if (index === 1 && typeof feedAds !== 'undefined' && feedAds && feedAds[0]) { %>
-                <%- include('../partials/ad-feed', { ad: feedAds[0] }) %>
-            <% } else if (index === 4 && typeof feedAds !== 'undefined' && feedAds && feedAds[1]) { %>
-                <%- include('../partials/ad-feed', { ad: feedAds[1] }) %>
-            <% } else if (index < posts.length - 1 && index !== 1) { %>
-                <img alt="Divider" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1101 1' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0.5' x2='1101' y2='0.5' stroke='rgba(109,10,10,0.15)' stroke-width='1'/%3E%3C/svg%3E" style="width: 100%; max-width: min(897px, 100%); height: 1px; object-fit: contain; display: block;" />
-            <% } %>
-        <% }); %>
-    <% } else { %>
-        <div style="padding: 24px 0; width: 100%; max-width: min(897px, 100%);">
-            <%- include('../partials/empty-state-card', {
-                title: 'Explore is quiet right now',
-                copy: 'New stories, conversations, and reader updates will land here as soon as they are published.',
-                ctaText: 'Go home',
-                ctaHref: '/'
-            }) %>
-        </div>
-    <% } %>
 
-    <% if (typeof feedSuggestions !== 'undefined' && feedSuggestions && feedSuggestions.length > 0) { %>
-        <div class="explore-suggestions" style="display: flex; flex-direction: column; align-items: flex-start; gap: clamp(24px, 4vw, 47px); width: 100%;">
-            <h2 style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(24px, 3vw, 36px); color: #000;">
-                Suggestion
-            </h2>
-            <div class="explore-suggestion-cards" style="display: flex; align-items: center; gap: clamp(20px, 4vw, 53px); width: 100%; flex-wrap: wrap;">
-                <% feedSuggestions.forEach(function(user) { %>
-                    <article class="explore-suggestion-card" style="display: flex; flex-direction: column; width: 100%; max-width: min(335px, 100%); align-items: center; gap: clamp(40px, 6vw, 100px); padding: clamp(16px, 3vw, 30px) clamp(12px, 2vw, 20px); border-radius: clamp(24px, 4vw, 52px); border: 1px solid #6d0a0a;">
-                        <div style="display: flex; flex-direction: column; width: 149px; align-items: center; gap: clamp(16px, 3vw, 32px);">
-                        <%- include('../partials/avatar', { user: user, size: 'clamp(64px, 8vw, 100px)' }) %>
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%;">
-                                <h3 style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 800; font-size: clamp(20px, 3vw, 32px); color: #000; text-align: center;"><%= user.displayName %></h3>
-                                <p style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(18px, 2.5vw, 24px); color: rgba(0,0,0,0.62); text-align: center;"><%= user.role || 'Reader' %></p>
-                            </div>
-                        </div>
-                        <button type="button" aria-label="Follow <%= user.displayName %>" class="suggestion-follow-btn" data-user-id="<%= user._id %>" style="display: flex; height: clamp(48px, 7vw, 80px); align-items: center; justify-content: center; gap: 10px; padding: 10px; width: 100%; background: #6d0a0a; border-radius: clamp(24px, 4vw, 45px); border: none; cursor: pointer;">
-                            <span style="font-family: 'Abhaya Libre', serif; font-weight: 500; font-size: clamp(20px, 3vw, 32px); color: #fff; white-space: nowrap;">Follow</span>
-                        </button>
-                    </article>
-                <% }); %>
-            </div>
-        </div>
-        <img alt="Divider" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1101 1' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0.5' x2='1101' y2='0.5' stroke='rgba(109,10,10,0.15)' stroke-width='1'/%3E%3C/svg%3E" style="width: 100%; max-width: min(897px, 100%); height: 1px; object-fit: contain; display: block;" />
-    <% } %>
+            <% if (index===1 && typeof feedAds !=='undefined' && feedAds && feedAds[0]) { %>
+                <%- include('../partials/ad-feed', { ad: feedAds[0] }) %>
+                    <% } else if (index===4 && typeof feedAds !=='undefined' && feedAds && feedAds[1]) { %>
+                        <%- include('../partials/ad-feed', { ad: feedAds[1] }) %>
+                            <% } else if (index < posts.length - 1 && index !==1) { %>
+                                <img alt="Divider"
+                                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1101 1' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0.5' x2='1101' y2='0.5' stroke='rgba(109,10,10,0.15)' stroke-width='1'/%3E%3C/svg%3E"
+                                    style="width: 100%; max-width: min(897px, 100%); height: 1px; object-fit: contain; display: block;" />
+                                <% } %>
+                                    <% }); %>
+                                        <% } else { %>
+                                            <div style="padding: 24px 0; width: 100%; max-width: min(897px, 100%);">
+                                                <%- include('../partials/empty-state-card', {
+                                                    title: 'Explore is quiet right now' ,
+                                                    copy: 'New stories, conversations, and reader updates will land here as soon as they are published.'
+                                                    , ctaText: 'Go home' , ctaHref: '/' }) %>
+                                            </div>
+                                            <% } %>
+
+                                                <% if (typeof feedSuggestions !=='undefined' && feedSuggestions &&
+                                                    feedSuggestions.length> 0) { %>
+                                                    <div class="explore-suggestions"
+                                                        style="display: flex; flex-direction: column; align-items: flex-start; gap: clamp(24px, 4vw, 47px); width: 100%;">
+                                                        <h2
+                                                            style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(24px, 3vw, 36px); color: #000;">
+                                                            Suggestion
+                                                        </h2>
+                                                        <div class="explore-suggestion-cards"
+                                                            style="display: flex; align-items: center; gap: clamp(20px, 4vw, 53px); width: 100%; flex-wrap: wrap;">
+                                                            <% feedSuggestions.forEach(function(user) { %>
+                                                                <article class="explore-suggestion-card"
+                                                                    style="display: flex; flex-direction: column; width: 100%; max-width: min(335px, 100%); align-items: center; gap: clamp(40px, 6vw, 100px); padding: clamp(16px, 3vw, 30px) clamp(12px, 2vw, 20px); border-radius: clamp(24px, 4vw, 52px); border: 1px solid #6d0a0a;">
+                                                                    <div
+                                                                        style="display: flex; flex-direction: column; width: 149px; align-items: center; gap: clamp(16px, 3vw, 32px);">
+                                                                        <%- include('../partials/avatar', { user: user,
+                                                                            size: 'clamp(64px, 8vw, 100px)' }) %>
+                                                                            <div
+                                                                                style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%;">
+                                                                                <h3
+                                                                                    style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 800; font-size: clamp(20px, 3vw, 32px); color: #000; text-align: center;">
+                                                                                    <%= user.displayName %>
+                                                                                </h3>
+                                                                                <p
+                                                                                    style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(18px, 2.5vw, 24px); color: rgba(0,0,0,0.62); text-align: center;">
+                                                                                    <%= user.role || 'Reader' %>
+                                                                                </p>
+                                                                            </div>
+                                                                    </div>
+                                                                    <button type="button"
+                                                                        aria-label="Follow <%= user.displayName %>"
+                                                                        class="suggestion-follow-btn"
+                                                                        data-user-id="<%= user._id %>"
+                                                                        style="display: flex; height: clamp(48px, 7vw, 80px); align-items: center; justify-content: center; gap: 10px; padding: 10px; width: 100%; background: #6d0a0a; border-radius: clamp(24px, 4vw, 45px); border: none; cursor: pointer;">
+                                                                        <span
+                                                                            style="font-family: 'Abhaya Libre', serif; font-weight: 500; font-size: clamp(20px, 3vw, 32px); color: #fff; white-space: nowrap;">Follow</span>
+                                                                    </button>
+                                                                </article>
+                                                                <% }); %>
+                                                        </div>
+                                                    </div>
+                                                    <img alt="Divider"
+                                                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1101 1' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0.5' x2='1101' y2='0.5' stroke='rgba(109,10,10,0.15)' stroke-width='1'/%3E%3C/svg%3E"
+                                                        style="width: 100%; max-width: min(897px, 100%); height: 1px; object-fit: contain; display: block;" />
+                                                    <% } %>
 </section>
 
 
@@ -143,11 +194,13 @@
         max-width: 100%;
         box-sizing: border-box;
     }
+
     .explore-feed-card {
         margin: 0 auto;
         max-width: 100%;
         box-sizing: border-box;
     }
+
     .explore-post-meta {
         display: flex;
         width: 100%;
@@ -156,13 +209,15 @@
         flex-wrap: wrap;
         gap: 10px;
     }
+
     .explore-author-copy {
         display: flex;
         flex-direction: column;
         gap: 2px;
         min-width: 0;
     }
-    .explore-author-copy > h3 {
+
+    .explore-author-copy>h3 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 800;
@@ -170,7 +225,8 @@
         color: #000;
         min-width: 0;
     }
-    .explore-author-copy > p {
+
+    .explore-author-copy>p {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 500;
@@ -179,6 +235,7 @@
         color: rgba(0, 0, 0, 0.54);
         white-space: nowrap;
     }
+
     .explore-feed-card .feed-follow-btn {
         display: inline-flex;
         min-height: 38px;
@@ -198,12 +255,14 @@
         flex-shrink: 0;
         transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
+
     .explore-feed-card .feed-follow-btn:hover,
     .explore-feed-card .feed-follow-btn:focus {
         background: #6d0a0a;
         border-color: #6d0a0a;
         color: #fff;
     }
+
     .feed-read-cta {
         display: inline-flex;
         min-height: 44px;
@@ -222,71 +281,155 @@
         box-shadow: 0 12px 24px rgba(109, 10, 10, 0.14);
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
+
     .feed-read-cta:hover,
     .feed-read-cta:focus {
         background: #4f0707;
         transform: translateY(-1px);
         box-shadow: 0 16px 30px rgba(109, 10, 10, 0.2);
     }
+
     .explore-suggestions {
         margin: 0 auto;
     }
+
     .explore-suggestion-cards {
         justify-content: flex-start;
     }
 
+    .explore-feed-actions {
+        display: flex;
+        width: 100%;
+        max-width: min(766px, 100%);
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: clamp(12px, 2vw, 16px);
+        min-width: 0;
+    }
+
+    .explore-post-interactions {
+        display: flex;
+        align-items: center;
+        gap: clamp(16px, 3vw, 30px);
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .explore-post-options {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        min-width: 0;
+    }
+
+    .explore-post-options>a,
+    .explore-post-options>button {
+        min-width: 0;
+    }
+
     @media (max-width: 900px) {
+        .explore-feed-actions {
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .explore-feed-actions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .explore-post-interactions,
+        .explore-post-options {
+            width: auto;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .explore-post-options {
+            margin-top: 0;
+        }
+
+        .explore-post-options>.feed-read-cta {
+            display: none;
+        }
+
+        .explore-feed-card {
+            align-items: stretch !important;
+        }
+
+        .feed-read-cta {
+            font-size: clamp(18px, 2.2vw, 20px);
+            min-width: fit-content;
+        }
+
         .explore-feed {
             padding: 0;
             gap: 32px;
         }
+
         .explore-feed-card {
             align-items: center !important;
         }
-        .explore-feed-card > div:first-child {
+
+        .explore-feed-card>div:first-child {
             gap: 16px !important;
             min-width: 0;
         }
-        .explore-feed-card > div:first-child > div {
+
+        .explore-feed-card>div:first-child>div {
             max-width: 100% !important;
             min-width: 0;
         }
+
         .explore-feed-card img[alt*="profile"] {
             width: 60px !important;
             height: 60px !important;
         }
+
         .explore-feed-card h3 {
             font-size: 24px !important;
         }
+
         .explore-feed-card h4 {
             font-size: 22px !important;
         }
+
         .explore-feed-card p {
             font-size: 24px !important;
         }
+
         .explore-feed-card .feed-follow-btn {
             font-size: 17px !important;
         }
+
         .explore-feed-card .like-btn span,
         .explore-feed-card [aria-label="Comments"] span,
         .explore-feed-card [aria-label="Reposts"] span {
             font-size: 20px !important;
         }
+
         .explore-feed-card .like-btn svg,
         .explore-feed-card [aria-label="Comments"] svg,
         .explore-feed-card [aria-label="Reposts"] svg {
             width: 28px !important;
             height: 28px !important;
         }
+
         .explore-feed-card [aria-label="More options"] svg {
             width: 40px !important;
             height: 40px !important;
         }
+
         .explore-suggestion-cards {
             flex-direction: column;
             gap: 24px !important;
             align-items: center !important;
         }
+
         .explore-suggestion-card {
             width: 100% !important;
             max-width: min(335px, 100%) !important;
@@ -298,101 +441,139 @@
             padding: 0;
             gap: 32px;
         }
+
         .explore-feed-card {
             max-width: 100% !important;
             gap: 32px !important;
             padding: 0;
         }
-        .explore-feed-card > div:first-child {
+
+        .explore-feed-card>div:first-child {
             gap: 16px !important;
             width: 100% !important;
             min-width: 0;
         }
-        .explore-feed-card > div:first-child > div {
+
+        .explore-feed-card>div:first-child>div {
             max-width: 100% !important;
             width: 100% !important;
             min-width: 0;
         }
-        .explore-feed-card > div:first-child > div > div:first-child {
+
+        .explore-feed-card>div:first-child>div>div:first-child {
             flex-wrap: wrap;
         }
+
         .explore-post-meta {
             align-items: center;
         }
+
         .explore-feed-card a {
             width: 100% !important;
         }
-        .explore-feed-card a > div {
+
+        .explore-feed-card a>div {
             max-width: 100% !important;
             width: 100% !important;
             min-width: 0;
         }
-        .explore-feed-card > div:last-child {
+
+        .explore-feed-card>div:last-child {
             max-width: 100% !important;
             width: 100% !important;
         }
-        .explore-feed-card > div:last-child > div:first-child {
+
+        .explore-feed-card>div:last-child>div:first-child {
             gap: 16px !important;
         }
+
         .explore-feed-card img[alt*="profile"] {
             width: 48px !important;
             height: 48px !important;
             flex-shrink: 0;
         }
+
         .explore-feed-card h3 {
             font-size: 20px !important;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .explore-author-copy > p {
+
+        .explore-author-copy>p {
             font-size: 14px !important;
         }
+
         .explore-feed-card h4 {
             font-size: 18px !important;
         }
+
         .explore-feed-card p {
             font-size: 16px !important;
         }
+
         .explore-feed-card .feed-follow-btn {
             min-height: 34px !important;
             padding-inline: 14px !important;
             font-size: 15px !important;
         }
+
         .explore-feed-card [aria-label="More options"] svg {
             width: 32px !important;
             height: 32px !important;
         }
+
         .explore-feed-card .like-btn svg,
         .explore-feed-card [aria-label="Comments"] svg,
         .explore-feed-card [aria-label="Reposts"] svg {
             width: 24px !important;
             height: 24px !important;
         }
+
         .explore-feed-card .like-btn span,
         .explore-feed-card [aria-label="Comments"] span,
         .explore-feed-card [aria-label="Reposts"] span {
             font-size: 16px !important;
         }
+
         .explore-feed-card .save-btn svg {
             width: 24px !important;
             height: 24px !important;
         }
+
         .explore-post-options {
-            width: 100%;
+            width: auto;
             justify-content: flex-start;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            gap: 10px !important;
+            min-width: 0;
+            flex: 0 0 auto;
         }
+
         .feed-read-cta {
             width: auto !important;
             min-height: 40px;
             padding-inline: 18px;
             font-size: 18px !important;
+            display: none;
         }
+
+        .explore-feed-actions {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            min-width: 0;
+        }
+
+        .explore-feed-actions::-webkit-scrollbar {
+            display: none;
+        }
+
         .explore-feed-card [role="img"] {
             max-width: 100% !important;
             width: 100% !important;
         }
+
         .explore-feed img[alt="Divider"] {
             max-width: 100% !important;
         }
