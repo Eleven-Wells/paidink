@@ -37,8 +37,7 @@
 
 <style>
     .home-composer {
-        grid-area: composer;
-        padding: 0 48px 0 0;
+        padding: 0 0 clamp(20px, 3vw, 28px);
         width: 100%;
         min-width: 0;
     }
@@ -245,10 +244,6 @@
     }
 
     @media (max-width: 768px) {
-        .home-composer {
-            padding: 0 16px 24px;
-        }
-
         .home-composer > form {
             padding: 14px;
             border-radius: 18px;
