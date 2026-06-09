@@ -1,6 +1,6 @@
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error';
-process.env.MONGO_URI = 'mongodb://localhost:27018/test_blog';
+process.env.MONGO_URI = 'mongodb://admin:password@localhost:27017/test_nook?authSource=admin';
 process.env.REDIS_HOST = 'localhost';
 process.env.REDIS_PORT = '6379';
 

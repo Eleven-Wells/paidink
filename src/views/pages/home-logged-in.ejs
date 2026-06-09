@@ -1,322 +1,552 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title || 'NOOK - Home' %></title>
+    <title>
+        <%= title || 'NOOK - Home' %>
+    </title>
     <meta name="description" content="<%= description || 'Your Nook home feed.' %>">
     <meta name="theme-color" content="#6d0a0a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Abhaya+Libre:wght@400;500;600;700;800&family=Zen+Tokyo+Zoo&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Abhaya+Libre:wght@400;500;600;700;800&family=Zen+Tokyo+Zoo&display=swap"
+        rel="stylesheet">
     <%- include('../partials/nook-alert-css') %>
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+            }
 
-        body {
-            margin: 0;
-            overflow-x: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #fff;
-            color: #000;
-            --home-nav-width: clamp(220px, 22vw, 300px);
-            --home-content-gutter: clamp(16px, 2vw, 28px);
-        }
-
-        #mainNav,
-        #mobileMenu,
-        #mobileOverlay {
-            display: none;
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        /* Fixed side nav — outside main flow (matches explore) */
-        .home-nav-column {
-            position: fixed;
-            top: var(--util-bar-height, 48px);
-            left: 0;
-            width: var(--home-nav-width);
-            height: calc(100vh - var(--util-bar-height, 48px));
-            overflow-y: auto;
-            background: #fff;
-            z-index: 100;
-        }
-
-        .home-nav-column .home-side-nav {
-            position: static;
-            top: auto;
-            height: 100%;
-            grid-area: unset;
-        }
-
-        /* Main shell offset for nav */
-        .home-container {
-            margin-left: var(--home-nav-width);
-            width: calc(100% - var(--home-nav-width));
-            min-height: calc(100vh - var(--util-bar-height, 48px));
-            position: relative;
-        }
-
-        .home-container::before {
-            content: "";
-            position: fixed;
-            top: var(--util-bar-height, 48px);
-            bottom: 0;
-            left: var(--home-nav-width);
-            width: 1px;
-            background: linear-gradient(
-                180deg,
-                transparent 0,
-                rgba(109, 10, 10, 0.08) 48px,
-                rgba(109, 10, 10, 0.2) 16%,
-                rgba(109, 10, 10, 0.14) 84%,
-                transparent 100%
-            );
-            pointer-events: none;
-            z-index: 90;
-        }
-
-        .home-search {
-            padding: clamp(12px, 2vw, 18px) var(--home-content-gutter) clamp(10px, 1.5vw, 14px);
-            width: 100%;
-        }
-
-        .home-search form {
-            display: flex;
-            width: 100%;
-            max-width: 100%;
-        }
-
-        .home-search-shell {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            min-height: clamp(48px, 7vw, 58px);
-            padding: 8px 10px 8px 16px;
-            border-radius: 999px;
-            border: 1px solid rgba(109, 10, 10, 0.14);
-            background: linear-gradient(180deg, #fff, #fffaf7);
-            box-shadow: 0 16px 36px rgba(109, 10, 10, 0.06);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .home-search-shell:focus-within {
-            border-color: rgba(109, 10, 10, 0.34);
-            box-shadow: 0 18px 40px rgba(109, 10, 10, 0.1), 0 0 0 4px rgba(109, 10, 10, 0.06);
-        }
-
-        .home-search-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            flex: 0 0 36px;
-            border-radius: 50%;
-            background: rgba(109, 10, 10, 0.06);
-            color: #6d0a0a;
-        }
-
-        .home-search input {
-            width: 100%;
-            min-width: 0;
-            font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            font-size: 16px;
-            color: #1f1715;
-            background: transparent;
-            border: none;
-            outline: none;
-            padding: 0;
-        }
-
-        .home-search input::placeholder {
-            color: rgba(31, 23, 21, 0.45);
-        }
-
-        .home-search-scope {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 36px;
-            padding: 0 14px;
-            border-radius: 999px;
-            background: rgba(109, 10, 10, 0.08);
-            color: #6d0a0a;
-            font-family: 'Abhaya Libre', serif;
-            font-size: clamp(16px, 2vw, 18px);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        /* Feed + sidebar row */
-        .home-main {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) clamp(260px, 28vw, 340px);
-            gap: 0;
-            align-items: start;
-            width: 100%;
-        }
-
-        .home-main-column {
-            min-width: 0;
-            width: 100%;
-            padding: 0 var(--home-content-gutter) clamp(60px, 6vw, 80px);
-        }
-
-        .home-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            padding: clamp(16px, 2vw, 24px) clamp(12px, 2vw, 20px) clamp(24px, 3vw, 40px) clamp(8px, 1vw, 12px);
-            position: sticky;
-            top: clamp(16px, 2vw, 24px);
-            max-height: calc(100vh - var(--util-bar-height, 48px) - 32px);
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
-
-        .home-sidebar::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Composer + feed spacing in main column */
-        .home-main-column .home-composer {
-            padding: 0 0 clamp(20px, 3vw, 28px);
-            width: 100%;
-        }
-
-        .home-main-column .home-activity-feed {
-            padding: 0;
-            width: 100%;
-            max-width: none;
-        }
-
-        @media (max-width: 1400px) {
             body {
-                --home-nav-width: 260px;
-            }
-        }
-
-        /* Hide right sidebar — single content column (matches explore at 1100px) */
-        @media (max-width: 1100px) {
-            .home-main {
-                grid-template-columns: 1fr;
-            }
-
-            .home-sidebar {
-                display: none !important;
-            }
-        }
-
-        /* Hide left nav — full-width mobile/tablet layout */
-        @media (max-width: 1024px) {
-            body {
-                --home-nav-width: 0px;
-                --home-content-gutter: 16px;
+                margin: 0;
+                overflow-x: hidden;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                background: #fff;
+                color: #000;
+                --home-nav-width: clamp(220px, 22vw, 300px);
+                --home-content-gutter: clamp(16px, 2vw, 28px);
             }
 
-            .home-nav-column {
+            #mainNav,
+            #mobileMenu,
+            #mobileOverlay {
                 display: none;
             }
 
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+
+            /* Fixed side nav — outside main flow (matches explore) */
+            .home-nav-column {
+                position: fixed;
+                top: var(--util-bar-height, 48px);
+                left: 0;
+                width: var(--home-nav-width);
+                height: calc(100vh - var(--util-bar-height, 48px));
+                overflow-y: auto;
+                background: #fff;
+                z-index: 100;
+            }
+
+            .home-nav-column .home-side-nav {
+                position: static;
+                top: auto;
+                height: 100%;
+                grid-area: unset;
+            }
+
+            /* Main shell offset for nav */
             .home-container {
-                margin-left: 0;
-                width: 100%;
+                margin-left: var(--home-nav-width);
+                width: calc(100% - var(--home-nav-width));
+                min-height: calc(100vh - var(--util-bar-height, 48px));
+                position: relative;
             }
 
             .home-container::before {
-                display: none;
+                content: "";
+                position: fixed;
+                top: var(--util-bar-height, 48px);
+                bottom: 0;
+                left: var(--home-nav-width);
+                width: 1px;
+                background: linear-gradient(180deg,
+                        transparent 0,
+                        rgba(109, 10, 10, 0.08) 48px,
+                        rgba(109, 10, 10, 0.2) 16%,
+                        rgba(109, 10, 10, 0.14) 84%,
+                        transparent 100%);
+                pointer-events: none;
+                z-index: 90;
             }
 
-            .home-main-column {
-                padding-bottom: 80px;
-            }
-
-            .home-search-scope {
-                display: none;
-            }
-        }
-
-        @media (max-width: 640px) {
             .home-search {
-                padding-top: 10px;
+                padding: clamp(12px, 2vw, 18px) var(--home-content-gutter) clamp(10px, 1.5vw, 14px);
+                width: 100%;
+            }
+
+            .home-search form {
+                display: flex;
+                width: 100%;
+                max-width: 100%;
             }
 
             .home-search-shell {
-                min-height: 44px;
-                padding-left: 12px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+                min-height: clamp(48px, 7vw, 58px);
+                padding: 8px 10px 8px 16px;
+                border-radius: 999px;
+                border: 1px solid rgba(109, 10, 10, 0.14);
+                background: linear-gradient(180deg, #fff, #fffaf7);
+                box-shadow: 0 16px 36px rgba(109, 10, 10, 0.06);
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .home-search-shell:focus-within {
+                border-color: rgba(109, 10, 10, 0.34);
+                box-shadow: 0 18px 40px rgba(109, 10, 10, 0.1), 0 0 0 4px rgba(109, 10, 10, 0.06);
             }
 
             .home-search-icon {
-                width: 32px;
-                height: 32px;
-                flex-basis: 32px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                flex: 0 0 36px;
+                border-radius: 50%;
+                background: rgba(109, 10, 10, 0.06);
+                color: #6d0a0a;
             }
-        }
-    </style>
+
+            .home-search input {
+                width: 100%;
+                min-width: 0;
+                font-family: 'Inter', sans-serif;
+                font-weight: 500;
+                font-size: 16px;
+                color: #1f1715;
+                background: transparent;
+                border: none;
+                outline: none;
+                padding: 0;
+            }
+
+            .home-search input::placeholder {
+                color: rgba(31, 23, 21, 0.45);
+            }
+
+            .home-search-scope {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 36px;
+                padding: 0 14px;
+                border-radius: 999px;
+                background: rgba(109, 10, 10, 0.08);
+                color: #6d0a0a;
+                font-family: 'Abhaya Libre', serif;
+                font-size: clamp(16px, 2vw, 18px);
+                font-weight: 600;
+                white-space: nowrap;
+            }
+
+            /* Feed + sidebar row */
+            .home-main {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) clamp(260px, 28vw, 340px);
+                gap: 0;
+                align-items: start;
+                width: 100%;
+            }
+
+            .home-main>.home-search {
+                grid-column: 1;
+            }
+
+            .home-main>.home-activity-feed {
+                grid-column: 1;
+                padding: 0 var(--home-content-gutter) clamp(60px, 6vw, 80px);
+            }
+
+            .home-sidebar {
+                grid-column: 2;
+                grid-row: 1 / 4;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                padding: clamp(16px, 2vw, 24px) clamp(12px, 2vw, 20px) clamp(24px, 3vw, 40px) clamp(8px, 1vw, 12px);
+                position: sticky;
+                top: clamp(16px, 2vw, 24px);
+                max-height: calc(100vh - var(--util-bar-height, 48px) - 32px);
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+
+            .home-sidebar::-webkit-scrollbar {
+                display: none;
+            }
+
+            @media (max-width: 1400px) {
+                body {
+                    --home-nav-width: 260px;
+                }
+            }
+
+            /* Hide right sidebar — single content column (matches explore at 1100px) */
+            @media (max-width: 1100px) {
+                .home-main {
+                    grid-template-columns: 1fr;
+                }
+
+                .home-sidebar {
+                    display: none !important;
+                }
+            }
+
+            /* Hide left nav — full-width mobile/tablet layout */
+            @media (max-width: 1024px) {
+                body {
+                    --home-nav-width: 0px;
+                    --home-content-gutter: 16px;
+                }
+
+                .home-nav-column {
+                    display: none;
+                }
+
+                .home-container {
+                    margin-left: 0;
+                    width: 100%;
+                }
+
+                .home-container::before {
+                    display: none;
+                }
+
+                .home-main>.home-activity-feed {
+                    padding-bottom: 80px;
+                }
+
+                .home-search-scope {
+                    display: none;
+                }
+            }
+
+            @media (max-width: 640px) {
+                .home-search {
+                    padding-top: 10px;
+                }
+
+                .home-search-shell {
+                    min-height: 44px;
+                    padding-left: 12px;
+                }
+
+                .home-search-icon {
+                    width: 32px;
+                    height: 32px;
+                    flex-basis: 32px;
+                }
+            }
+
+            /* Desktop: show drawer as a static block in the first column */
+            @media (min-width: 1025px) {
+                .home-composer-drawer {
+                    grid-column: 1;
+                    position: static;
+                    background: transparent;
+                    box-shadow: none;
+                    border-radius: 0;
+                    padding: 0;
+                    max-height: none;
+                    overflow: visible;
+                }
+
+                .home-composer-drawer__handle {
+                    display: none;
+                }
+
+                .home-composer-drawer .home-composer {
+                    padding: 0 0 clamp(20px, 3vw, 28px);
+                    width: 100%;
+                }
+
+                .home-composer-drawer .home-composer>form {
+                    border: 1px solid rgba(109, 10, 10, 0.16);
+                    box-shadow: 0 18px 40px rgba(109, 10, 10, 0.07);
+                    padding: 16px;
+                    border-radius: 20px;
+                    background: linear-gradient(180deg, #fff, #fffaf7);
+                }
+
+                .home-composer-overlay {
+                    display: none !important;
+                }
+
+                .home-composer-fab {
+                    display: none !important;
+                }
+            }
+
+            /* ── Floating compose FAB (mobile only) ── */
+            @media (max-width: 1024px) {
+                .home-composer-fab {
+                    position: fixed;
+                    bottom: 80px;
+                    right: 20px;
+                    z-index: 10005;
+                    width: 56px;
+                    height: 56px;
+                    border: none;
+                    border-radius: 50%;
+                    background: #6d0a0a;
+                    color: #fff;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 8px 24px rgba(109, 10, 10, 0.35), 0 2px 8px rgba(109, 10, 10, 0.18);
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    touch-action: manipulation;
+                }
+
+                .home-composer-fab:hover,
+                .home-composer-fab:focus-visible {
+                    transform: scale(1.08);
+                    box-shadow: 0 12px 32px rgba(109, 10, 10, 0.45);
+                }
+
+                .home-composer-fab:active {
+                    transform: scale(0.94);
+                }
+
+                .home-composer-fab svg {
+                    width: 24px;
+                    height: 24px;
+                }
+
+                .home-composer-fab.is-open {
+                    transform: rotate(45deg);
+                    background: #4b0808;
+                }
+
+                /* Overlay */
+                .home-composer-overlay {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 10000;
+                    background: rgba(0, 0, 0, 0.4);
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.25s ease;
+                    -webkit-tap-highlight-color: transparent;
+                }
+
+                .home-composer-overlay.is-visible {
+                    opacity: 1;
+                    pointer-events: auto;
+                }
+
+                /* Drawer */
+                .home-composer-drawer {
+                    position: fixed;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 10010;
+                    background: #fff;
+                    border-radius: 20px 20px 0 0;
+                    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+                    transform: translateY(100%);
+                    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+                    max-height: 85vh;
+                    overflow-y: auto;
+                    padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+                }
+
+                .home-composer-drawer.is-visible {
+                    transform: translateY(0);
+                }
+
+                .home-composer-drawer .home-composer {
+                    padding: 0;
+                }
+
+                .home-composer-drawer .home-composer>form {
+                    border: none;
+                    box-shadow: none;
+                    padding: 0;
+                    border-radius: 0;
+                    background: transparent;
+                }
+
+                .home-composer-drawer .composer-avatar {
+                    width: 40px;
+                    height: 40px;
+                    flex-basis: 40px;
+                    font-size: 20px;
+                }
+
+                .home-composer-drawer .home-composer textarea {
+                    font-size: 20px;
+                    min-height: 80px;
+                }
+
+                /* Handle bar */
+                .home-composer-drawer__handle {
+                    width: 36px;
+                    height: 4px;
+                    border-radius: 999px;
+                    background: rgba(0, 0, 0, 0.12);
+                    margin: 0 auto 16px;
+                    flex-shrink: 0;
+                }
+
+            }
+
+            @media (max-width: 640px) {
+                .home-composer-fab {
+                    width: 52px;
+                    height: 52px;
+                    right: 16px;
+                    bottom: 76px;
+                }
+
+                .home-composer-fab svg {
+                    width: 22px;
+                    height: 22px;
+                }
+
+                .home-composer-drawer {
+                    padding: 16px 14px max(16px, env(safe-area-inset-bottom));
+                }
+            }
+        </style>
 </head>
+
 <body>
-    <%- include('../partials/app-utility-bar', { pageTitle: 'Home', unreadCount: unreadCount, user: user }) %>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Home' , unreadCount: unreadCount, user: user }) %>
 
-    <aside class="home-nav-column" aria-label="Main navigation">
-        <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
-    </aside>
+        <aside class="home-nav-column" aria-label="Main navigation">
+            <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
+        </aside>
 
-    <div class="home-container">
-        <section class="home-search" aria-label="Search">
-            <form action="/search" method="GET" role="search">
-                <label for="search-input" class="sr-only">Search</label>
-                <div class="home-search-shell">
-                    <span class="home-search-icon" aria-hidden="true">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.35-4.35" />
-                        </svg>
-                    </span>
-                    <input id="search-input" name="q" type="search" placeholder="Search Nook" aria-label="Search Nook" />
-                    <span class="home-search-scope" aria-hidden="true">Posts</span>
-                </div>
-                <div id="search-results" class="hidden"></div>
-            </form>
-        </section>
+        <div class="home-container">
+            <div class="home-main">
+                <section class="home-search" aria-label="Search">
+                    <form action="/search" method="GET" role="search">
+                        <label for="search-input" class="sr-only">Search</label>
+                        <div class="home-search-shell">
+                            <span class="home-search-icon" aria-hidden="true">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.35-4.35" />
+                                </svg>
+                            </span>
+                            <input id="search-input" name="q" type="search" placeholder="Search Nook"
+                                aria-label="Search Nook" />
+                            <span class="home-search-scope" aria-hidden="true">Posts</span>
+                        </div>
+                        <div id="search-results" class="hidden"></div>
+                    </form>
+                </section>
 
-        <div class="home-main">
-            <div class="home-main-column">
-                <%- include('../partials/home-post-composer') %>
-                <%- include('../partials/home-activity-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds: feedAds, user: user }) %>
+                <!-- Composer drawer — shown inline on desktop, as a bottom sheet on mobile -->
+                <div class="home-composer-overlay" id="composerOverlay"></div>
+
+                <aside class="home-composer-drawer" id="composerDrawer" role="dialog" aria-modal="true"
+                    aria-label="Create a post">
+                    <div class="home-composer-drawer__handle"></div>
+                    <%- include('../partials/home-post-composer') %>
+                </aside>
+
+                <button class="home-composer-fab" id="composerFab" aria-label="Create a post" type="button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                </button>
+
+                <%- include('../partials/home-activity-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds:
+                    feedAds, user: user }) %>
+
+                    <aside class="home-sidebar" aria-label="Trending and suggestions">
+                        <%- include('../partials/home-trending', { trendingPosts: trendingPosts }) %>
+                            <% if (typeof sidebarAd !=='undefined' && sidebarAd) { %>
+                                <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
+                                    <% } %>
+                                        <%- include('../partials/home-who-to-follow', { suggestedUsers: suggestedUsers
+                                            }) %>
+                    </aside>
             </div>
-
-            <aside class="home-sidebar" aria-label="Trending and suggestions">
-                <%- include('../partials/home-trending', { trendingPosts: trendingPosts }) %>
-                <% if (typeof sidebarAd !== 'undefined' && sidebarAd) { %>
-                    <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
-                <% } %>
-                <%- include('../partials/home-who-to-follow', { suggestedUsers: suggestedUsers }) %>
-            </aside>
         </div>
-    </div>
 
-    <%- include('../partials/mobile-bottom-nav', { currentPage: 'home', unreadCount: unreadCount }) %>
-    <%- include('../partials/nook-alert') %>
-    <script src="/public/js/nook-alert.js"></script>
-    <script src="/public/js/post-actions.js"></script>
-    <script src="/public/js/search.js"></script>
+        <%- include('../partials/mobile-bottom-nav', { currentPage: 'home' , unreadCount: unreadCount }) %>
+            <%- include('../partials/nook-alert') %>
+                <script src="/public/js/nook-alert.js"></script>
+                <script src="/public/js/post-actions.js"></script>
+                <script src="/public/js/search.js"></script>
+                <script>
+                    (function () {
+                        var fab = document.getElementById('composerFab');
+                        var drawer = document.getElementById('composerDrawer');
+                        var overlay = document.getElementById('composerOverlay');
+                        if (!fab || !drawer || !overlay) return;
+
+                        function openDrawer() {
+                            drawer.classList.add('is-visible');
+                            overlay.classList.add('is-visible');
+                            fab.classList.add('is-open');
+                            document.body.style.overflow = 'hidden';
+                            setTimeout(function () {
+                                var ta = drawer.querySelector('#post-composer');
+                                if (ta) ta.focus();
+                            }, 320);
+                        }
+
+                        function closeDrawer() {
+                            drawer.classList.remove('is-visible');
+                            overlay.classList.remove('is-visible');
+                            fab.classList.remove('is-open');
+                            document.body.style.overflow = '';
+                        }
+
+                        fab.addEventListener('click', function () {
+                            if (drawer.classList.contains('is-visible')) {
+                                closeDrawer();
+                            } else {
+                                openDrawer();
+                            }
+                        });
+
+                        overlay.addEventListener('click', closeDrawer);
+
+                        document.addEventListener('keydown', function (e) {
+                            if (e.key === 'Escape' && drawer.classList.contains('is-visible')) {
+                                closeDrawer();
+                            }
+                        });
+                    })();
+                </script>
 </body>
+
 </html>
