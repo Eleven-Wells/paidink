@@ -1,4 +1,4 @@
-<section class="home-activity-feed" aria-label="Activity feed" style="grid-area: feed;">
+<section class="home-activity-feed" aria-label="Activity feed">
     <% if (typeof posts !== 'undefined' && posts && posts.length > 0) { %>
         <% posts.forEach(function(post, index) { %>
             <article class="feed-post">
@@ -121,16 +121,17 @@
     .home-activity-feed {
         display: flex;
         flex-direction: column;
-        gap: 48px;
-        padding: 0 24px 0 0;
+        gap: clamp(32px, 4vw, 48px);
+        padding: 0;
         width: 100%;
+        max-width: none;
     }
 
     .feed-post {
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
-        gap: 45px;
+        align-items: stretch;
+        gap: clamp(28px, 4vw, 45px);
         width: 100%;
     }
 
@@ -428,9 +429,6 @@
     }
 
     @media (max-width: 1400px) {
-        .home-activity-feed {
-            max-width: 900px;
-        }
         .feed-author-copy > h3 {
             font-size: 28px;
         }
@@ -449,9 +447,6 @@
     }
 
     @media (max-width: 1024px) {
-        .home-activity-feed {
-            padding: 0 24px;
-        }
         .feed-post-header {
             gap: 20px;
         }
@@ -470,10 +465,6 @@
     }
 
     @media (max-width: 768px) {
-        .home-activity-feed {
-            padding: 0 16px;
-            gap: 32px;
-        }
         .feed-post {
             gap: 32px;
         }

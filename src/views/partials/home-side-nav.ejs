@@ -1,4 +1,4 @@
-<aside class="home-side-nav" style="grid-area: nav;">
+<aside class="home-side-nav">
     <nav>
         <a href="/" aria-label="Home">
             <%- include('./animated-nav-icon', { icon: 'home', size: 38 }) %>
@@ -352,11 +352,7 @@
         }
     }
 
-    @media (max-width: 1024px) {
-        .home-side-nav {
-            display: none;
-        }
-    }
+    /* Nav visibility is controlled by .home-nav-column in home-logged-in.ejs */
 </style>
 
 <script>
