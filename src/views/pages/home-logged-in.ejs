@@ -174,13 +174,18 @@
             width: 100%;
         }
 
-        .home-main-column {
-            min-width: 0;
-            width: 100%;
+        .home-main > .home-search {
+            grid-column: 1;
+        }
+
+        .home-main > .home-activity-feed {
+            grid-column: 1;
             padding: 0 var(--home-content-gutter) clamp(60px, 6vw, 80px);
         }
 
         .home-sidebar {
+            grid-column: 2;
+            grid-row: 1 / 4;
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -194,18 +199,6 @@
 
         .home-sidebar::-webkit-scrollbar {
             display: none;
-        }
-
-        /* Composer + feed spacing in main column */
-        .home-main-column .home-composer {
-            padding: 0 0 clamp(20px, 3vw, 28px);
-            width: 100%;
-        }
-
-        .home-main-column .home-activity-feed {
-            padding: 0;
-            width: 100%;
-            max-width: none;
         }
 
         @media (max-width: 1400px) {
@@ -245,7 +238,7 @@
                 display: none;
             }
 
-            .home-main-column {
+            .home-main > .home-activity-feed {
                 padding-bottom: 80px;
             }
 
@@ -255,10 +248,6 @@
         }
 
         @media (max-width: 640px) {
-            .home-search {
-                padding-top: 10px;
-            }
-
             .home-search-shell {
                 min-height: 44px;
                 padding-left: 12px;
@@ -268,6 +257,179 @@
                 width: 32px;
                 height: 32px;
                 flex-basis: 32px;
+            }
+        }
+
+        /* Desktop: show drawer as a static block in the first column */
+        @media (min-width: 1025px) {
+            .home-composer-drawer {
+                grid-column: 1;
+                position: static;
+                background: transparent;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 0;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .home-composer-drawer__handle {
+                display: none;
+            }
+
+            .home-composer-drawer .home-composer {
+                padding: 0 0 clamp(20px, 3vw, 28px);
+                width: 100%;
+            }
+
+            .home-composer-drawer .home-composer > form {
+                border: 1px solid rgba(109, 10, 10, 0.16);
+                box-shadow: 0 18px 40px rgba(109, 10, 10, 0.07);
+                padding: 16px;
+                border-radius: 20px;
+                background: linear-gradient(180deg, #fff, #fffaf7);
+            }
+
+            .home-composer-overlay {
+                display: none !important;
+            }
+
+            .home-composer-fab {
+                display: none !important;
+            }
+        }
+
+        /* ── Floating compose FAB (mobile only) ── */
+        @media (max-width: 1024px) {
+            .home-composer-fab {
+                position: fixed;
+                bottom: 80px;
+                right: 20px;
+                z-index: 200;
+                width: 56px;
+                height: 56px;
+                border: none;
+                border-radius: 50%;
+                background: #6d0a0a;
+                color: #fff;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 24px rgba(109, 10, 10, 0.35), 0 2px 8px rgba(109, 10, 10, 0.18);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                touch-action: manipulation;
+            }
+
+            .home-composer-fab:hover,
+            .home-composer-fab:focus-visible {
+                transform: scale(1.08);
+                box-shadow: 0 12px 32px rgba(109, 10, 10, 0.45);
+            }
+
+            .home-composer-fab:active {
+                transform: scale(0.94);
+            }
+
+            .home-composer-fab svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .home-composer-fab.is-open {
+                transform: rotate(45deg);
+                background: #4b0808;
+            }
+
+            /* Overlay */
+            .home-composer-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 180;
+                background: rgba(0, 0, 0, 0.4);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.25s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .home-composer-overlay.is-visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* Drawer */
+            .home-composer-drawer {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 190;
+                background: #fff;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+                transform: translateY(100%);
+                transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+                max-height: 85vh;
+                overflow-y: auto;
+                padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+            }
+
+            .home-composer-drawer.is-visible {
+                transform: translateY(0);
+            }
+
+            .home-composer-drawer .home-composer {
+                padding: 0;
+            }
+
+            .home-composer-drawer .home-composer > form {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                border-radius: 0;
+                background: transparent;
+            }
+
+            .home-composer-drawer .composer-avatar {
+                width: 40px;
+                height: 40px;
+                flex-basis: 40px;
+                font-size: 20px;
+            }
+
+            .home-composer-drawer .home-composer textarea {
+                font-size: 20px;
+                min-height: 80px;
+            }
+
+            /* Handle bar */
+            .home-composer-drawer__handle {
+                width: 36px;
+                height: 4px;
+                border-radius: 999px;
+                background: rgba(0, 0, 0, 0.12);
+                margin: 0 auto 16px;
+                flex-shrink: 0;
+            }
+
+        }
+
+        @media (max-width: 640px) {
+            .home-composer-fab {
+                width: 52px;
+                height: 52px;
+                right: 16px;
+                bottom: 76px;
+            }
+
+            .home-composer-fab svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .home-composer-drawer {
+                padding: 16px 14px max(16px, env(safe-area-inset-bottom));
             }
         }
     </style>
@@ -280,28 +442,39 @@
     </aside>
 
     <div class="home-container">
-        <section class="home-search" aria-label="Search">
-            <form action="/search" method="GET" role="search">
-                <label for="search-input" class="sr-only">Search</label>
-                <div class="home-search-shell">
-                    <span class="home-search-icon" aria-hidden="true">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.35-4.35" />
-                        </svg>
-                    </span>
-                    <input id="search-input" name="q" type="search" placeholder="Search Nook" aria-label="Search Nook" />
-                    <span class="home-search-scope" aria-hidden="true">Posts</span>
-                </div>
-                <div id="search-results" class="hidden"></div>
-            </form>
-        </section>
-
         <div class="home-main">
-            <div class="home-main-column">
+            <section class="home-search" aria-label="Search">
+                <form action="/search" method="GET" role="search">
+                    <label for="search-input" class="sr-only">Search</label>
+                    <div class="home-search-shell">
+                        <span class="home-search-icon" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                        </span>
+                        <input id="search-input" name="q" type="search" placeholder="Search Nook" aria-label="Search Nook" />
+                        <span class="home-search-scope" aria-hidden="true">Posts</span>
+                    </div>
+                    <div id="search-results" class="hidden"></div>
+                </form>
+            </section>
+
+            <!-- Composer drawer — shown inline on desktop, as a bottom sheet on mobile -->
+            <div class="home-composer-overlay" id="composerOverlay"></div>
+
+            <aside class="home-composer-drawer" id="composerDrawer" role="dialog" aria-modal="true" aria-label="Create a post">
+                <div class="home-composer-drawer__handle"></div>
                 <%- include('../partials/home-post-composer') %>
-                <%- include('../partials/home-activity-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds: feedAds, user: user }) %>
-            </div>
+            </aside>
+
+            <button class="home-composer-fab" id="composerFab" aria-label="Create a post" type="button">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+            </button>
+
+            <%- include('../partials/home-activity-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds: feedAds, user: user }) %>
 
             <aside class="home-sidebar" aria-label="Trending and suggestions">
                 <%- include('../partials/home-trending', { trendingPosts: trendingPosts }) %>
@@ -318,5 +491,47 @@
     <script src="/public/js/nook-alert.js"></script>
     <script src="/public/js/post-actions.js"></script>
     <script src="/public/js/search.js"></script>
+    <script>
+    (function () {
+        var fab = document.getElementById('composerFab');
+        var drawer = document.getElementById('composerDrawer');
+        var overlay = document.getElementById('composerOverlay');
+        if (!fab || !drawer || !overlay) return;
+
+        function openDrawer() {
+            drawer.classList.add('is-visible');
+            overlay.classList.add('is-visible');
+            fab.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(function () {
+                var ta = drawer.querySelector('#post-composer');
+                if (ta) ta.focus();
+            }, 320);
+        }
+
+        function closeDrawer() {
+            drawer.classList.remove('is-visible');
+            overlay.classList.remove('is-visible');
+            fab.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+
+        fab.addEventListener('click', function () {
+            if (drawer.classList.contains('is-visible')) {
+                closeDrawer();
+            } else {
+                openDrawer();
+            }
+        });
+
+        overlay.addEventListener('click', closeDrawer);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && drawer.classList.contains('is-visible')) {
+                closeDrawer();
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
