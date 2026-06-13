@@ -13,9 +13,18 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
         minlength: [6, 'Password must be at least 6 characters'],
         select: false
+    },
+    authUserId: {
+        type: String,
+        sparse: true,
+        unique: true
+    },
+    authProvider: {
+        type: String,
+        enum: ['email', 'google', 'twitter', 'discord'],
+        default: 'email'
     },
     role: {
         type: String,
@@ -177,7 +186,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ 'wallet.balance': -1 });
 
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
+    if (!this.isModified('password') || !this.password) return next();
     
     this.password = await bcrypt.hash(this.password, 12);
     next();
