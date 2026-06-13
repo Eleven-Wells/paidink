@@ -16,13 +16,13 @@
     <div class="max-w-4xl mx-auto text-center">
         <div class="mb-12 relative inline-block">
             <svg width="300" height="300" viewBox="0 0 300 300" class="floating">
-                <circle cx="150" cy="150" r="120" fill="rgba(255,255,255,0.03)" class="pulse-ring"/>
-                <circle cx="150" cy="150" r="100" fill="rgba(255,255,255,0.02)"/>
+                <circle cx="150" cy="150" r="120" fill="rgba(0,0,0,0.025)" class="pulse-ring"/>
+                <circle cx="150" cy="150" r="100" fill="rgba(0,0,0,0.02)"/>
                 <g class="server-rack">
-                    <rect x="80" y="100" width="140" height="120" rx="8" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                    <rect x="90" y="110" width="120" height="30" rx="4" fill="rgba(255,255,255,0.03)"/>
-                    <rect x="90" y="150" width="120" height="30" rx="4" fill="rgba(255,255,255,0.03)"/>
-                    <rect x="90" y="190" width="120" height="20" rx="4" fill="rgba(255,255,255,0.03)"/>
+                    <rect x="80" y="100" width="140" height="120" rx="8" fill="rgba(0,0,0,0.04)" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+                    <rect x="90" y="110" width="120" height="30" rx="4" fill="rgba(0,0,0,0.03)"/>
+                    <rect x="90" y="150" width="120" height="30" rx="4" fill="rgba(0,0,0,0.03)"/>
+                    <rect x="90" y="190" width="120" height="20" rx="4" fill="rgba(0,0,0,0.03)"/>
                     <circle cx="100" cy="125" r="3" fill="#ef4444" class="error-light"/>
                     <circle cx="110" cy="125" r="3" fill="#ef4444" class="error-light"/>
                     <circle cx="120" cy="125" r="3" fill="rgba(34,197,94,0.6)"/>
@@ -31,33 +31,33 @@
                     <circle cx="110" cy="165" r="3" fill="rgba(34,197,94,0.6)"/>
                     <circle cx="120" cy="165" r="3" fill="#ef4444" class="error-light"/>
                     <circle cx="130" cy="165" r="3" fill="rgba(34,197,94,0.6)"/>
-                    <rect x="95" y="195" width="110" height="10" rx="2" fill="rgba(16,185,129,0.3)"/>
-                    <text x="150" y="203" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="JetBrains Mono, monospace" font-size="8" font-weight="bold">ERROR 500</text>
+                    <rect x="95" y="195" width="110" height="10" rx="2" fill="rgba(16,185,129,0.25)"/>
+                    <text x="150" y="203" text-anchor="middle" fill="rgba(0,0,0,0.35)" font-family="JetBrains Mono, monospace" font-size="8" font-weight="bold">ERROR 500</text>
                 </g>
-                <g class="smoke" style="animation-delay: 0s;"><ellipse cx="90" cy="95" rx="15" ry="10" fill="rgba(255,255,255,0.1)"/></g>
-                <g class="smoke" style="animation-delay: 0.5s;"><ellipse cx="110" cy="90" rx="12" ry="8" fill="rgba(255,255,255,0.08)"/></g>
-                <g class="smoke" style="animation-delay: 1s;"><ellipse cx="200" cy="95" rx="15" ry="10" fill="rgba(255,255,255,0.1)"/></g>
+                <g class="smoke" style="animation-delay: 0s;"><ellipse cx="90" cy="95" rx="15" ry="10" fill="rgba(0,0,0,0.08)"/></g>
+                <g class="smoke" style="animation-delay: 0.5s;"><ellipse cx="110" cy="90" rx="12" ry="8" fill="rgba(0,0,0,0.06)"/></g>
+                <g class="smoke" style="animation-delay: 1s;"><ellipse cx="200" cy="95" rx="15" ry="10" fill="rgba(0,0,0,0.08)"/></g>
             </svg>
         </div>
 
         <div class="space-y-6">
-            <h1 class="font-heading text-8xl md:text-9xl tracking-tight text-white/90">500</h1>
-            <h2 class="font-heading text-3xl md:text-4xl text-muted">SERVER MALFUNCTION</h2>
-            <p class="text-muted max-w-xl mx-auto text-lg">
+            <h1 class="font-heading text-8xl md:text-9xl tracking-tight text-gray-900">500</h1>
+            <h2 class="font-heading text-3xl md:text-4xl text-gray-500">SERVER MALFUNCTION</h2>
+            <p class="text-gray-500 max-w-xl mx-auto text-lg">
                 Oops! Our servers are having a moment. We're working on getting things back on track.
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
-                <button onclick="window.location.reload()" class="btn-primary-dark px-10 py-4 rounded-full text-sm w-full sm:w-auto">
+                <button onclick="window.location.reload()" class="btn-primary px-10 py-4 rounded-full text-sm w-full sm:w-auto">
                     Try Again
                 </button>
-                <a href="/" class="btn-secondary-dark px-8 py-4 rounded-full text-xs font-mono uppercase tracking-[0.15em] w-full sm:w-auto">
+                <a href="/" class="btn-secondary px-8 py-4 rounded-full text-xs font-mono uppercase tracking-[0.15em] w-full sm:w-auto">
                     Return Home
                 </a>
             </div>
 
-            <div class="mt-12 pt-8 border-t border-white/10">
-                <p class="text-muted-dark text-sm font-mono">
+            <div class="mt-12 pt-8 border-t border-gray-200">
+                <p class="text-gray-400 text-sm font-mono">
                     Problem persisting? Contact support
                 </p>
             </div>

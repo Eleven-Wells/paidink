@@ -821,8 +821,8 @@
     left: 0;
     right: 0;
     background: var(--pub-panel-bg);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: 1px solid var(--pub-panel-border);
     border-radius: 12px;
     box-shadow: var(--pub-panel-shadow);
