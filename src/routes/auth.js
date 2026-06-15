@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const LedgerEntry = require('../models/LedgerEntry');
 const crypto = require('crypto');
+const { verifyAccessToken } = require('../services/SupabaseAuthService');
 
 const SIGNUP_BONUS = 100;
 
@@ -257,6 +258,83 @@ module.exports = async function authRoutes(fastify) {
                 success: false,
                 error: 'Failed to process request'
             });
+        }
+    });
+
+    fastify.post('/supabase', async (req, reply) => {
+        try {
+            const { accessToken } = req.body;
+            if (!accessToken) {
+                return reply.code(400).send({ success: false, error: 'Access token is required' });
+            }
+
+            const { user: supabaseUser, error } = await verifyAccessToken(accessToken);
+            if (error || !supabaseUser) {
+                return reply.code(401).send({ success: false, error: 'Invalid or expired token' });
+            }
+
+            const authUserId = supabaseUser.id;
+            const email = supabaseUser.email;
+            const metadata = supabaseUser.user_metadata || {};
+            const provider = supabaseUser.app_metadata?.provider || 'google';
+            const displayName = metadata.name || metadata.full_name || (email ? email.split('@')[0] : 'User');
+            const avatar = metadata.avatar_url || metadata.picture || null;
+
+            let user = await User.findOne({ authUserId });
+
+            if (user) {
+                user.lastLogin = new Date();
+                if (avatar && user.avatar !== avatar) user.avatar = avatar;
+                if (displayName && user.displayName !== displayName) user.displayName = displayName;
+                await user.save();
+            } else {
+                const existingEmail = email ? await User.findOne({ email }) : null;
+                if (existingEmail) {
+                    existingEmail.authUserId = authUserId;
+                    existingEmail.authProvider = provider;
+                    existingEmail.lastLogin = new Date();
+                    if (avatar) existingEmail.avatar = avatar;
+                    if (displayName) existingEmail.displayName = displayName;
+                    await existingEmail.save();
+                    user = existingEmail;
+                } else {
+                    user = new User({
+                        email: email || `${authUserId}@supabase.auth`,
+                        authUserId,
+                        authProvider: provider,
+                        displayName,
+                        avatar,
+                        username: `user_${Date.now().toString(36)}`,
+                        lastLogin: new Date()
+                    });
+                    await user.save();
+                }
+            }
+
+            const token = fastify.jwt.sign({
+                id: user._id,
+                email: user.email,
+                role: user.role
+            });
+
+            reply.setCookie('auth_token', token, {
+                path: '/',
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 7 * 24 * 60 * 60
+            });
+
+            return reply.send({
+                success: true,
+                data: {
+                    user: user.toPublicJSON(),
+                    token
+                }
+            });
+        } catch (err) {
+            req.log.error(err, 'Supabase auth error');
+            return reply.code(500).send({ success: false, error: 'Authentication failed' });
         }
     });
 };

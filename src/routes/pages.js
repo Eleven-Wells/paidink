@@ -171,6 +171,13 @@ async function pagesRoutes(fastify) {
         });
     });
 
+    fastify.get('/auth/callback', async (req, reply) => {
+        return reply.view('pages/auth-callback.ejs', {
+            title: 'Completing sign in...',
+            description: 'Completing your sign in to Nook.'
+        });
+    });
+
     fastify.get('/about', async (req, reply) => {
         const lang = getLanguage(req);
         const pageContent = renderPage('about', {});
