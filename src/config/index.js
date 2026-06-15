@@ -72,6 +72,7 @@ const configSchema = {
         SMTP_PASS: { default: null },
         LOG_LEVEL: { default: 'info' },
         SENTRY_DSN: { default: null },
+        DISCORD_REVIEW_WEBHOOK_URL: { default: null },
         MAX_CONTENT_LENGTH: { default: '5000', parse: parseInt },
         CONTENT_SOURCES_LIMIT: { default: '10', parse: parseInt },
         AI_SUMMARY_LENGTH: { default: '300', parse: parseInt },
