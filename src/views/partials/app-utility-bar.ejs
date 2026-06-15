@@ -15,18 +15,20 @@
           <span class="util-bar-bell-dot" aria-label="<%= unreadCount %> unread notifications"></span>
         <% } %>
       </a>
+      <% const utilDisplayName = user ? (user.displayName || user.username || 'User') : 'User'; %>
+      <% const utilHandle = user ? (user.username ? '@' + user.username : (user.email || 'user')) : '@user'; %>
       <button type="button" class="util-bar-avatar" id="utilBarAvatar" aria-label="User menu" aria-haspopup="true" aria-expanded="false">
-        <%= (user && user.displayName) ? user.displayName.charAt(0).toUpperCase() : 'U' %>
+        <%= utilDisplayName.charAt(0).toUpperCase() %>
       </button>
 
       <div class="util-dropdown" id="utilDropdown" role="menu" aria-labelledby="utilBarAvatar">
         <div class="util-dropdown-header">
           <div class="util-dd-avatar">
-            <%= (user && user.displayName) ? user.displayName.charAt(0).toUpperCase() : 'U' %>
+            <%= utilDisplayName.charAt(0).toUpperCase() %>
           </div>
           <div class="util-dd-user">
-            <span class="util-dd-name"><%= user ? user.displayName : 'User' %></span>
-            <span class="util-dd-handle">@<%= user ? user.username : 'user' %></span>
+            <span class="util-dd-name"><%= utilDisplayName %></span>
+            <span class="util-dd-handle"><%= utilHandle %></span>
           </div>
           <div class="util-dd-reads">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -38,15 +40,12 @@
         </div>
 
         <div class="util-dropdown-items">
-          <a href="/settings" class="util-dd-item" role="menuitem" tabindex="-1">
+          <a href="/profile#settings" class="util-dd-item" role="menuitem" tabindex="-1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
             <span class="util-dd-item-label">Settings</span>
-            <% if (typeof user !== 'undefined' && user) { %>
-              <span class="util-dd-badge">Soon</span>
-            <% } %>
           </a>
 
           <% if (user && user.role === 'publisher' && user.publisherStatus === 'approved') { %>
@@ -82,6 +81,15 @@
             </svg>
             <span class="util-dd-item-label" id="utilReferLabel">Refer a Friend</span>
             <span class="util-dd-badge util-dd-badge-earn" id="utilReferBadge">+₦50</span>
+          </button>
+
+          <button type="button" class="util-dd-item" role="menuitem" tabindex="-1" data-open-review>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+              <path d="m8 9 2 2 4-4"/>
+            </svg>
+            <span class="util-dd-item-label">Leave a Review</span>
+            <span class="util-dd-badge">Beta</span>
           </button>
 
           <div class="util-dd-divider"></div>
@@ -123,9 +131,10 @@
 .app-utility-bar {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 10020;
   background: #fff;
   border-bottom: 1px solid rgba(109, 10, 10, 0.08);
+  isolation: isolate;
 }
 
 .util-bar-inner {
@@ -136,6 +145,7 @@
   margin: 0 auto;
   padding: 8px 24px;
   min-height: 48px;
+  position: relative;
 }
 
 .util-bar-left {
@@ -185,12 +195,13 @@
   border-radius: 50%;
   color: rgba(0, 0, 0, 0.6);
   text-decoration: none;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .util-bar-bell:hover {
   color: #6d0a0a;
   background: rgba(109, 10, 10, 0.06);
+  transform: translateY(-1px);
 }
 
 .util-bar-bell-dot {
@@ -202,6 +213,7 @@
   border-radius: 50%;
   background: #dc2626;
   border: 2px solid #fff;
+  animation: utilBellPulse 1.8s ease-in-out infinite;
 }
 
 .util-bar-avatar {
@@ -218,13 +230,36 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   position: relative;
+}
+
+.util-bar-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1px solid rgba(109, 10, 10, 0.22);
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  pointer-events: none;
 }
 
 .util-bar-avatar:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(109, 10, 10, 0.2);
+}
+
+.util-bar-avatar[aria-expanded="true"] {
+  background: #4b0808;
+  transform: translateY(-1px) scale(0.98);
+  box-shadow: 0 8px 20px rgba(109, 10, 10, 0.22);
+}
+
+.util-bar-avatar[aria-expanded="true"]::after {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .util-bar-avatar:focus-visible {
@@ -236,22 +271,40 @@
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  width: 280px;
+  width: min(280px, calc(100vw - 24px));
+  max-height: min(520px, calc(100vh - var(--util-bar-height, 48px) - 16px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #fff;
   border-radius: 12px;
   border: 1px solid rgba(109, 10, 10, 0.1);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-4px);
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
-  z-index: 60;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.2, 0.85, 0.2, 1), visibility 0.18s ease;
+  z-index: 10030;
+  will-change: opacity, transform;
+}
+
+.util-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.util-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.util-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(109, 10, 10, 0.16);
+  border-radius: 999px;
 }
 
 .util-dropdown.is-open {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 
 .util-dropdown-header {
@@ -329,9 +382,30 @@
   cursor: pointer;
   transition: background 0.15s ease;
   box-sizing: border-box;
+  opacity: 0;
+  transform: translateY(4px);
 }
 
+.util-dropdown.is-open .util-dd-item {
+  animation: utilMenuItemIn 0.24s cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+
+.util-dropdown.is-open .util-dd-item:nth-child(1) { animation-delay: 0.02s; }
+.util-dropdown.is-open .util-dd-item:nth-child(2) { animation-delay: 0.04s; }
+.util-dropdown.is-open .util-dd-item:nth-child(3) { animation-delay: 0.06s; }
+.util-dropdown.is-open .util-dd-item:nth-child(4) { animation-delay: 0.08s; }
+.util-dropdown.is-open .util-dd-item:nth-child(5) { animation-delay: 0.10s; }
+.util-dropdown.is-open .util-dd-item:nth-child(6) { animation-delay: 0.12s; }
+.util-dropdown.is-open .util-dd-item:nth-child(7) { animation-delay: 0.14s; }
+
 .util-dd-item:hover {
+  background: rgba(109, 10, 10, 0.06);
+  transform: translateX(2px);
+}
+
+.util-dd-item:focus-visible {
+  outline: 2px solid rgba(109, 10, 10, 0.35);
+  outline-offset: 2px;
   background: rgba(109, 10, 10, 0.06);
 }
 
@@ -435,6 +509,49 @@
   transform: translateX(16px);
 }
 
+@keyframes utilMenuItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes utilBellPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+  45% {
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .util-bar-bell,
+  .util-bar-avatar,
+  .util-bar-avatar::after,
+  .util-dropdown,
+  .util-dd-item,
+  .util-dd-toggle-track,
+  .util-dd-toggle-track::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .util-dd-item,
+  .util-dropdown.is-open .util-dd-item {
+    opacity: 1;
+    transform: none;
+  }
+
+  .util-bar-bell-dot {
+    animation: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   .util-bar-inner {
     padding: 8px 16px;
@@ -445,7 +562,7 @@
   }
 
   .util-dropdown {
-    width: 260px;
+    width: min(260px, calc(100vw - 24px));
     right: 0;
   }
 }
@@ -455,14 +572,23 @@
 (function() {
   var avatar = document.getElementById('utilBarAvatar');
   var dropdown = document.getElementById('utilDropdown');
+  var menuItems = dropdown ? dropdown.querySelectorAll('[role="menuitem"]') : [];
 
   if (!avatar || !dropdown) return;
 
   function toggleDropdown(e) {
     e.stopPropagation();
     var isOpen = dropdown.classList.contains('is-open');
-    dropdown.classList.toggle('is-open');
-    avatar.setAttribute('aria-expanded', !isOpen);
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  }
+
+  function openDropdown() {
+    dropdown.classList.add('is-open');
+    avatar.setAttribute('aria-expanded', 'true');
   }
 
   function closeDropdown() {
@@ -479,7 +605,43 @@
   });
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeDropdown();
+    if (e.key === 'Escape') {
+      closeDropdown();
+      avatar.focus();
+    }
+    if (e.key === 'ArrowDown' && document.activeElement === avatar && menuItems.length) {
+      e.preventDefault();
+      openDropdown();
+      menuItems[0].focus();
+    }
+  });
+
+  dropdown.addEventListener('keydown', function(e) {
+    if (!menuItems.length) return;
+    var currentIndex = Array.prototype.indexOf.call(menuItems, document.activeElement);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      menuItems[(currentIndex + 1) % menuItems.length].focus();
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      menuItems[(currentIndex - 1 + menuItems.length) % menuItems.length].focus();
+    }
+    if (e.key === 'Home') {
+      e.preventDefault();
+      menuItems[0].focus();
+    }
+    if (e.key === 'End') {
+      e.preventDefault();
+      menuItems[menuItems.length - 1].focus();
+    }
+  });
+
+  dropdown.addEventListener('click', function(e) {
+    var menuItem = e.target.closest('[role="menuitem"]');
+    if (menuItem && menuItem.id !== 'utilReferBtn' && !menuItem.classList.contains('util-dd-theme-row')) {
+      setTimeout(closeDropdown, 0);
+    }
   });
 
   var referBtn = document.getElementById('utilReferBtn');
@@ -517,7 +679,7 @@
     }
 
     function showCopied() {
-      referLabel.textContent = '\u2705 Copied!';
+      referLabel.textContent = 'Copied';
       if (referBadge) referBadge.style.display = 'none';
       setTimeout(function() {
         referLabel.textContent = 'Refer a Friend';
@@ -559,3 +721,5 @@
   }
 })();
 </script>
+
+<%- include('./app-review-modal') %>

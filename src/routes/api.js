@@ -20,6 +20,8 @@ const PayoutDetail = require('../models/PayoutDetail');
 const Comment = require('../models/Comment');
 const Credit = require('../models/Credit');
 const NotificationService = require('../services/NotificationService');
+const AppReview = require('../models/AppReview');
+const { sendReviewToDiscord } = require('../services/ReviewNotificationService');
 
 async function apiRoutes(fastify) {
     fastify.get('/health', async (req, reply) => {
@@ -111,6 +113,87 @@ async function apiRoutes(fastify) {
             maintenanceMode: isMaintenanceMode(),
             requestId: req.requestId
         };
+    });
+
+    fastify.get('/reviews/me', {
+        preHandler: [fastify.authenticate]
+    }, async (req, reply) => {
+        const review = await AppReview.findOne({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return {
+            success: true,
+            review: review ? {
+                rating: review.rating,
+                feedback: review.feedback,
+                createdAt: review.createdAt
+            } : null,
+            requestId: req.requestId
+        };
+    });
+
+    fastify.post('/reviews', {
+        preHandler: [fastify.authenticate],
+        schema: {
+            body: {
+                type: 'object',
+                required: ['rating', 'feedback'],
+                properties: {
+                    rating: { type: 'integer', minimum: 1, maximum: 5 },
+                    feedback: { type: 'string', minLength: 10, maxLength: 2000 },
+                    path: { type: 'string', maxLength: 300 }
+                },
+                additionalProperties: false
+            }
+        }
+    }, async (req, reply) => {
+        const rating = Number(req.body.rating);
+        const feedback = String(req.body.feedback || '').trim();
+        const path = String(req.body.path || '').trim();
+
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+            return reply.code(400).send({
+                success: false,
+                error: 'Choose a rating from 1 to 5'
+            });
+        }
+
+        if (feedback.length < 10) {
+            return reply.code(400).send({
+                success: false,
+                error: 'Review must be at least 10 characters'
+            });
+        }
+
+        const review = await AppReview.create({
+            user: req.user.id,
+            rating,
+            feedback,
+            context: {
+                path,
+                userAgent: req.headers['user-agent'] || ''
+            }
+        });
+
+        const discordResult = await sendReviewToDiscord(review, req.user);
+        review.discordDelivery = {
+            status: discordResult.status,
+            sentAt: discordResult.status === 'sent' ? new Date() : null,
+            error: discordResult.error || ''
+        };
+        await review.save();
+
+        return reply.code(201).send({
+            success: true,
+            message: 'Thanks for the review',
+            review: {
+                id: review._id,
+                rating: review.rating,
+                createdAt: review.createdAt
+            },
+            requestId: req.requestId
+        });
     });
 
     fastify.get('/posts', {

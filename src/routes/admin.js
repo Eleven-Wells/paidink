@@ -1,5 +1,6 @@
 const Post = require('../models/Post');
 const User = require('../models/User');
+const AppReview = require('../models/AppReview');
 const NotificationService = require('../services/NotificationService');
 const { getQueueStats } = require('../queue/contentQueue');
 const { getRedisConnection } = require('../config/redis');
@@ -296,6 +297,77 @@ module.exports = async function adminRoutes(fastify) {
             search
         });
         
+        return reply.type('text/html').send(html);
+    });
+
+    fastify.get('/admin/reviews', async (req, reply) => {
+        const { page = 1, rating, status } = req.query;
+        const limit = 20;
+        const currentPageNum = Math.max(1, parseInt(page, 10) || 1);
+        const skip = (currentPageNum - 1) * limit;
+
+        const query = {};
+        if (rating) {
+            const ratingValue = parseInt(rating, 10);
+            if (ratingValue >= 1 && ratingValue <= 5) {
+                query.rating = ratingValue;
+            }
+        }
+        if (status && ['pending', 'skipped', 'sent', 'failed'].includes(status)) {
+            query['discordDelivery.status'] = status;
+        }
+
+        const [reviews, total, ratingSummary, deliverySummary] = await Promise.all([
+            AppReview.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate('user', 'displayName username email avatar')
+                .lean(),
+            AppReview.countDocuments(query),
+            AppReview.aggregate([
+                { $group: { _id: '$rating', count: { $sum: 1 } } },
+                { $sort: { _id: -1 } }
+            ]),
+            AppReview.aggregate([
+                { $group: { _id: '$discordDelivery.status', count: { $sum: 1 } } }
+            ])
+        ]);
+
+        const totalReviews = ratingSummary.reduce((sum, item) => sum + item.count, 0);
+        const averageRating = totalReviews
+            ? (ratingSummary.reduce((sum, item) => sum + (item._id * item.count), 0) / totalReviews)
+            : 0;
+        const deliveryCounts = deliverySummary.reduce((acc, item) => {
+            acc[item._id || 'pending'] = item.count;
+            return acc;
+        }, {});
+
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const html = renderAdminPage('reviews', {
+            currentPage: 'reviews',
+            pageTitle: 'Reviews',
+            pageSubtitle: 'Beta tester feedback from the app and Discord delivery status',
+            title: 'Reviews | Nook Admin',
+            reviews,
+            filters: { rating, status },
+            stats: {
+                totalReviews,
+                averageRating,
+                sentToDiscord: deliveryCounts.sent || 0,
+                failedDiscord: deliveryCounts.failed || 0,
+                skippedDiscord: deliveryCounts.skipped || 0
+            },
+            discordWebhookConfigured: !!process.env.DISCORD_REVIEW_WEBHOOK_URL,
+            pagination: {
+                page: currentPageNum,
+                totalPages,
+                total,
+                hasPrev: currentPageNum > 1,
+                hasNext: currentPageNum < totalPages
+            }
+        });
+
         return reply.type('text/html').send(html);
     });
 
