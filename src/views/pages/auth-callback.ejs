@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completing sign in... | NOOK</title>
+    <meta name="theme-color" content="#6d0a0a">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        window.__SUPABASE_URL = '<%= process.env.SUPABASE_URL || "" %>';
+        window.__SUPABASE_ANON_KEY = '<%= process.env.SUPABASE_ANON_KEY || "" %>';
+    </script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Abhaya Libre', serif;
+            background: #fff;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .callback-card {
+            text-align: center;
+            padding: 48px 32px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(109,10,10,0.12);
+            border-top-color: #6d0a0a;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 24px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        h1 { font-size: 24px; font-weight: 600; color: #000; }
+        p { font-size: 18px; color: rgba(0,0,0,0.5); margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="callback-card">
+        <div class="spinner"></div>
+        <h1>Completing sign in...</h1>
+        <p>You'll be redirected momentarily.</p>
+    </div>
+    <script src="/public/js/supabase-client.js"></script>
+    <script>
+    (async function () {
+        var supabase = window.__supabase;
+        if (!supabase) {
+            window.location.href = '/login?error=supabase_not_configured';
+            return;
+        }
+        var { data, error } = await supabase.auth.getSession();
+        if (error || !data.session) {
+            window.location.href = '/login?error=no_session';
+            return;
+        }
+        var accessToken = data.session.access_token;
+        try {
+            var res = await fetch('/api/auth/supabase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accessToken })
+            });
+            var result = await res.json();
+            if (result.success) {
+                window.location.href = '/dashboard';
+            } else {
+                window.location.href = '/login?error=auth_failed';
+            }
+        } catch (err) {
+            window.location.href = '/login?error=server_error';
+        }
+    })();
+    </script>
+</body>
+</html>
