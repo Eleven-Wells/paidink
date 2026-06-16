@@ -1,8 +1,10 @@
 <aside class="home-trending" aria-labelledby="trending-heading">
     <div class="home-trending-inner">
-        <h2 id="trending-heading">
-            Trending
-        </h2>
+        <div class="sidebar-section-head">
+            <p class="sidebar-section-kicker">Popular now</p>
+            <h2 id="trending-heading">Trending reads</h2>
+            <p class="sidebar-section-copy">Start here when you want something readers are already opening, saving, and talking about.</p>
+        </div>
         
         <div class="trending-list">
         <% if (typeof trendingPosts !== 'undefined' && trendingPosts && trendingPosts.length > 0) { %>
@@ -17,11 +19,14 @@
                             <p class="trending-meta"><%= post.readTime || '5m' %> read <%= post.likes ? post.likes.length : 0 %> likes</p>
                         </div>
                     </div>
-                    <button type="button" aria-label="Save article" class="trending-save-btn">
-                        <svg width="33" height="33" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                        </svg>
-                    </button>
+                    <div class="trending-actions">
+                        <a href="/post/<%= post.slug || '#' %>" class="sidebar-secondary-cta">Read</a>
+                        <button type="button" aria-label="Save article" class="trending-save-btn">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </button>
+                    </div>
                     <% if (index < trendingPosts.length - 1) { %>
                         <hr class="trending-divider" />
                     <% } %>
@@ -35,6 +40,7 @@
             }) %>
         <% } %>
         </div>
+        <a href="/browse?tab=trending" class="sidebar-primary-cta">See more trending posts</a>
     </div>
 </aside>
 
@@ -50,13 +56,35 @@
         border-radius: 24px;
     }
 
-    .home-trending-inner > h2 {
+    .home-trending .sidebar-section-head {
+        margin-bottom: 28px;
+    }
+
+    .home-trending .sidebar-section-kicker {
+        margin: 0 0 7px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6d0a0a;
+    }
+
+    .home-trending-inner h2 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
-        font-weight: 400;
+        font-weight: 600;
         font-size: 32px;
         color: #000;
-        margin-bottom: 32px;
+        line-height: 1;
+    }
+
+    .home-trending .sidebar-section-copy {
+        margin: 10px 0 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(0, 0, 0, 0.62);
     }
 
     .trending-post {
@@ -78,7 +106,7 @@
     .trending-post-info > div {
         font-family: 'Abhaya Libre', serif;
         font-weight: 400;
-        font-size: 24px;
+        font-size: 20px;
         color: #000;
         display: flex;
         flex-direction: column;
@@ -86,22 +114,31 @@
         margin-left: 26px;
     }
 
-    .trending-label { margin: 0; }
+    .trending-label { margin: 0; color: #6d0a0a; font-size: 16px; }
     .trending-author { margin: 0; }
     .trending-title { margin: 0; font-weight: 500; }
-    .trending-meta { margin: 0; color: rgba(0,0,0,0.6); }
+    .trending-meta { margin: 0; color: rgba(0,0,0,0.6); font-size: 16px; }
+
+    .trending-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+    }
 
     .trending-save-btn {
         display: flex;
-        height: 33px;
-        width: 33px;
+        height: 40px;
+        width: 40px;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        background: none;
-        border: none;
+        background: rgba(109, 10, 10, 0.06);
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        border-radius: 999px;
+        color: #6d0a0a;
         cursor: pointer;
-        margin-left: 16px;
     }
 
     .trending-list {
@@ -119,12 +156,39 @@
         margin: 0;
     }
 
+    .home-trending .sidebar-primary-cta,
+    .home-trending .sidebar-secondary-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        border-radius: 999px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-weight: 800;
+    }
+
+    .home-trending .sidebar-primary-cta {
+        width: 100%;
+        margin-top: 24px;
+        padding: 13px 16px;
+        background: #6d0a0a;
+        color: #fff;
+        font-size: 13px;
+    }
+
+    .home-trending .sidebar-secondary-cta {
+        padding: 10px 15px;
+        border: 1px solid rgba(109, 10, 10, 0.14);
+        color: #6d0a0a;
+        font-size: 12px;
+    }
+
     @media (max-width: 1400px) {
-        .home-trending-inner > h2 {
+        .home-trending-inner h2 {
             font-size: 28px;
         }
         .trending-post-info > div {
-            font-size: 20px;
+            font-size: 18px;
         }
     }
 

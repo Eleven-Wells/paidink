@@ -1,8 +1,10 @@
 <aside class="home-who-follow" aria-labelledby="who-to-follow-heading">
     <div class="home-who-follow-inner">
-        <h2 id="who-to-follow-heading">
-            Who to follow
-        </h2>
+        <div class="sidebar-section-head">
+            <p class="sidebar-section-kicker">Shape your feed</p>
+            <h2 id="who-to-follow-heading">People to follow</h2>
+            <p class="sidebar-section-copy">Follow readers and writers you like. Their activity helps Nook show you better stories.</p>
+        </div>
         
         <div class="who-follow-list">
         <% if (typeof suggestedUsers !== 'undefined' && suggestedUsers && suggestedUsers.length > 0) { %>
@@ -28,6 +30,7 @@
             }) %>
         <% } %>
         </div>
+        <a href="/browse" class="sidebar-primary-cta">Find more readers and writers</a>
     </div>
 </aside>
 
@@ -43,13 +46,35 @@
         border-radius: 24px;
     }
 
-    .home-who-follow-inner > h2 {
+    .home-who-follow .sidebar-section-head {
+        margin-bottom: 28px;
+    }
+
+    .home-who-follow .sidebar-section-kicker {
+        margin: 0 0 7px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6d0a0a;
+    }
+
+    .home-who-follow-inner h2 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
-        font-weight: 400;
+        font-weight: 600;
         font-size: 32px;
         color: #000;
-        margin-bottom: 32px;
+        line-height: 1;
+    }
+
+    .home-who-follow .sidebar-section-copy {
+        margin: 10px 0 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(0, 0, 0, 0.62);
     }
 
     .who-follow-list {
@@ -63,13 +88,15 @@
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        margin-bottom: 47px;
+        gap: 14px;
+        margin-bottom: 24px;
     }
 
     .who-follow-item > div {
         display: inline-flex;
         align-items: center;
-        gap: 27px;
+        gap: 16px;
+        min-width: 0;
     }
 
     .who-follow-item > div > div {
@@ -81,48 +108,68 @@
     .who-follow-name {
         font-family: 'Abhaya Libre', serif;
         font-weight: 700;
-        font-size: 25px;
+        font-size: 22px;
         color: #000;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .who-follow-role {
-        font-family: 'Abhaya Libre', serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         font-weight: 400;
-        font-size: 22px;
-        color: #000;
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.62);
     }
 
     .follow-user-btn {
         display: flex;
-        height: 60px;
-        width: 157px;
+        min-height: 42px;
+        min-width: 96px;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        border-radius: 45px;
+        border-radius: 999px;
         background: #6d0a0a;
-        padding: 10px;
+        padding: 10px 16px;
         border: none;
         cursor: pointer;
     }
 
     .follow-user-btn > span {
-        font-family: 'Abhaya Libre', serif;
-        font-weight: 500;
-        font-size: 20px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-weight: 800;
+        font-size: 12px;
         color: #fff;
         white-space: nowrap;
     }
 
+    .home-who-follow .sidebar-primary-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-top: 8px;
+        padding: 13px 16px;
+        border-radius: 999px;
+        background: rgba(109, 10, 10, 0.06);
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        color: #6d0a0a;
+        text-decoration: none;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
     @media (max-width: 1400px) {
-        .home-who-follow-inner > h2 {
+        .home-who-follow-inner h2 {
             font-size: 28px;
         }
         .who-follow-name {
-            font-size: 22px;
+            font-size: 20px;
         }
         .who-follow-role {
-            font-size: 18px;
+            font-size: 12px;
         }
     }
 
@@ -148,7 +195,7 @@
                 });
                 var result = await response.json();
                 if (result.success) {
-                    this.innerHTML = '<span style="font-family: \'Abhaya Libre\', serif; font-weight: 500; font-size: 20px; color: #fff; white-space: nowrap;">Following</span>';
+                    this.innerHTML = '<span style="font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 800; font-size: 12px; color: #fff; white-space: nowrap;">Following</span>';
                     this.style.opacity = '0.7';
                     this.style.pointerEvents = 'none';
                 }
