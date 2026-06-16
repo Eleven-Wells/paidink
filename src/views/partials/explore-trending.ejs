@@ -1,43 +1,46 @@
-<aside class="explore-trending" aria-labelledby="explore-trending-heading" style="padding: clamp(24px, 4vw, 46px) clamp(12px, 2vw, 16px); border-radius: clamp(24px, 4vw, 58px); border: 1px solid #000; background: #fff;">
-    <div style="display: flex; flex-direction: column; width: 100%; align-items: flex-start; gap: clamp(16px, 3vw, 32px);">
-        <h2 id="explore-trending-heading" style="margin: 0; font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(20px, 3vw, 32px); color: #000;">
-            Trending
-        </h2>
-        
-        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: clamp(24px, 4vw, 46px); width: 100%;">
-            <% if (typeof trendingPosts !== 'undefined' && trendingPosts && trendingPosts.length > 0) { %>
-                <% trendingPosts.forEach(function(post, index) { %>
-                    <article style="display: flex; flex-direction: column; align-items: center; gap: clamp(12px, 2vw, 19px); width: 100%;">
-                        <div style="display: flex; align-items: flex-start; justify-content: space-between; width: 100%;">
-                            <div style="display: flex; align-items: flex-start; gap: clamp(12px, 2vw, 26px);">
-                                <%- include('../partials/avatar', { user: post.author, size: 'clamp(40px, 5vw, 55px)' }) %>
-                                <div style="font-family: 'Abhaya Libre', serif; font-weight: 400; font-size: clamp(16px, 2vw, 24px); color: #000;">
-                                    <p style="margin: 0;">Up next</p>
-                                    <p style="margin: 4px 0 0;"><%= post.author ? post.author.displayName : 'Anonymous' %></p>
-                                    <p style="margin: 4px 0 0; font-weight: 500;"><%= post.title %></p>
-                                    <p style="margin: 4px 0 0; color: rgba(0,0,0,0.6);"><%= post.readTime || '5m' %> read <%= post.likes ? post.likes.length : 0 %> likes</p>
-                                </div>
-                            </div>
-                            <button type="button" aria-label="Save article" style="margin-left: clamp(8px, 1.5vw, 16px); display: flex; height: clamp(24px, 3vw, 33px); width: clamp(24px, 3vw, 33px); flex-shrink: 0; align-items: center; justify-content: center; background: none; border: none; cursor: pointer;">
-                                <svg width="clamp(24px, 3vw, 33px)" height="clamp(24px, 3vw, 33px)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <% if (index < trendingPosts.length - 1) { %>
-                            <img alt="Divider" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 610 1' preserveAspectRatio='none'%3E%3Cline x1='0' y1='0.5' x2='610' y2='0.5' stroke='rgba(0,0,0,0.15)' stroke-width='1'/%3E%3C/svg%3E" style="width: 100%; height: 1px; object-fit: contain; display: block;" />
-                        <% } %>
-                    </article>
-                <% }); %>
-            <% } else { %>
-                <%- include('../partials/empty-state-card', {
-                    title: 'Nothing is trending yet',
-                    copy: 'The most-read posts will show up here once the room gets moving.',
-                    compact: true
-                }) %>
-            <% } %>
-        </div>
+<aside class="explore-trending" aria-labelledby="explore-trending-heading">
+    <div class="explore-sidebar-head">
+        <p class="explore-sidebar-kicker">Popular now</p>
+        <h2 id="explore-trending-heading">Trending reads</h2>
+        <p class="explore-sidebar-copy">Use this when you want a quick place to start. These posts are getting attention from other readers.</p>
     </div>
+
+    <div class="explore-trending-list">
+        <% if (typeof trendingPosts !== 'undefined' && trendingPosts && trendingPosts.length > 0) { %>
+            <% trendingPosts.forEach(function(post, index) { %>
+                <article class="explore-trending-post">
+                    <div class="explore-trending-main">
+                        <%- include('../partials/avatar', { user: post.author, size: 'clamp(40px, 5vw, 55px)' }) %>
+                        <div class="explore-trending-copy">
+                            <p class="explore-trending-label">Recommended next</p>
+                            <p class="explore-trending-author"><%= post.author ? post.author.displayName : 'Anonymous' %></p>
+                            <h3><%= post.title %></h3>
+                            <p class="explore-trending-meta"><%= post.readTime || '5m' %> read <%= post.likes ? post.likes.length : 0 %> likes</p>
+                        </div>
+                    </div>
+                    <div class="explore-trending-actions">
+                        <a href="/post/<%= post.slug || '#' %>" class="explore-sidebar-secondary-cta">Read</a>
+                        <button type="button" aria-label="Save article" class="explore-save-btn">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <% if (index < trendingPosts.length - 1) { %>
+                        <hr class="explore-sidebar-divider" />
+                    <% } %>
+                </article>
+            <% }); %>
+        <% } else { %>
+            <%- include('../partials/empty-state-card', {
+                title: 'Nothing is trending yet',
+                copy: 'The most-read posts will show up here once the room gets moving.',
+                compact: true
+            }) %>
+        <% } %>
+    </div>
+
+    <a href="/browse?tab=trending" class="explore-sidebar-primary-cta">See more trending posts</a>
 </aside>
 
 <style>
@@ -47,7 +50,155 @@
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        padding: clamp(24px, 4vw, 34px) clamp(16px, 3vw, 24px);
+        border-radius: clamp(24px, 4vw, 34px);
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        background: #fff;
     }
+
+    .explore-sidebar-head {
+        margin-bottom: 28px;
+    }
+
+    .explore-sidebar-kicker {
+        margin: 0 0 7px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6d0a0a;
+    }
+
+    .explore-sidebar-head h2 {
+        margin: 0;
+        font-family: 'Abhaya Libre', serif;
+        font-weight: 600;
+        font-size: clamp(24px, 3vw, 32px);
+        line-height: 1;
+        color: #000;
+    }
+
+    .explore-sidebar-copy {
+        margin: 10px 0 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
+        color: rgba(0, 0, 0, 0.62);
+    }
+
+    .explore-trending-list {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .explore-trending-post {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .explore-trending-main {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        min-width: 0;
+    }
+
+    .explore-trending-copy {
+        min-width: 0;
+    }
+
+    .explore-trending-copy p,
+    .explore-trending-copy h3 {
+        margin: 0;
+    }
+
+    .explore-trending-label {
+        font-family: 'Abhaya Libre', serif;
+        font-size: 16px;
+        color: #6d0a0a;
+    }
+
+    .explore-trending-author {
+        margin-top: 3px !important;
+        font-family: 'Abhaya Libre', serif;
+        font-size: 19px;
+        color: #000;
+    }
+
+    .explore-trending-copy h3 {
+        margin-top: 4px;
+        font-family: 'Abhaya Libre', serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.08;
+        color: #000;
+    }
+
+    .explore-trending-meta {
+        margin-top: 6px !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.58);
+    }
+
+    .explore-trending-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .explore-save-btn {
+        display: flex;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(109, 10, 10, 0.12);
+        border-radius: 999px;
+        background: rgba(109, 10, 10, 0.06);
+        color: #6d0a0a;
+        cursor: pointer;
+    }
+
+    .explore-sidebar-divider {
+        width: 100%;
+        height: 1px;
+        border: 0;
+        margin: 8px 0 0;
+        background: rgba(0, 0, 0, 0.14);
+    }
+
+    .explore-sidebar-primary-cta,
+    .explore-sidebar-secondary-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        text-decoration: none;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-weight: 800;
+    }
+
+    .explore-sidebar-primary-cta {
+        width: 100%;
+        margin-top: 24px;
+        padding: 13px 16px;
+        background: #6d0a0a;
+        color: #fff;
+        font-size: 13px;
+    }
+
+    .explore-sidebar-secondary-cta {
+        padding: 10px 15px;
+        border: 1px solid rgba(109, 10, 10, 0.14);
+        color: #6d0a0a;
+        font-size: 12px;
+    }
+
     @media (max-width: 1100px) {
         .explore-trending {
             display: none !important;
