@@ -155,6 +155,107 @@
                 border-color: rgba(109, 10, 10, 0.16);
             }
 
+            .dashboard-workspace {
+                display: grid;
+                grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.9fr);
+                gap: 1.5rem;
+                align-items: start;
+            }
+
+            .dashboard-primary-stack {
+                display: grid;
+                gap: 1.5rem;
+                min-width: 0;
+            }
+
+            .dashboard-action-hub {
+                display: grid;
+                gap: 1.15rem;
+                position: sticky;
+                top: calc(var(--util-bar-height, 48px) + 1.5rem);
+            }
+
+            .dashboard-hub-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 1rem;
+            }
+
+            .dashboard-hub-copy,
+            .dashboard-action-copy {
+                color: var(--dash-muted);
+            }
+
+            .dashboard-hub-section {
+                padding-top: 1.05rem;
+                border-top: 1px solid rgba(109, 10, 10, 0.1);
+            }
+
+            .dashboard-hub-section:first-of-type {
+                padding-top: 0;
+                border-top: 0;
+            }
+
+            .dashboard-section-heading {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                margin-bottom: 0.85rem;
+            }
+
+            .dashboard-progress-strip {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1rem;
+            }
+
+            .dashboard-progress-card {
+                border: 1px solid rgba(109, 10, 10, 0.1);
+                background: rgba(109, 10, 10, 0.035);
+                border-radius: 1rem;
+                padding: 1rem;
+            }
+
+            .dashboard-action-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 0.85rem 0;
+            }
+
+            .dashboard-action-row + .dashboard-action-row {
+                border-top: 1px solid rgba(109, 10, 10, 0.08);
+            }
+
+            .dashboard-action-title {
+                color: var(--dash-text);
+            }
+
+            .dashboard-quick-actions {
+                display: grid;
+                gap: 0.35rem;
+            }
+
+            .dashboard-copy-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.55rem;
+                min-width: 0;
+                padding: 0.65rem 0.75rem;
+                border: 1px solid rgba(109, 10, 10, 0.12);
+                border-radius: 999px;
+                background: rgba(109, 10, 10, 0.045);
+            }
+
+            .dashboard-copy-pill .dashboard-referral-code {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
             .dashboard-history-item {
                 text-decoration: none;
                 background: rgba(109, 10, 10, 0.035);
@@ -342,6 +443,68 @@
                 color: var(--dash-success);
             }
 
+            .dashboard-action-hub .rewarded-ad-section {
+                padding: 1rem;
+                border: 1px solid rgba(217, 119, 6, 0.18);
+                border-radius: 1rem;
+                background: rgba(245, 158, 11, 0.08);
+            }
+
+            .dashboard-action-hub .rewarded-ad-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .dashboard-action-hub .rewarded-ad-icon {
+                width: 2.25rem;
+                height: 2.25rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                border-radius: 0.8rem;
+                background: rgba(245, 158, 11, 0.12);
+            }
+
+            .dashboard-action-hub .rewarded-ad-title {
+                color: var(--dash-text);
+                font-weight: 700;
+                margin: 0;
+            }
+
+            .dashboard-action-hub .rewarded-ad-subtitle {
+                color: var(--dash-muted);
+                font-size: 0.75rem;
+                margin: 0.15rem 0 0;
+            }
+
+            .dashboard-action-hub .rewarded-ad-preview {
+                display: none;
+            }
+
+            .dashboard-action-hub .rewarded-ad-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.45rem;
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 0;
+                border-radius: 0.85rem;
+                background: #b45309;
+                color: #fff;
+                font-weight: 700;
+                cursor: pointer;
+                transition: transform 0.2s ease, background 0.2s ease;
+            }
+
+            .dashboard-action-hub .rewarded-ad-btn:hover {
+                background: #92400e;
+                transform: translateY(-1px);
+            }
+
             .dashboard-focus-ring:focus-visible,
             .dashboard-panel-button:focus-visible,
             .dashboard-referral-button:focus-visible {
@@ -358,6 +521,20 @@
                 .dashboard-panel {
                     padding: 1.1rem;
                 }
+
+                .dashboard-progress-strip {
+                    grid-template-columns: 1fr;
+                }
+
+                .dashboard-action-row {
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+
+                .dashboard-copy-pill {
+                    width: 100%;
+                    justify-content: space-between;
+                }
             }
 
             @media (max-width: 1024px) {
@@ -368,6 +545,14 @@
                 .dashboard-shell {
                     margin-left: 0;
                     padding-top: 1.5rem !important;
+                }
+
+                .dashboard-workspace {
+                    grid-template-columns: 1fr;
+                }
+
+                .dashboard-action-hub {
+                    position: static;
                 }
             }
         </style>
@@ -456,8 +641,8 @@
                     </article>
                 </section>
 
-                <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <div class="xl:col-span-2 space-y-6">
+                <section class="dashboard-workspace">
+                    <div class="dashboard-primary-stack">
                         <div class="glass-card dashboard-panel rounded-2xl p-6">
                             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                                 <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Recent Reading</h2>
@@ -524,10 +709,15 @@
                         </div>
 
                         <div class="glass-card dashboard-panel rounded-2xl p-6">
-                            <h2 class="dashboard-panel-title font-heading text-xl font-semibold mb-4">Progress Goals
-                            </h2>
-                            <div class="space-y-5">
+                            <div class="dashboard-section-heading">
                                 <div>
+                                    <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-1">Momentum</p>
+                                    <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Progress Goals</h2>
+                                </div>
+                                <a href="/achievements" class="dashboard-panel-link text-xs font-mono">Milestones</a>
+                            </div>
+                            <div class="dashboard-progress-strip">
+                                <div class="dashboard-progress-card">
                                     <div class="flex items-center justify-between text-sm mb-2">
                                         <span class="dashboard-progress-copy">Next read milestone</span>
                                         <span class="dashboard-progress-value font-mono">
@@ -541,7 +731,7 @@
                                                 style="width:<%= readProgress %>%;"></div>
                                         </div>
                                 </div>
-                                <div>
+                                <div class="dashboard-progress-card">
                                     <div class="flex items-center justify-between text-sm mb-2">
                                         <span class="dashboard-progress-copy">Referral target</span>
                                         <% const refProgress=Math.max(0, Math.min(100, ((readStats?.referredCount || 0)
@@ -560,10 +750,18 @@
                         </div>
                     </div>
 
-                    <div class="space-y-6">
-                        <div class="glass-card dashboard-panel rounded-2xl p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Notifications</h2>
+                    <aside class="glass-card dashboard-panel dashboard-action-hub rounded-2xl p-6" aria-labelledby="dashboard-next-up-title">
+                        <div class="dashboard-hub-header">
+                            <div>
+                                <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Next up</p>
+                                <h2 id="dashboard-next-up-title" class="dashboard-panel-title font-heading text-xl font-semibold">Your dashboard queue</h2>
+                                <p class="dashboard-hub-copy text-sm mt-2">The few things that may need attention, kept in one place.</p>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-hub-section">
+                            <div class="dashboard-section-heading">
+                                <h3 class="dashboard-action-title text-sm font-semibold">Notifications</h3>
                                 <button id="markAllRead"
                                     class="dashboard-panel-button dashboard-focus-ring text-xs">Mark all read</button>
                             </div>
@@ -573,68 +771,68 @@
                             </div>
                         </div>
 
-                        <div class="glass-card dashboard-panel rounded-2xl p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Achievements</h2>
+                        <div class="dashboard-hub-section">
+                            <div class="dashboard-section-heading">
+                                <h3 class="dashboard-action-title text-sm font-semibold">Achievements</h3>
                                 <span id="achievementCount" class="text-xs text-muted">Loading...</span>
                             </div>
                             <div id="achievementsList" class="space-y-3">
                                 <div class="dashboard-empty-state dashboard-empty-state-compact">Loading achievements...
                                 </div>
                             </div>
-                            <a href="/achievements" class="dashboard-panel-link block text-center text-sm mt-4">View all
-                                achievements</a>
+                            <a href="/achievements" class="dashboard-panel-link block text-sm mt-4">View all achievements</a>
                         </div>
 
                         <% if (typeof rewardedAd !=='undefined' && rewardedAd) { %>
-                            <%- include('../partials/ad-rewarded', { ad: rewardedAd }) %>
-                                <% } %>
+                            <div class="dashboard-hub-section">
+                                <%- include('../partials/ad-rewarded', { ad: rewardedAd }) %>
+                            </div>
+                        <% } %>
 
-                                    <div class="glass-card dashboard-panel rounded-2xl p-6">
-                                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">
-                                            Beta review</p>
-                                        <h2 class="dashboard-panel-title font-heading text-xl font-semibold mb-2">Tell
-                                            us what to fix</h2>
-                                        <p class="dashboard-referral-note text-sm mb-4">Testing Nook should feel easy.
-                                            Send a short review from here whenever something feels off.</p>
-                                        <button type="button"
-                                            class="dashboard-referral-button dashboard-focus-ring w-full px-4 py-3 rounded-xl font-semibold"
-                                            data-open-review>Leave a review</button>
-                                    </div>
+                        <div class="dashboard-hub-section dashboard-quick-actions">
+                            <div class="dashboard-action-row">
+                                <div>
+                                    <h3 class="dashboard-action-title text-sm font-semibold">Beta review</h3>
+                                    <p class="dashboard-action-copy text-xs mt-1">Send feedback when something feels off.</p>
+                                </div>
+                                <button type="button"
+                                    class="dashboard-referral-button dashboard-focus-ring px-4 py-2 rounded-xl font-semibold text-sm"
+                                    data-open-review>Review</button>
+                            </div>
 
-                                    <div class="glass-card dashboard-panel rounded-2xl p-6">
-                                        <h2 class="dashboard-panel-title font-heading text-xl font-semibold mb-4">
-                                            Referral</h2>
-                                        <div class="dashboard-referral-card rounded-xl p-4">
-                                            <div class="flex items-center gap-3">
-                                                <p id="referralCode"
-                                                    class="dashboard-referral-code text-xl font-mono font-bold flex-1">
-                                                    <%= user?.referralCode || 'N/A' %>
-                                                </p>
-                                                <button id="copyReferralBtn"
-                                                    class="dashboard-referral-button dashboard-focus-ring p-3 rounded-xl"
-                                                    title="Copy referral link">
-                                                    <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" width="18"
-                                                        height="18" viewBox="0 0 24 24" fill="none"
-                                                        stroke="currentColor" stroke-width="2">
-                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                                        <path
-                                                            d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
-                                                        </path>
-                                                    </svg>
-                                                    <svg id="checkIcon" class="dashboard-copy-check hidden"
-                                                        xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2">
-                                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            <p class="dashboard-referral-note text-sm mt-2">Share and earn ₦50 per
-                                                referral.</p>
-                                        </div>
-                                    </div>
-                    </div>
+                            <div class="dashboard-action-row">
+                                <div class="min-w-0">
+                                    <h3 class="dashboard-action-title text-sm font-semibold">Referral link</h3>
+                                    <p class="dashboard-action-copy text-xs mt-1">Earn ₦50 per referral.</p>
+                                </div>
+                                <div class="dashboard-copy-pill">
+                                    <p id="referralCode"
+                                        class="dashboard-referral-code text-sm font-mono font-bold">
+                                        <%= user?.referralCode || 'N/A' %>
+                                    </p>
+                                    <button id="copyReferralBtn"
+                                        class="dashboard-referral-button dashboard-focus-ring p-2 rounded-xl"
+                                        title="Copy referral link"
+                                        aria-label="Copy referral link">
+                                        <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" width="16"
+                                            height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path
+                                                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                            </path>
+                                        </svg>
+                                        <svg id="checkIcon" class="dashboard-copy-check hidden"
+                                            xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
                 </section>
             </div>
         </main>
@@ -654,7 +852,7 @@
                         listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No achievements yet.</div>';
                         return;
                     }
-                    listEl.innerHTML = data.achievements.slice(0, 3).map((a) => `
+                    listEl.innerHTML = data.achievements.slice(0, 2).map((a) => `
                     <div class="dashboard-achievement-item">
                         <div class="dashboard-achievement-icon ${a.earned ? 'is-earned' : 'is-locked'}">
                             ${a.earned ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'}
@@ -680,7 +878,7 @@
                         listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No notifications yet.</div>';
                         return;
                     }
-                    listEl.innerHTML = data.notifications.slice(0, 5).map((n) => `
+                    listEl.innerHTML = data.notifications.slice(0, 3).map((n) => `
                     <button class="dashboard-notif-item dashboard-focus-ring w-full text-left p-3 rounded-xl ${n.read ? 'is-read' : ''}" onclick="handleNotifClick('${n._id}')">
                         <p class="dashboard-notif-title text-sm font-medium truncate">${n.title}</p>
                         <p class="dashboard-notif-copy text-xs mt-1 line-clamp-2">${n.message}</p>
