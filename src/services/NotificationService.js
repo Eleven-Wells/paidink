@@ -42,6 +42,7 @@ async function getUnreadCount(userId) {
 }
 
 async function notifyReward(userId, amount, source = 'reading') {
+    const nairaAmount = (amount / 100).toFixed(2);
     const titles = {
         reading: 'Reward Earned!',
         referral: 'Referral Bonus!',
@@ -49,16 +50,16 @@ async function notifyReward(userId, amount, source = 'reading') {
     };
 
     const messages = {
-        reading: `You earned ₦${amount} for reading articles`,
-        referral: `You earned ₦${amount} for referring a friend`,
-        signup_bonus: `Welcome bonus of ₦${amount} credited to your account`
+        reading: `You earned ₦${nairaAmount} for reading articles`,
+        referral: `You earned ₦${nairaAmount} for referring a friend`,
+        signup_bonus: `Welcome bonus of ₦${nairaAmount} credited to your account`
     };
 
     return await createNotification(
         userId,
         'reward',
         titles[source] || 'Reward Earned!',
-        messages[source] || `You earned ₦${amount}`,
+        messages[source] || `You earned ₦${nairaAmount}`,
         { amount, source }
     );
 }
