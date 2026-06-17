@@ -1,9 +1,9 @@
-<% var displayTitle = post.title || (function() { var p = String(post.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().split(/\s+/); return p.slice(0, 60).join(' ') + (p.length > 60 ? '...' : ''); })(); %>
+<% var metaTitle = post.title || (post.author ? post.author.displayName + '\'s post' : 'Untitled post'); %>
 <script type="application/ld+json">
 <%- JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": displayTitle,
+  "headline": metaTitle,
   "description": post.metaDescription || post.summary || '',
   "image": {
     "@type": "ImageObject",
@@ -51,7 +51,7 @@
     {
       "@type": "ListItem",
       "position": 3,
-      "name": displayTitle,
+      "name": metaTitle,
       "item": (process.env.BASE_URL || '') + '/post/' + post.slug
     }
   ]
@@ -81,16 +81,17 @@
             <% if (post.image) { %>
             <div class="post-media-wrap mb-10 relative">
                 <div class="post-media-frame">
-                    <img src="<%= post.image %>" alt="<%= displayTitle %>" loading="eager" fetchpriority="high"
+                    <img src="<%= post.image %>" alt="<%= metaTitle %>" loading="eager" fetchpriority="high"
                         decoding="async" class="post-hero-image">
                 </div>
             </div>
             <% } %>
 
-            <!-- Post Title -->
+            <% if (post.title) { %>
             <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl leading-tight mb-8 fade-up post-hero-title">
-                <%= displayTitle %>
+                <%= post.title %>
             </h1>
+            <% } %>
 
             <!-- Post Content -->
             <article class="post-article-shell">

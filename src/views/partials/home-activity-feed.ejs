@@ -21,13 +21,14 @@
                                 </button>
                             </div>
 
-                            <% var displayTitle = post.title || (function() { var p = String(post.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().split(/\s+/); return p.slice(0, 60).join(' ') + (p.length > 60 ? '...' : ''); })(); %>
                             <a href="/post/<%= post.slug %>" class="feed-post-link">
+                                <% if (post.title) { %>
                                 <h4>
-                                    <%= displayTitle %>
+                                    <%= post.title %>
                                 </h4>
+                                <% } %>
                                 <p>
-                                    <%= post.summary %>
+                                    <%= post.title ? post.summary : (function() { var p = String(post.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); return p.length > 300 ? p.substring(0, 300) + '...' : p; })() %>
                                 </p>
                             </a>
 
@@ -77,7 +78,7 @@
                     </div>
 
                     <div class="feed-post-options">
-                        <a href="/post/<%= post.slug %>" class="feed-read-cta" aria-label="Read <%= displayTitle %>">
+                        <a href="/post/<%= post.slug %>" class="feed-read-cta" aria-label="Read<%= post.title ? ' ' + post.title : '' %>">
                             Read post
                         </a>
                         <button type="button" aria-label="More options">
