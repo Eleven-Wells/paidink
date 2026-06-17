@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const PostSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true,
         trim: true,
         maxLength: 200
     },
@@ -89,6 +88,13 @@ PostSchema.index({ category: 1, publishedAt: -1 });
 PostSchema.index({ tags: 1 });
 PostSchema.index({ title: 'text', summary: 'text', content: 'text' });
 PostSchema.index({ author: 1, publishedAt: -1 });
+
+PostSchema.virtual('displayTitle').get(function () {
+    if (this.title) return this.title;
+    const plain = (this.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    const words = plain.split(/\s+/);
+    return words.slice(0, 60).join(' ') + (words.length > 60 ? '...' : '');
+});
 
 PostSchema.pre('save', function(next) {
     this.updatedAt = new Date();

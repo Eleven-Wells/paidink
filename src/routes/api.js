@@ -281,12 +281,11 @@ async function apiRoutes(fastify) {
 
         const trimmedContent = hasContent ? content.trim() : (hasLink ? link.trim() : 'Shared an image');
         const finalContent = safeLink && !trimmedContent.includes(safeLink) ? `${trimmedContent}\n\n${safeLink}` : trimmedContent;
-        const postTitle = title || finalContent.substring(0, 60) + (finalContent.length > 60 ? '...' : '');
-        const slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + crypto.randomBytes(4).toString('hex');
+        const slug = (title || finalContent.substring(0, 60)).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + crypto.randomBytes(4).toString('hex');
         const summary = finalContent.substring(0, 200);
 
         const post = new Post({
-            title: postTitle,
+            title: title || undefined,
             slug,
             content: finalContent,
             summary,
