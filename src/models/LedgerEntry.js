@@ -34,11 +34,11 @@ const ledgerEntrySchema = new mongoose.Schema({
     },
     balanceBefore: {
         type: Number,
-        default: 0
+        default: 0  // stored in kobo
     },
     balanceAfter: {
         type: Number,
-        default: 0
+        default: 0  // kobo
     },
     referenceId: {
         type: mongoose.Schema.Types.ObjectId,

@@ -607,7 +607,7 @@
                         <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Available
                         </p>
                         <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%=
-                                user?.wallet?.balance?.toFixed(2) || '0.00' %>
+                                ((user?.wallet?.balance || 0) / 100).toFixed(2) %>
                         </p>
                         <p class="dashboard-stat-meta text-xs mt-2">Ready for withdrawal</p>
                     </article>

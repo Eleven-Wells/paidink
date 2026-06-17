@@ -331,7 +331,7 @@
                 <div class="withdraw-balance-strip mb-6">
                     <div>
                         <p class="withdraw-balance-label text-sm mb-2">Available Balance</p>
-                        <p class="withdraw-balance-value font-heading text-3xl md:text-4xl font-bold">₦<%= user?.wallet?.balance?.toFixed(2) || '0.00' %></p>
+                        <p class="withdraw-balance-value font-heading text-3xl md:text-4xl font-bold">₦<%= ((user?.wallet?.balance || 0) / 100).toFixed(2) %></p>
                         <p class="withdraw-field-note text-xs mt-2">Choose a payout method and enter an amount up to your available balance.</p>
                     </div>
                     <div class="withdraw-balance-icon">
@@ -349,7 +349,7 @@
                         class="input-dark withdraw-amount-input withdraw-focus-ring"
                         placeholder="0.00"
                         min="100"
-                        max="<%= user?.wallet?.balance || 0 %>"
+                        max="<%= (user?.wallet?.balance || 0) / 100 %>"
                     >
                     <p class="withdraw-field-hint text-xs mt-2">Minimum withdrawal: ₦100</p>
                 </div>
@@ -536,7 +536,7 @@
 
             function checkWithdrawButton() {
                 const amount = parseFloat(amountInput.value) || 0;
-                const maxAmount = <%= user?.wallet?.balance || 0 %>;
+                const maxAmount = <%= (user?.wallet?.balance || 0) / 100 %>;
                 withdrawBtn.disabled = !selectedMethod || amount < 100 || amount > maxAmount;
             }
 

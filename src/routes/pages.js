@@ -514,7 +514,11 @@ async function pagesRoutes(fastify) {
                     break;
             }
 
-            const displayCurrent = earned ? a.requirement : Math.min(current, a.requirement);
+            const displayCurrent = earned
+                ? a.requirement
+                : a.category === 'milestone'
+                    ? Math.min(current, a.requirement) / 100
+                    : Math.min(current, a.requirement);
             const progress = earned ? 100 : Math.min(100, Math.round((current / a.requirement) * 100));
 
             return {

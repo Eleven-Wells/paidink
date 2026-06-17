@@ -851,9 +851,9 @@ fastify.get('/admin/analytics', async (req, reply) => {
             stats: {
                 totalReads,
                 todayReads,
-                totalEarned: user.wallet?.lifetimeEarned || 0,
-                availableBalance: user.wallet?.balance || 0,
-                pendingBalance: user.wallet?.pendingBalance || 0
+                totalEarned: (user.wallet?.lifetimeEarned || 0) / 100,
+                availableBalance: (user.wallet?.balance || 0) / 100,
+                pendingBalance: (user.wallet?.pendingBalance || 0) / 100
             },
             achievements: achievements.map(a => ({
                 title: a.achievement?.title,

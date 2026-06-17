@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Credit = require('./Credit');
 
-const READ_REWARD = 5;
+const READ_REWARD = 500;
 const MIN_READ_TIME_SECONDS = 30;
 
 let User;
@@ -136,126 +136,160 @@ readSessionSchema.methods.markCompleted = async function() {
         this.rewardAwarded = true;
         this.rewardAmount = reward;
 
-        const currentUser = await User.findById(this.user).select('wallet.balance wallet.lifetimeEarned stats.totalReads stats.lastReadDate stats.streak stats.longestStreak');
-        if (!currentUser) {
-            await this.save();
-            return 0;
-        }
+        try {
+            const currentUser = await User.findById(this.user).select('wallet.balance wallet.lifetimeEarned stats.totalReads stats.lastReadDate stats.streak stats.longestStreak');
+            if (!currentUser) {
+                await this.save();
+                return 0;
+            }
 
-        const balanceBefore = this.startingBalance !== undefined && this.startingBalance !== null
-            ? this.startingBalance
-            : currentUser.wallet.balance;
-        const balanceAfter = balanceBefore + reward;
+            const balanceBefore = this.startingBalance !== undefined && this.startingBalance !== null
+                ? this.startingBalance
+                : currentUser.wallet.balance;
+            const balanceAfter = balanceBefore + reward;
 
-        const userResult = await User.findOneAndUpdate(
-            { _id: this.user, 'wallet.balance': balanceBefore },
-            {
-                $set: {
-                    'wallet.balance': balanceAfter,
-                    'wallet.lifetimeEarned': currentUser.wallet.lifetimeEarned + reward
+            const userResult = await User.findOneAndUpdate(
+                { _id: this.user, 'wallet.balance': balanceBefore },
+                {
+                    $set: {
+                        'wallet.balance': balanceAfter,
+                        'wallet.lifetimeEarned': currentUser.wallet.lifetimeEarned + reward
+                    },
+                    $inc: { 'stats.totalReads': 1 }
                 },
-                $inc: { 'stats.totalReads': 1 }
-            },
-            { new: true }
-        );
+                { new: true }
+            );
 
-        if (!userResult) {
-            await this.save();
-            return 0;
-        }
-
-const today = new Date();
-        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        let newStreak = currentUser.stats.streak;
-        let newLongestStreak = currentUser.stats.longestStreak;
-
-        if (!currentUser.stats.lastReadDate) {
-            newStreak = 1;
-        } else {
-            const lastReadDate = new Date(currentUser.stats.lastReadDate);
-            const lastReadNormalized = new Date(lastReadDate.getFullYear(), lastReadDate.getMonth(), lastReadDate.getDate());
-            const diffMs = todayDate - lastReadNormalized;
-            const diffDays = Math.floor(diffMs / 86400000);
-            if (diffDays === 1) {
-                newStreak += 1;
-                if (newStreak > newLongestStreak) {
-                    newLongestStreak = newStreak;
+            if (!userResult) {
+                console.warn('[ReadSession] Concurrent balance update — retrying once',
+                    { userId: this.user, readSessionId: this._id, balanceBefore });
+                const freshUser = await User.findById(this.user).select('wallet.balance wallet.lifetimeEarned');
+                const retryBalanceBefore = freshUser ? freshUser.wallet.balance : balanceBefore;
+                const retryResult = await User.findOneAndUpdate(
+                    { _id: this.user, 'wallet.balance': retryBalanceBefore },
+                    {
+                        $set: {
+                            'wallet.balance': retryBalanceBefore + reward,
+                            'wallet.lifetimeEarned': freshUser ? freshUser.wallet.lifetimeEarned + reward : currentUser.wallet.lifetimeEarned + reward
+                        },
+                        $inc: { 'stats.totalReads': 1 }
+                    },
+                    { new: true }
+                );
+                if (!retryResult) {
+                    console.error('[ReadSession] Reward permanently failed after retry',
+                        { userId: this.user, readSessionId: this._id });
+                    await this.save();
+                    return 0;
                 }
-            } else if (diffDays > 1) {
+            }
+
+            const today = new Date();
+            const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            let newStreak = currentUser.stats.streak;
+            let newLongestStreak = currentUser.stats.longestStreak;
+
+            if (!currentUser.stats.lastReadDate) {
                 newStreak = 1;
+            } else {
+                const lastReadDate = new Date(currentUser.stats.lastReadDate);
+                const lastReadNormalized = new Date(lastReadDate.getFullYear(), lastReadDate.getMonth(), lastReadDate.getDate());
+                const diffMs = todayDate - lastReadNormalized;
+                const diffDays = Math.floor(diffMs / 86400000);
+                if (diffDays === 1) {
+                    newStreak += 1;
+                    if (newStreak > newLongestStreak) {
+                        newLongestStreak = newStreak;
+                    }
+                } else if (diffDays > 1) {
+                    newStreak = 1;
+                }
             }
-        }
 
-        await User.findOneAndUpdate(
-            { _id: this.user },
-            { $set: { 'stats.streak': newStreak, 'stats.longestStreak': newLongestStreak, 'stats.lastReadDate': new Date() } }
-        );
+            await User.findOneAndUpdate(
+                { _id: this.user },
+                { $set: { 'stats.streak': newStreak, 'stats.longestStreak': newLongestStreak, 'stats.lastReadDate': new Date() } }
+            );
 
-        try {
-            const action = this.timeSpentSeconds >= 60 ? 'READ_60S' : 'READ_30S';
-            await Credit.earnCredit(this.user, action, { postId: this.post });
-        } catch (err) {
-            console.error('Failed to award read credit:', err.message);
-        }
-
-        await Transaction.create({
-            user: this.user,
-            type: 'read_reward',
-            amount: reward,
-            balanceBefore,
-            balanceAfter,
-            description: `Reward for reading article`,
-            status: 'completed',
-            relatedRead: this._id
-        });
-
-        await LedgerEntry.create({
-            user: this.user,
-            type: 'read_reward',
-            amount: reward,
-            balanceBefore,
-            balanceAfter,
-            referenceId: this._id,
-            referenceModel: 'ReadSession',
-            status: 'completed',
-            fundedBy: 'reader_pool',
-            pool: 'user_wallet',
-            metadata: { postId: this.post, timeSpentSeconds: this.timeSpentSeconds }
-        });
-
-        try {
-            await NotificationService.notifyReward(this.user, reward, 'reading');
-        } catch (err) {
-            console.error('Failed to create notification:', err.message);
-        }
-
-        try {
-            const newAchievements = await AchievementService.checkReadingAchievements(this.user);
-            for (const ach of newAchievements) {
-                console.log(`User ${this.user} earned achievement: ${ach.achievement.name}`);
-            }
-        } catch (err) {
-            console.error('Failed to check achievements:', err.message);
-        }
-
-        let post = null;
-        try {
-            post = await Post.findById(this.post);
-            if (post && post.author && post.author.toString() !== this.user.toString()) {
+            try {
                 const action = this.timeSpentSeconds >= 60 ? 'READ_60S' : 'READ_30S';
-                await Credit.earnCredit(post.author, action, { postId: this.post });
+                await Credit.earnCredit(this.user, action, { postId: this.post });
+            } catch (err) {
+                console.error('[ReadSession] Failed to award read credit:', err.message);
+            }
+
+            await Transaction.create({
+                user: this.user,
+                type: 'read_reward',
+                amount: reward,
+                balanceBefore,
+                balanceAfter,
+                description: `Reward for reading article`,
+                status: 'completed',
+                relatedRead: this._id
+            });
+
+            await LedgerEntry.create({
+                user: this.user,
+                type: 'read_reward',
+                amount: reward,
+                balanceBefore,
+                balanceAfter,
+                referenceId: this._id,
+                referenceModel: 'ReadSession',
+                status: 'completed',
+                fundedBy: 'reader_pool',
+                pool: 'user_wallet',
+                metadata: { postId: this.post, timeSpentSeconds: this.timeSpentSeconds }
+            });
+
+            try {
+                await NotificationService.notifyReward(this.user, reward, 'reading');
+            } catch (err) {
+                console.error('[ReadSession] Failed to create reward notification:', err.message);
+            }
+
+            try {
+                const newAchievements = await AchievementService.checkReadingAchievements(this.user);
+                for (const ach of newAchievements) {
+                    console.log(`User ${this.user} earned achievement: ${ach.achievement.name}`);
+                }
+            } catch (err) {
+                console.error('[ReadSession] Failed to check achievements:', err.message);
+            }
+
+            let post = null;
+            try {
+                post = await Post.findById(this.post);
+                if (post && post.author && post.author.toString() !== this.user.toString()) {
+                    const action = this.timeSpentSeconds >= 60 ? 'READ_60S' : 'READ_30S';
+                    await Credit.earnCredit(post.author, action, { postId: this.post });
+                }
+            } catch (err) {
+                console.error('[ReadSession] Failed to award author read credit:', err.message);
+            }
+
+            if (!post) {
+                post = await Post.findById(this.post);
+            }
+            if (post) {
+                post.stats.reads = (post.stats.reads || 0) + 1;
+                post.stats.earnings = (post.stats.earnings || 0) + reward;
+                await post.save();
             }
         } catch (err) {
-            console.error('Failed to award author read credit:', err.message);
-        }
-
-        if (!post) {
-            post = await Post.findById(this.post);
-        }
-        if (post) {
-            post.stats.reads = (post.stats.reads || 0) + 1;
-            post.stats.earnings = (post.stats.earnings || 0) + reward;
-            await post.save();
+            await LedgerEntry.create({
+                user: null,
+                type: 'correction',
+                amount: reward,
+                balanceBefore: poolResult.poolBalanceAfter,
+                balanceAfter: (poolResult.poolBalanceAfter || 0) + reward,
+                status: 'completed',
+                fundedBy: 'system',
+                pool: 'reader_pool',
+                metadata: { reason: 'rollback_mark_completed', readSessionId: this._id }
+            });
+            throw err;
         }
     }
 
