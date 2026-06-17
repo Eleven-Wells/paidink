@@ -22,6 +22,7 @@ const Credit = require('../models/Credit');
 const NotificationService = require('../services/NotificationService');
 const AppReview = require('../models/AppReview');
 const { sendReviewToDiscord } = require('../services/ReviewNotificationService');
+const PaystackService = require('../services/PaystackService');
 
 async function apiRoutes(fastify) {
     fastify.get('/health', async (req, reply) => {
@@ -95,8 +96,8 @@ async function apiRoutes(fastify) {
         return {
             success: true,
             data: {
-                walletBalance: req.user.wallet.balance,
-                walletLifetimeEarned: req.user.wallet.lifetimeEarned,
+                walletBalance: req.user.wallet.balance / 100,
+                walletLifetimeEarned: req.user.wallet.lifetimeEarned / 100,
                 balanceLastSynced: req.user.wallet.balanceLastSynced,
                 ledgerLastEntry: latestEntry ? latestEntry.createdAt : null,
                 needsSync: !req.user.wallet.balanceLastSynced ||
@@ -919,7 +920,7 @@ async function apiRoutes(fastify) {
                 case 'reading': current = totalReads; break;
                 case 'streak': current = user?.stats?.streak || 0; break;
                 case 'referral': current = referralCount; break;
-                case 'milestone': current = user?.wallet?.lifetimeEarned || 0; break;
+                case 'milestone': current = (user?.wallet?.lifetimeEarned || 0) / 100; break;
             }
 
             const progress = Math.min(100, Math.round((current / a.requirement) * 100));
@@ -944,6 +945,7 @@ async function apiRoutes(fastify) {
                     amount: { type: 'number', minimum: 100 },
                     method: { type: 'string', enum: ['bank', 'mpesa', 'airtime'] },
                     bankName: { type: 'string' },
+                    bankCode: { type: 'string' },
                     accountNumber: { type: 'string' },
                     accountName: { type: 'string' },
                     phoneNumber: { type: 'string' }
@@ -953,7 +955,7 @@ async function apiRoutes(fastify) {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
         try {
-            const { amount, method, bankName, accountNumber, accountName, phoneNumber } = req.body;
+            const { amount, method, bankName, bankCode, accountNumber, accountName, phoneNumber } = req.body;
             const user = req.user;
 
             const encryptionKey = process.env.PAYOUT_ENCRYPTION_KEY;
@@ -965,13 +967,113 @@ async function apiRoutes(fastify) {
                 });
             }
 
-            if (method === 'bank' && accountNumber && accountName) {
+            const amountInKobo = Math.round(amount * 100);
+
+            if (method === 'bank') {
+                if (!accountNumber || !accountName || !bankCode) {
+                    return reply.code(400).send({
+                        success: false,
+                        error: 'Bank code, account number, and account name are required for bank withdrawals'
+                    });
+                }
+
                 await PayoutDetail.encryptAndSave(
                     user._id,
-                    { bankName, accountNumber, accountName },
+                    { bankName, bankCode, accountNumber, accountName },
                     method,
                     encryptionKey
                 );
+
+                const paystackKey = process.env.PAYSTACK_SECRET_KEY;
+                if (!paystackKey || paystackKey === 'your_paystack_secret_key_here') {
+                    return reply.code(500).send({
+                        success: false,
+                        error: 'Payment gateway not configured'
+                    });
+                }
+
+                const recipientRes = await PaystackService.createTransferRecipient({
+                    accountName,
+                    accountNumber,
+                    bankCode
+                });
+
+                if (!recipientRes.status) {
+                    return reply.code(400).send({
+                        success: false,
+                        error: recipientRes.message || 'Failed to create payment recipient'
+                    });
+                }
+
+                const recipientCode = recipientRes.data.recipient_code;
+
+                const idempotencyKey = `withdraw_${user._id}_${Date.now()}`;
+
+                const transferRes = await PaystackService.initiateTransfer(
+                    recipientCode,
+                    amountInKobo,
+                    `Nook withdrawal - ${user._id}`,
+                    idempotencyKey
+                );
+
+                if (!transferRes.status) {
+                    return reply.code(400).send({
+                        success: false,
+                        error: transferRes.message || 'Failed to initiate transfer'
+                    });
+                }
+
+                const transferCode = transferRes.data.transfer_code;
+
+                const result = await user.requestWithdrawal(amountInKobo);
+
+                const Transaction = mongoose.model('Transaction');
+                let transactionRecord;
+                try {
+                    transactionRecord = await Transaction.create({
+                        user: user._id,
+                        type: 'withdrawal',
+                        amount: -amountInKobo,
+                        balanceBefore: result.newBalance + amountInKobo,
+                        balanceAfter: result.newBalance,
+                        status: 'pending',
+                        reference: transferCode,
+                        description: `Bank withdrawal (****${accountNumber.slice(-4)})`,
+                        metadata: {
+                            paystackTransferCode: transferCode,
+                            paystackRecipientCode: recipientCode,
+                            method: 'bank',
+                            accountNumber: `****${accountNumber.slice(-4)}`,
+                            bankName
+                        }
+                    });
+                } catch (txError) {
+                    req.log.error({ error: txError.message, userId: user._id },
+                        'Failed to create transaction record, reversing balance deduction');
+                    await User.findOneAndUpdate(
+                        { _id: user._id },
+                        { $inc: { 'wallet.balance': amountInKobo, 'wallet.pendingBalance': -amountInKobo } }
+                    );
+                    throw txError;
+                }
+
+                try {
+                    await NotificationService.notifyWithdrawal(user._id, amount, method);
+                } catch (err) {
+                    req.log.error({ component: 'notification', error: err.message, userId: user._id },
+                        'Failed to create withdrawal notification');
+                }
+
+                return reply.send({
+                    success: true,
+                    message: 'Withdrawal initiated successfully. Funds will be sent to your bank account.',
+                    data: {
+                        newBalance: result.newBalance / 100,
+                        pendingBalance: result.pendingBalance / 100,
+                        transferCode,
+                        reference: transferCode
+                    }
+                });
             } else if (method === 'mpesa' && phoneNumber) {
                 await PayoutDetail.encryptAndSave(
                     user._id,
@@ -979,6 +1081,11 @@ async function apiRoutes(fastify) {
                     method,
                     encryptionKey
                 );
+
+                return reply.code(400).send({
+                    success: false,
+                    error: 'M-Pesa withdrawals are not yet available'
+                });
             } else if (method === 'airtime' && phoneNumber) {
                 await PayoutDetail.encryptAndSave(
                     user._id,
@@ -986,23 +1093,20 @@ async function apiRoutes(fastify) {
                     method,
                     encryptionKey
                 );
+
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Airtime withdrawals are not yet available'
+                });
+            } else {
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Invalid withdrawal method or missing required fields'
+                });
             }
-
-            const result = await user.requestWithdrawal(amount);
-
-            try {
-                await NotificationService.notifyWithdrawal(user._id, amount, method);
-            } catch (err) {
-                console.error('Failed to create withdrawal notification:', err.message);
-            }
-
-            return reply.send({
-                success: true,
-                message: 'Withdrawal request submitted successfully',
-                data: result
-            });
         } catch (error) {
-            req.log.error({ error: error.message }, 'Withdrawal failed');
+            req.log.error({ error: error.message, userId: user._id, method, amount },
+                'Withdrawal failed');
             const statusCode = error.message.includes('Insufficient') ? 400 : 500;
             return reply.code(statusCode).send({
                 success: false,
