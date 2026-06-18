@@ -2,6 +2,7 @@ const LedgerEntry = require('../../models/LedgerEntry');
 const AdEvent = require('../../models/ads/AdEvent');
 const User = require('../../models/User');
 const ReadSession = require('../../models/ReadSession');
+const NotificationService = require('../NotificationService');
 
 const MAX_REWARD = 500;
 const MAX_UNFUNDED = 3;
@@ -115,6 +116,12 @@ async function sweepUnfundedReads() {
         );
 
         if (!userResult) continue;
+
+        try {
+            await NotificationService.notifyReward(session.user, rewardAmount, 'reading');
+        } catch (err) {
+            console.error('[ReaderRewardService] Failed to send sweep notification:', err.message);
+        }
 
         await LedgerEntry.create({
             user: session.user,
