@@ -3,7 +3,7 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const interestProfileService = require('../services/InterestProfileService');
 
-const READ_REWARD = 5;
+const READ_REWARD = 500;
 const MIN_READ_TIME_SECONDS = 30;
 
 async function readsAuthenticate(request, reply) {
@@ -95,7 +95,7 @@ module.exports = async function readsRoutes(fastify) {
                 data: {
                     sessionId: session._id,
                     startedAt: session.startedAt,
-                    reward: READ_REWARD,
+                    reward: READ_REWARD / 100,
                     minTime: MIN_READ_TIME_SECONDS
                 }
             });
@@ -217,9 +217,9 @@ module.exports = async function readsRoutes(fastify) {
                     completed: true,
                     timeSpent: session.timeSpentSeconds,
                     rewardAwarded: session.rewardAwarded,
-                    rewardAmount: session.rewardAmount,
+                    rewardAmount: session.rewardAmount / 100,
                     message: session.rewardAwarded 
-                        ? `Congratulations! You earned ₦${session.rewardAmount}` 
+                        ? `Congratulations! You earned ₦${session.rewardAmount / 100}` 
                         : 'Read completed but minimum time not met'
                 }
             });
@@ -270,7 +270,7 @@ module.exports = async function readsRoutes(fastify) {
                         timeSpentSeconds: s.timeSpentSeconds,
                         completed: s.completed,
                         rewardAwarded: s.rewardAwarded,
-                        rewardAmount: s.rewardAmount
+                        rewardAmount: s.rewardAmount / 100
                     })),
                     pagination: {
                         total,
@@ -322,9 +322,9 @@ module.exports = async function readsRoutes(fastify) {
                 data: {
                     todayReads,
                     totalReads,
-                    todayEarnings: todayReward[0]?.total || 0,
-                    totalEarnings: totalReward[0]?.total || 0,
-                    rewardPerRead: READ_REWARD
+                    todayEarnings: (todayReward[0]?.total || 0) / 100,
+                    totalEarnings: (totalReward[0]?.total || 0) / 100,
+                    rewardPerRead: READ_REWARD / 100
                 }
             });
 

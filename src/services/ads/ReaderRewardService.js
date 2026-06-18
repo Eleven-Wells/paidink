@@ -3,7 +3,7 @@ const AdEvent = require('../../models/ads/AdEvent');
 const User = require('../../models/User');
 const ReadSession = require('../../models/ReadSession');
 
-const MAX_REWARD = 5;
+const MAX_REWARD = 500;
 const MAX_UNFUNDED = 3;
 
 async function getReaderPoolBalance() {
@@ -81,7 +81,7 @@ async function sweepUnfundedReads() {
     }
 
     const poolBalance = await getReaderPoolBalance();
-    if (poolBalance < 5) {
+    if (poolBalance < MAX_REWARD) {
         return { swept: 0, totalAmount: 0, reason: 'insufficient_pool' };
     }
 
@@ -90,9 +90,9 @@ async function sweepUnfundedReads() {
     let remainingBalance = poolBalance;
 
     for (const session of unfundedSessions) {
-        if (remainingBalance < 5) break;
+        if (remainingBalance < MAX_REWARD) break;
 
-        const rewardAmount = session.calculateReward ? session.calculateReward() : 5;
+        const rewardAmount = session.calculateReward ? session.calculateReward() : MAX_REWARD;
         if (rewardAmount <= 0) continue;
         if (remainingBalance < rewardAmount) continue;
 

@@ -81,19 +81,19 @@ const userSchema = new mongoose.Schema({
     wallet: {
         balance: {
             type: Number,
-            default: 0
+            default: 0  // stored in kobo (1 NGN = 100 kobo)
         },
         pendingBalance: {
             type: Number,
-            default: 0
+            default: 0  // kobo
         },
         lifetimeEarned: {
             type: Number,
-            default: 0
+            default: 0  // kobo
         },
         lifetimeWithdrawn: {
             type: Number,
-            default: 0
+            default: 0  // kobo
         },
         balanceLastSynced: {
             type: Date,
@@ -328,7 +328,7 @@ userSchema.methods.requestWithdrawal = async function(amount) {
     this.wallet.pendingBalance = newPendingBalance;
     
     const LedgerEntry = mongoose.model('LedgerEntry');
-    await LedgerEntry.create({
+    const ledger = await LedgerEntry.create({
         user: this._id,
         type: 'withdrawal',
         amount: -amount,
@@ -340,7 +340,108 @@ userSchema.methods.requestWithdrawal = async function(amount) {
 
     return {
         newBalance: balanceAfter,
-        pendingBalance: newPendingBalance
+        pendingBalance: newPendingBalance,
+        ledgerEntryId: ledger._id
+    };
+};
+
+userSchema.methods.completeWithdrawal = async function(amount, transferCode) {
+    const User = this.constructor;
+    const currentUser = await User.findById(this._id).select('wallet.pendingBalance wallet.lifetimeWithdrawn');
+    if (!currentUser) throw new Error('User not found');
+
+    const pendingBefore = currentUser.wallet.pendingBalance || 0;
+    if (pendingBefore < amount) throw new Error('Insufficient pending balance');
+
+    const lifetimeWithdrawnBefore = currentUser.wallet.lifetimeWithdrawn || 0;
+
+    const result = await User.findOneAndUpdate(
+        { _id: this._id, 'wallet.pendingBalance': pendingBefore },
+        {
+            $set: {
+                'wallet.pendingBalance': pendingBefore - amount,
+                'wallet.lifetimeWithdrawn': lifetimeWithdrawnBefore + amount
+            }
+        },
+        { new: true }
+    );
+
+    if (!result) throw new Error('Concurrent withdrawal completion detected. Please retry.');
+
+    this.wallet.pendingBalance = pendingBefore - amount;
+    this.wallet.lifetimeWithdrawn = lifetimeWithdrawnBefore + amount;
+
+    const Transfer = mongoose.model('Transaction');
+    const LedgerEntry = mongoose.model('LedgerEntry');
+
+    await Transfer.updateOne(
+        { 'metadata.paystackTransferCode': transferCode },
+        { $set: { status: 'completed' } }
+    );
+
+    await LedgerEntry.updateOne(
+        { 'metadata.paystackTransferCode': transferCode },
+        {
+            $set: {
+                status: 'completed',
+                'metadata.description': 'Withdrawal completed'
+            }
+        }
+    );
+
+    return {
+        pendingBalance: this.wallet.pendingBalance,
+        lifetimeWithdrawn: this.wallet.lifetimeWithdrawn
+    };
+};
+
+userSchema.methods.failWithdrawal = async function(amount, transferCode) {
+    const User = this.constructor;
+    const currentUser = await User.findById(this._id).select('wallet.balance wallet.pendingBalance');
+    if (!currentUser) throw new Error('User not found');
+
+    const pendingBefore = currentUser.wallet.pendingBalance || 0;
+    if (pendingBefore < amount) throw new Error('Insufficient pending balance to reverse');
+
+    const balanceBefore = currentUser.wallet.balance;
+
+    const result = await User.findOneAndUpdate(
+        { _id: this._id, 'wallet.pendingBalance': pendingBefore },
+        {
+            $set: {
+                'wallet.balance': balanceBefore + amount,
+                'wallet.pendingBalance': pendingBefore - amount
+            }
+        },
+        { new: true }
+    );
+
+    if (!result) throw new Error('Concurrent withdrawal failure detected. Please retry.');
+
+    this.wallet.balance = balanceBefore + amount;
+    this.wallet.pendingBalance = pendingBefore - amount;
+
+    const Transfer = mongoose.model('Transaction');
+    const LedgerEntry = mongoose.model('LedgerEntry');
+
+    await Transfer.updateOne(
+        { 'metadata.paystackTransferCode': transferCode },
+        { $set: { status: 'failed' } }
+    );
+
+    await LedgerEntry.updateOne(
+        { 'metadata.paystackTransferCode': transferCode },
+        {
+            $set: {
+                status: 'failed',
+                'metadata.description': 'Withdrawal failed — reversed'
+            }
+        }
+    );
+
+    return {
+        balance: this.wallet.balance,
+        pendingBalance: this.wallet.pendingBalance
     };
 };
 

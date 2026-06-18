@@ -8,7 +8,7 @@ const Transaction = require('../../src/models/Transaction');
 const LedgerEntry = require('../../src/models/LedgerEntry');
 const ReaderRewardService = require('../../src/services/ads/ReaderRewardService');
 
-const READ_REWARD = 5;
+const READ_REWARD = 500;
 const MIN_READ_TIME = 30;
 
 jest.mock('../../src/services/NotificationService', () => ({

@@ -124,8 +124,11 @@ async function buildApp() {
 
     await fastify.register(fastifyCookie);
 
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET environment variable is required');
+    }
     await fastify.register(fastifyJwt, {
-        secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production'
+        secret: process.env.JWT_SECRET
     });
 
     await fastify.register(fastifyHelmet, {
@@ -209,12 +212,23 @@ async function buildApp() {
     await fastify.register(errorHandlerPlugin);
     await fastify.register(swaggerPlugin);
 
+    fastify.addContentTypeParser('application/json', { parseAs: 'buffer' }, (req, body, done) => {
+        const raw = body.toString();
+        req.rawBody = raw;
+        try {
+            done(null, JSON.parse(raw));
+        } catch (err) {
+            done(err);
+        }
+    });
+
     fastify.register(require('./routes/pages'));
     fastify.register(require('./routes/api'), { prefix: '/api' });
     fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
     fastify.register(require('./routes/reads'), { prefix: '/api/reads' });
     fastify.register(require('./routes/admin'));
     fastify.register(require('./routes/recommendations'));
+    fastify.register(require('./routes/webhook'));
 
     await fastify.after();
 }

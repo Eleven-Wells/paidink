@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+const withdrawalMetadataSchema = new mongoose.Schema({
+    paystackTransferCode: { type: String },
+    paystackRecipientCode: { type: String },
+    method: { type: String, enum: ['bank', 'mpesa', 'airtime'] },
+    accountNumber: { type: String },
+    bankName: { type: String }
+}, { _id: false, strict: true });
+
 const transactionSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -27,11 +35,11 @@ const transactionSchema = new mongoose.Schema({
     },
     balanceBefore: {
         type: Number,
-        required: true
+        required: true  // stored in kobo
     },
     balanceAfter: {
         type: Number,
-        required: true
+        required: true  // kobo
     },
     reference: String,
     description: {
@@ -49,8 +57,8 @@ const transactionSchema = new mongoose.Schema({
         default: 'completed'
     },
     metadata: {
-        type: mongoose.Schema.Types.Mixed,
-        default: {}
+        type: withdrawalMetadataSchema,
+        default: () => ({})
     }
 }, {
     timestamps: true

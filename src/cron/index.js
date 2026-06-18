@@ -6,32 +6,38 @@ const { addContentJob } = require('../queue/contentQueue');
 const JobLog = require('../models/JobLog');
 const { dailyFeedRevenueSweep, dailyReaderRewardSweep } = require('../services/ads/ReaderRewardService');
 
+const logger = {
+    info: (msg, data) => console.log(`[Cron] ${msg}`, data || ''),
+    warn: (msg, data) => console.warn(`[Cron] ${msg}`, data || ''),
+    error: (msg, data) => console.error(`[Cron] ${msg}`, data || '')
+};
+
 async function toolsUpdate() {
     if (!isFeatureEnabled('content', 'aiGeneration')) {
-        console.log('[Cron] AI generation disabled, skipping tools update');
+        logger.info('AI generation disabled, skipping tools update');
         return;
     }
-    console.log('[Cron] Starting tools update');
+    logger.info('Starting tools update');
     try {
         const result = await fetchLatestBlog();
-        console.log('[Cron] Tools update completed', result);
+        logger.info('Tools update completed', result);
     } catch (error) {
-        console.error('[Cron] Tools update failed:', error.message);
+        logger.error('Tools update failed: ' + error.message);
     }
 }
 
 async function contentIngestion() {
     if (!isFeatureEnabled('content', 'aiGeneration')) {
-        console.log('[Cron] AI generation disabled, skipping content ingestion');
+        logger.info('AI generation disabled, skipping content ingestion');
         return;
     }
     const config = loadConfig();
-    console.log('[Cron] Starting content ingestion');
+    logger.info('Starting content ingestion');
     try {
         const contentSources = getContentSources();
         for (const source of contentSources) {
             if (source.requiresAuth && !config.NEWS_API_KEY) {
-                console.log('[Cron] Skipping %s - requires NEWS_API_KEY', source.url);
+                logger.info('Skipping ' + source.url + ' - requires NEWS_API_KEY');
                 continue;
             }
             await addContentJob({
@@ -40,19 +46,19 @@ async function contentIngestion() {
                 type: source.type
             });
         }
-        console.log('[Cron] Content ingestion: jobs queued');
+        logger.info('Content ingestion: jobs queued');
     } catch (error) {
-        console.error('[Cron] Content ingestion failed:', error.message);
+        logger.error('Content ingestion failed: ' + error.message);
     }
 }
 
 async function feedUpdate() {
     if (!isFeatureEnabled('content', 'aiGeneration')) {
-        console.log('[Cron] AI generation disabled, skipping feed update');
+        logger.info('AI generation disabled, skipping feed update');
         return;
     }
     const config = loadConfig();
-    console.log('[Cron] Starting feed update');
+    logger.info('Starting feed update');
     try {
         const contentSources = getContentSources();
         let jobsAdded = 0;
@@ -67,53 +73,53 @@ async function feedUpdate() {
             });
             jobsAdded++;
         }
-        console.log('[Cron] Feed update: %d jobs added', jobsAdded);
+        logger.info('Feed update: ' + jobsAdded + ' jobs added');
     } catch (error) {
-        console.error('[Cron] Feed update failed:', error.message);
+        logger.error('Feed update failed: ' + error.message);
     }
 }
 
 async function seoUpdate() {
-    console.log('[Cron] Starting SEO update');
+    logger.info('Starting SEO update');
     try {
         const result = await updateSEOFiles();
-        console.log('[Cron] SEO update completed', result);
+        logger.info('SEO update completed', result);
     } catch (error) {
-        console.error('[Cron] SEO update failed:', error.message);
+        logger.error('SEO update failed: ' + error.message);
     }
 }
 
 async function contentCleanup() {
-    console.log('[Cron] Starting content cleanup');
+    logger.info('Starting content cleanup');
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const result = await JobLog.deleteMany({
             createdAt: { $lt: thirtyDaysAgo }
         });
-        console.log('[Cron] Cleaned up %d old job logs', result.deletedCount);
+        logger.info('Cleaned up ' + result.deletedCount + ' old job logs');
     } catch (error) {
-        console.error('[Cron] Content cleanup failed:', error.message);
+        logger.error('Content cleanup failed: ' + error.message);
     }
 }
 
 async function readerPoolSweep() {
-    console.log('[Cron] Starting daily feed revenue sweep to reader pool');
+    logger.info('Starting daily feed revenue sweep to reader pool');
     try {
         const result = await dailyFeedRevenueSweep();
-        console.log('[Cron] Feed revenue sweep completed', result);
+        logger.info('Feed revenue sweep completed', result);
     } catch (error) {
-        console.error('[Cron] Feed revenue sweep failed:', error.message);
+        logger.error('Feed revenue sweep failed: ' + error.message);
     }
 }
 
 async function unfundedReadsSweep() {
-    console.log('[Cron] Starting unfunded reads sweep');
+    logger.info('Starting unfunded reads sweep');
     try {
         const result = await dailyReaderRewardSweep();
-        console.log('[Cron] Unfunded reads sweep completed', result);
+        logger.info('Unfunded reads sweep completed', result);
     } catch (error) {
-        console.error('[Cron] Unfunded reads sweep failed:', error.message);
+        logger.error('Unfunded reads sweep failed: ' + error.message);
     }
 }
 

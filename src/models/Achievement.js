@@ -48,7 +48,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'book-open',
             category: 'reading',
             requirement: 1,
-            reward: 10,
+            reward: 1000,
             rarity: 'common'
         },
         {
@@ -58,7 +58,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'book',
             category: 'reading',
             requirement: 10,
-            reward: 25,
+            reward: 2500,
             rarity: 'common'
         },
         {
@@ -68,7 +68,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'graduation-cap',
             category: 'reading',
             requirement: 50,
-            reward: 50,
+            reward: 5000,
             rarity: 'rare'
         },
         {
@@ -78,7 +78,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'star',
             category: 'reading',
             requirement: 100,
-            reward: 100,
+            reward: 10000,
             rarity: 'epic'
         },
         {
@@ -88,7 +88,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'fire',
             category: 'streak',
             requirement: 3,
-            reward: 15,
+            reward: 1500,
             rarity: 'common'
         },
         {
@@ -98,7 +98,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'flame',
             category: 'streak',
             requirement: 7,
-            reward: 30,
+            reward: 3000,
             rarity: 'rare'
         },
         {
@@ -108,7 +108,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'crown',
             category: 'streak',
             requirement: 30,
-            reward: 100,
+            reward: 10000,
             rarity: 'epic'
         },
         {
@@ -118,7 +118,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'users',
             category: 'referral',
             requirement: 1,
-            reward: 50,
+            reward: 5000,
             rarity: 'common'
         },
         {
@@ -128,7 +128,7 @@ achievementSchema.statics.getDefinitions = function() {
             icon: 'share',
             category: 'referral',
             requirement: 5,
-            reward: 100,
+            reward: 10000,
             rarity: 'rare'
         },
         {
@@ -137,8 +137,8 @@ achievementSchema.statics.getDefinitions = function() {
             description: 'Earn ₦500 in total',
             icon: 'coins',
             category: 'milestone',
-            requirement: 500,
-            reward: 50,
+            requirement: 50000,
+            reward: 5000,
             rarity: 'rare'
         },
         {
@@ -147,8 +147,8 @@ achievementSchema.statics.getDefinitions = function() {
             description: 'Earn ₦1000 in total',
             icon: 'diamond',
             category: 'milestone',
-            requirement: 1000,
-            reward: 100,
+            requirement: 100000,
+            reward: 10000,
             rarity: 'epic'
         }
     ];

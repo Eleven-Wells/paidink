@@ -355,7 +355,7 @@
                     <div class="flex items-center justify-between gap-4 mb-4">
                         <div>
                             <p class="reads-stat-copy text-sm mb-1">Total Earned</p>
-                            <p class="reads-stat-value font-heading text-3xl font-bold reads-trend-positive">₦<%= user?.wallet?.lifetimeEarned?.toFixed(2) || '0.00' %></p>
+                            <p class="reads-stat-value font-heading text-3xl font-bold reads-trend-positive">₦<%= ((user?.wallet?.lifetimeEarned || 0) / 100).toFixed(2) %></p>
                         </div>
                         <div class="reads-stat-icon is-green">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

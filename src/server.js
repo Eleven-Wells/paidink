@@ -89,6 +89,15 @@ async function start() {
         await buildApp();
         addDecorators();
 
+        if (process.env.NODE_ENV === 'production') {
+            fastify.addHook('onRequest', async (request, reply) => {
+                const proto = request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http');
+                if (proto !== 'https') {
+                    reply.code(301).redirect(`https://${request.headers.host}${request.url}`);
+                }
+            });
+        }
+
         await fastify.register(cronPlugin);
 
         await initializeRedis();
@@ -105,6 +114,17 @@ async function start() {
                 fastify.log.warn({ component: 'worker', error: err.message }, 'Worker startup failed');
             });
         }
+
+        const { startPaymentWorker } = require('./worker/paymentWorker');
+        startPaymentWorker().then(worker => {
+            if (worker) {
+                fastify.log.info({ component: 'payment-worker' }, 'Payment worker started');
+            } else {
+                fastify.log.warn({ component: 'payment-worker' }, 'Payment worker not started (no Redis)');
+            }
+        }).catch(err => {
+            fastify.log.warn({ component: 'payment-worker', error: err.message }, 'Payment worker startup failed');
+        });
 
         PORT = await findAvailablePort(DEFAULT_PORT);
         if (PORT !== DEFAULT_PORT) {
