@@ -4,7 +4,7 @@ const LedgerEntry = require('../models/LedgerEntry');
 const crypto = require('crypto');
 const { verifyAccessToken } = require('../services/SupabaseAuthService');
 
-const SIGNUP_BONUS = 100;
+const SIGNUP_BONUS = 10000;
 
 module.exports = async function authRoutes(fastify) {
     fastify.post('/register', {
@@ -59,7 +59,7 @@ module.exports = async function authRoutes(fastify) {
             await user.save();
 
             if (referredByUser) {
-                await referredByUser.addReward(50, 'referral_bonus', 'Referral bonus for inviting a friend');
+                await referredByUser.addReward(5000, 'referral_bonus', 'Referral bonus for inviting a friend');
 
                 try {
                     const NotificationService = require('../services/NotificationService');
