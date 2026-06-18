@@ -12,7 +12,7 @@
                             <span><%= post.author.displayName || 'Anonymous' %></span>
                         <% } %>
                         <span class="profile-saved-card__dot" aria-hidden="true">·</span>
-                        <span><%= post.readTime || '5m' %></span>
+                        <span><%= post.readTime || '< 1 min read' %></span>
                     </div>
                     <a href="/post/<%= post.slug %>" class="profile-saved-card__title"><%= post.title %></a>
                     <p class="profile-saved-card__summary"><%= post.summary %></p>
