@@ -115,6 +115,10 @@ const userSchema = new mongoose.Schema({
         lastPoolSweepAt: {
             type: Date,
             default: null
+        },
+        lastSessionStart: {
+            type: Date,
+            default: null
         }
     },
     totalCredits: {
