@@ -12,6 +12,8 @@ const { buildSitemapXml, buildRobotsTxt } = require('../seo/seoManager');
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
+const markdownIt = require('markdown-it');
+const md = markdownIt({ html: true, breaks: true, linkify: true });
 
 const viewsPath = path.join(__dirname, '..', 'views');
 const publisherViewsPath = path.join(viewsPath, 'publisher', 'pages');
@@ -1415,9 +1417,9 @@ async function pagesRoutes(fastify) {
 
         const relatedPosts = await recommendationService.getRelated(post._id, 5);
 
-        let enhancedContent = post.content;
+        let enhancedContent = md.render(post.content || '');
         try {
-            enhancedContent = addInternalLinks(post.content, relatedPosts);
+            enhancedContent = addInternalLinks(enhancedContent, relatedPosts);
         } catch (err) {
             console.error('Failed to add internal links:', err.message);
         }
