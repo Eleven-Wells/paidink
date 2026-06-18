@@ -21,25 +21,7 @@ async function payoutReaderReward(readSession, rewardAmount) {
         return await handleUnfundedRead(readSession);
     }
 
-    const debitEntry = await LedgerEntry.create({
-        user: null,
-        type: 'reader_reward_payout',
-        amount: -rewardAmount,
-        balanceBefore: poolBalance,
-        balanceAfter: poolBalance - rewardAmount,
-        status: 'completed',
-        fundedBy: 'reader_pool',
-        correlationId: readSession._id,
-        correlationModel: 'ReadSession',
-        pool: 'reader_pool',
-        metadata: {
-            readSessionId: readSession._id,
-            rewardAmount,
-            sweepType: 'immediate'
-        }
-    });
-
-    return { paid: true, amount: rewardAmount, debitEntry, poolBalanceAfter: poolBalance - rewardAmount };
+    return { paid: true, amount: rewardAmount, poolBalance };
 }
 
 async function handleUnfundedRead(readSession) {

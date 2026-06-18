@@ -184,6 +184,28 @@ readSessionSchema.methods.markCompleted = async function() {
                 }
             }
 
+            try {
+                await LedgerEntry.create({
+                    user: null,
+                    type: 'reader_reward_payout',
+                    amount: -reward,
+                    balanceBefore: poolResult.poolBalance,
+                    balanceAfter: poolResult.poolBalance - reward,
+                    status: 'completed',
+                    fundedBy: 'reader_pool',
+                    correlationId: this._id,
+                    correlationModel: 'ReadSession',
+                    pool: 'reader_pool',
+                    metadata: {
+                        readSessionId: this._id,
+                        rewardAmount: reward,
+                        sweepType: 'immediate'
+                    }
+                });
+            } catch (err) {
+                console.error('[ReadSession] Failed to debit reader pool:', err.message);
+            }
+
             const today = new Date();
             const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             let newStreak = currentUser.stats.streak;
@@ -278,17 +300,8 @@ readSessionSchema.methods.markCompleted = async function() {
                 await post.save();
             }
         } catch (err) {
-            await LedgerEntry.create({
-                user: null,
-                type: 'correction',
-                amount: reward,
-                balanceBefore: poolResult.poolBalanceAfter,
-                balanceAfter: (poolResult.poolBalanceAfter || 0) + reward,
-                status: 'completed',
-                fundedBy: 'system',
-                pool: 'reader_pool',
-                metadata: { reason: 'rollback_mark_completed', readSessionId: this._id }
-            });
+            console.error('[ReadSession] Error in markCompleted reward flow:', err.message,
+                { userId: this.user, readSessionId: this._id });
             throw err;
         }
     }
