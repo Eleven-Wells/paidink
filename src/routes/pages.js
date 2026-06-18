@@ -990,10 +990,10 @@ async function pagesRoutes(fastify) {
                 if (post.author && typeof post.author.toPublicJSON === 'function') {
                     post.author = post.author.toPublicJSON();
                 }
-                // ensure avatar fallback is present for authors on the logged-in home feed
                 if (post.author) {
                     post.author.avatar = getAvatarWithFallback(post.author);
                 }
+                post.readTime = getReadTime(post.content).display;
                 return post;
             });
 
@@ -1147,6 +1147,7 @@ async function pagesRoutes(fastify) {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
+            post.readTime = getReadTime(post.content).display;
             return post;
         });
 
