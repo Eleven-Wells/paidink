@@ -51,7 +51,7 @@
                     </div>
                     <div class="p-6">
                         <div class="flex items-center gap-3 text-muted text-xs font-mono mb-3">
-                            <span><%= Math.ceil((blog.content || '').length / 1000) || 5 %> min read</span>
+                            <span><%= getReadTime(blog.content).display %></span>
                             <span class="w-1 h-1 rounded-full bg-white/30"></span>
                             <span><%= formatDate ? formatDate(blog.publishedAt) : new Date(blog.publishedAt).toLocaleDateString() %></span>
                         </div>

@@ -8,6 +8,7 @@ const User = require('../models/User');
 const recommendationService = require('../services/RecommendationService');
 const searchService = require('../services/SearchService');
 const { isFeatureEnabled } = require('../config/features');
+const { getReadTime } = require('../services/ReadTimeService');
 const { buildSitemapXml, buildRobotsTxt } = require('../seo/seoManager');
 const fs = require('fs');
 const path = require('path');
@@ -60,7 +61,7 @@ function renderPage(pageName, data) {
     }
     const ejs = require('ejs');
     const pageContent = fs.readFileSync(pagePath, 'utf8');
-    return ejs.render(pageContent, data, {
+    return ejs.render(pageContent, { ...data, getReadTime }, {
         async: false,
         views: [viewsPath, path.join(viewsPath, 'layouts'), path.join(viewsPath, 'partials'), path.join(viewsPath, 'pages')]
     });
@@ -339,9 +340,7 @@ async function pagesRoutes(fastify) {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
-            post.readTime = post.content
-                ? `${Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200))}m`
-                : '5m';
+            post.readTime = getReadTime(post.content).display;
             return post;
         });
 
@@ -991,10 +990,10 @@ async function pagesRoutes(fastify) {
                 if (post.author && typeof post.author.toPublicJSON === 'function') {
                     post.author = post.author.toPublicJSON();
                 }
-                // ensure avatar fallback is present for authors on the logged-in home feed
                 if (post.author) {
                     post.author.avatar = getAvatarWithFallback(post.author);
                 }
+                post.readTime = getReadTime(post.content).display;
                 return post;
             });
 
@@ -1006,7 +1005,7 @@ async function pagesRoutes(fastify) {
                 if (post.author) {
                     post.author.avatar = getAvatarWithFallback(post.author);
                 }
-                post.readTime = post.content ? Math.max(1, Math.ceil(post.content.split(' ').length / 200)) + 'm' : '5m';
+                post.readTime = getReadTime(post.content).display;
                 return post;
             });
 
@@ -1148,6 +1147,7 @@ async function pagesRoutes(fastify) {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
+            post.readTime = getReadTime(post.content).display;
             return post;
         });
 
@@ -1155,7 +1155,7 @@ async function pagesRoutes(fastify) {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
-            post.readTime = post.content ? Math.max(1, Math.ceil(post.content.split(' ').length / 200)) + 'm' : '5m';
+            post.readTime = getReadTime(post.content).display;
             return post;
         });
 
@@ -1398,6 +1398,8 @@ async function pagesRoutes(fastify) {
                 canonical: `${process.env.BASE_URL || ''}/post/${slug}`
             });
         }
+
+        post.readTime = getReadTime(post.content).display;
 
         const Post = require('../models/Post');
         await Post.findByIdAndUpdate(post._id, { $inc: { 'stats.views': 1 } });

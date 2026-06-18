@@ -15,7 +15,7 @@
                             <p class="explore-trending-label">Recommended next</p>
                             <p class="explore-trending-author"><%= post.author ? post.author.displayName : 'Anonymous' %></p>
                             <h3><%= post.title %></h3>
-                            <p class="explore-trending-meta"><%= post.readTime || '5m' %> read <%= post.likes ? post.likes.length : 0 %> likes</p>
+                            <p class="explore-trending-meta"><%= post.readTime || '< 1 min read' %> <%= post.likes ? post.likes.length : 0 %> likes</p>
                         </div>
                     </div>
                     <div class="explore-trending-actions">
