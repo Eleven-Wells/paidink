@@ -280,6 +280,21 @@ userSchema.methods.addReward = async function(amount, type, description) {
         metadata: { description }
     });
 
+    const Transaction = mongoose.model('Transaction');
+    try {
+        await Transaction.create({
+            user: this._id,
+            type,
+            amount,
+            balanceBefore,
+            balanceAfter,
+            description: description || `${type} reward`,
+            status: 'completed'
+        });
+    } catch (err) {
+        console.error(`Failed to create transaction for ${type}:`, err.message);
+    }
+
     try {
         const NotificationService = require('../services/NotificationService');
         await NotificationService.notifyReward(this._id, amount, type);
