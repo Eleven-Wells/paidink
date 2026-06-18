@@ -2,9 +2,42 @@ const ReadSession = require('../models/ReadSession');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const interestProfileService = require('../services/InterestProfileService');
+const RewardRateService = require('../services/RewardRateService');
 
-const READ_REWARD = 500;
-const MIN_READ_TIME_SECONDS = 30;
+const DAILY_READ_CAP = 100;
+const POST_READ_COOLDOWN_HOURS = 24;
+const MIN_SESSION_GAP_SECONDS = 3;
+const MIN_READ_SPEED_FRACTION = 0.10;
+const WORDS_PER_MINUTE = 200;
+
+async function enforceDailyCap(userId, cap) {
+    const todayReads = await ReadSession.getTodayReads(userId);
+    return todayReads < cap;
+}
+
+async function enforcePostCooldown(userId, postId, cooldownHours) {
+    const existing = await ReadSession.findOne({
+        user: userId, post: postId, completed: true
+    });
+
+    if (!existing) return true;
+
+    const createdAt = existing.createdAt || existing._doc?.createdAt;
+    const hoursSince = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
+    return hoursSince >= cooldownHours;
+}
+
+function enforceSessionGap(lastSessionStart, minGapSeconds) {
+    if (!lastSessionStart) return true;
+    const secondsSince = (Date.now() - new Date(lastSessionStart).getTime()) / 1000;
+    return secondsSince >= minGapSeconds;
+}
+
+function enforceReadSpeed(timeSpentSeconds, wordCount, wpm, minFraction) {
+    const expectedSeconds = (wordCount / wpm) * 60;
+    const minimumSeconds = Math.max(expectedSeconds * minFraction, 1);
+    return timeSpentSeconds >= minimumSeconds;
+}
 
 async function readsAuthenticate(request, reply) {
     try {
@@ -42,6 +75,7 @@ async function readsAuthenticate(request, reply) {
 }
 
 module.exports = async function readsRoutes(fastify) {
+
     fastify.addHook('preHandler', readsAuthenticate);
 
     fastify.post('/start', {
@@ -84,19 +118,45 @@ module.exports = async function readsRoutes(fastify) {
                 });
             }
 
+            if (!await enforceDailyCap(userId, DAILY_READ_CAP)) {
+                return reply.code(429).send({
+                    success: false,
+                    error: `Daily read cap of ${DAILY_READ_CAP} reached. Come back tomorrow!`
+                });
+            }
+
+            const readUser = await User.findById(userId).select('wallet.lastSessionStart');
+            if (!enforceSessionGap(readUser?.wallet?.lastSessionStart, MIN_SESSION_GAP_SECONDS)) {
+                return reply.code(429).send({
+                    success: false,
+                    error: 'Please wait a moment before starting another read.'
+                });
+            }
+
+            if (!await enforcePostCooldown(userId, postId, POST_READ_COOLDOWN_HOURS)) {
+                return reply.code(429).send({
+                    success: false,
+                    error: 'You have already read this post recently. Try again later.'
+                });
+            }
+
             const session = await ReadSession.create({
                 user: userId,
                 post: postId,
                 startedAt: new Date()
             });
 
+            await User.findByIdAndUpdate(userId, { $set: { 'wallet.lastSessionStart': new Date() } });
+
+            const currentRate = await RewardRateService.getCurrentRate();
+
             return reply.send({
                 success: true,
                 data: {
                     sessionId: session._id,
                     startedAt: session.startedAt,
-                    reward: READ_REWARD / 100,
-                    minTime: MIN_READ_TIME_SECONDS
+                    reward: currentRate / 100,
+                    minTime: 0
                 }
             });
 
@@ -193,6 +253,27 @@ module.exports = async function readsRoutes(fastify) {
                     success: false,
                     error: 'Session already completed'
                 });
+            }
+
+            const postForSpeedCheck = await Post.findById(session.post).select('content').lean();
+            if (postForSpeedCheck) {
+                const wordCount = postForSpeedCheck.content ? postForSpeedCheck.content.split(/\s+/).length : 0;
+                if (!enforceReadSpeed(session.timeSpentSeconds || 0, wordCount, WORDS_PER_MINUTE, MIN_READ_SPEED_FRACTION)) {
+                    session.completed = true;
+                    session.rewardAwarded = false;
+                    session.rewardAmount = 0;
+                    await session.save();
+                    return reply.send({
+                        success: true,
+                        data: {
+                            completed: true,
+                            timeSpent: session.timeSpentSeconds,
+                            rewardAwarded: false,
+                            rewardAmount: 0,
+                            message: 'Read recorded but reward not earned (read too quickly).'
+                        }
+                    });
+                }
             }
 
             await session.markCompleted();
@@ -297,6 +378,8 @@ module.exports = async function readsRoutes(fastify) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            const currentRate = await RewardRateService.getCurrentRate();
+
             const [todayReads, totalReads, todayReward, totalReward] = await Promise.all([
                 ReadSession.countDocuments({
                     user: userId,
@@ -324,7 +407,7 @@ module.exports = async function readsRoutes(fastify) {
                     totalReads,
                     todayEarnings: (todayReward[0]?.total || 0) / 100,
                     totalEarnings: (totalReward[0]?.total || 0) / 100,
-                    rewardPerRead: READ_REWARD / 100
+                    rewardPerRead: currentRate / 100
                 }
             });
 
@@ -337,3 +420,8 @@ module.exports = async function readsRoutes(fastify) {
         }
     });
 };
+
+module.exports.enforceDailyCap = enforceDailyCap;
+module.exports.enforcePostCooldown = enforcePostCooldown;
+module.exports.enforceSessionGap = enforceSessionGap;
+module.exports.enforceReadSpeed = enforceReadSpeed;
