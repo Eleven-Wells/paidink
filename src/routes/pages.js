@@ -8,6 +8,7 @@ const User = require('../models/User');
 const recommendationService = require('../services/RecommendationService');
 const searchService = require('../services/SearchService');
 const { isFeatureEnabled } = require('../config/features');
+const { getReadTime } = require('../services/ReadTimeService');
 const { buildSitemapXml, buildRobotsTxt } = require('../seo/seoManager');
 const fs = require('fs');
 const path = require('path');
@@ -339,9 +340,7 @@ async function pagesRoutes(fastify) {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
-            post.readTime = post.content
-                ? `${Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200))}m`
-                : '5m';
+            post.readTime = getReadTime(post.content).display;
             return post;
         });
 
@@ -1006,7 +1005,7 @@ async function pagesRoutes(fastify) {
                 if (post.author) {
                     post.author.avatar = getAvatarWithFallback(post.author);
                 }
-                post.readTime = post.content ? Math.max(1, Math.ceil(post.content.split(' ').length / 200)) + 'm' : '5m';
+                post.readTime = getReadTime(post.content).display;
                 return post;
             });
 
@@ -1155,7 +1154,7 @@ async function pagesRoutes(fastify) {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
-            post.readTime = post.content ? Math.max(1, Math.ceil(post.content.split(' ').length / 200)) + 'm' : '5m';
+            post.readTime = getReadTime(post.content).display;
             return post;
         });
 
