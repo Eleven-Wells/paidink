@@ -61,7 +61,7 @@ function renderPage(pageName, data) {
     }
     const ejs = require('ejs');
     const pageContent = fs.readFileSync(pagePath, 'utf8');
-    return ejs.render(pageContent, data, {
+    return ejs.render(pageContent, { ...data, getReadTime }, {
         async: false,
         views: [viewsPath, path.join(viewsPath, 'layouts'), path.join(viewsPath, 'partials'), path.join(viewsPath, 'pages')]
     });
