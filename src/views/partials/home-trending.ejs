@@ -16,7 +16,7 @@
                             <p class="trending-label">Up next</p>
                             <p class="trending-author"><%= post.author ? post.author.displayName : 'Anonymous' %></p>
                             <p class="trending-title"><%= post.title %></p>
-                            <p class="trending-meta"><%= post.readTime || '5m' %> read <%= post.likes ? post.likes.length : 0 %> likes</p>
+                            <p class="trending-meta"><%= post.readTime || '~5 min read' %> <%= post.likes ? post.likes.length : 0 %> likes</p>
                         </div>
                     </div>
                     <div class="trending-actions">
