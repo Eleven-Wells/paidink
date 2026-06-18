@@ -118,6 +118,14 @@ async function sweepUnfundedReads() {
         if (!userResult) continue;
 
         try {
+            const Credit = require('../../models/Credit');
+            const action = session.timeSpentSeconds >= 60 ? 'READ_60S' : 'READ_30S';
+            await Credit.earnCredit(session.user, action, { postId: session.post });
+        } catch (err) {
+            console.error('[ReaderRewardService] Failed to award sweep credit points:', err.message);
+        }
+
+        try {
             await NotificationService.notifyReward(session.user, rewardAmount, 'reading');
         } catch (err) {
             console.error('[ReaderRewardService] Failed to send sweep notification:', err.message);
