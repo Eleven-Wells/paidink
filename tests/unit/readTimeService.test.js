@@ -19,7 +19,7 @@ describe('ReadTimeService', () => {
     test('returns ~1 min read for very short content', () => {
       const content = 'short content here';
       const result = getReadTime(content);
-      expect(result.display).toMatch(/^~/);
+      expect(result.display).toBe('~1 min read');
     });
 
     test('returns ~X min read for typical article', () => {

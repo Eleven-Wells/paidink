@@ -1386,7 +1386,6 @@ async function pagesRoutes(fastify) {
         }
 
         const post = await postService.getPostBySlug(slug);
-        post.readTime = getReadTime(post.content).display;
         if (!post) {
             return reply.code(404).view('layouts/default.ejs', {
                 body: renderErrorPage('404', req),
@@ -1398,6 +1397,8 @@ async function pagesRoutes(fastify) {
                 canonical: `${process.env.BASE_URL || ''}/post/${slug}`
             });
         }
+
+        post.readTime = getReadTime(post.content).display;
 
         const Post = require('../models/Post');
         await Post.findByIdAndUpdate(post._id, { $inc: { 'stats.views': 1 } });
