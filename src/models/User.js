@@ -251,20 +251,36 @@ userSchema.methods.addReward = async function(amount, type, description) {
         throw new Error('User not found');
     }
     
-    const balanceBefore = currentUser.wallet.balance;
-    const balanceAfter = balanceBefore + amount;
-    
-    const result = await User.findOneAndUpdate(
+    let balanceBefore = currentUser.wallet.balance;
+
+    let result = await User.findOneAndUpdate(
         { _id: this._id, 'wallet.balance': balanceBefore },
         {
             $set: {
-                'wallet.balance': balanceAfter,
+                'wallet.balance': balanceBefore + amount,
                 'wallet.lifetimeEarned': currentUser.wallet.lifetimeEarned + amount
             }
         },
         { new: true }
     );
-    
+
+    if (!result) {
+        const freshUser = await User.findById(this._id).select('wallet.balance wallet.lifetimeEarned');
+        if (freshUser) {
+            balanceBefore = freshUser.wallet.balance;
+            result = await User.findOneAndUpdate(
+                { _id: this._id, 'wallet.balance': balanceBefore },
+                {
+                    $set: {
+                        'wallet.balance': balanceBefore + amount,
+                        'wallet.lifetimeEarned': freshUser.wallet.lifetimeEarned + amount
+                    }
+                },
+                { new: true }
+            );
+        }
+    }
+
     if (!result) {
         throw new Error('Concurrent balance update detected. Please retry.');
     }
@@ -275,7 +291,7 @@ userSchema.methods.addReward = async function(amount, type, description) {
         type,
         amount,
         balanceBefore,
-        balanceAfter,
+        balanceAfter: balanceBefore + amount,
         status: 'completed',
         metadata: { description }
     });
@@ -287,7 +303,7 @@ userSchema.methods.addReward = async function(amount, type, description) {
         console.error('Failed to create notification:', err.message);
     }
 
-    this.wallet.balance = balanceAfter;
+    this.wallet.balance = balanceBefore + amount;
     this.wallet.lifetimeEarned += amount;
     return this.wallet.balance;
 };
