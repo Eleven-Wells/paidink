@@ -34,6 +34,8 @@ Implementation:
 4. Compute `minutes = wordCount / wpm + imageCount * 12 / 60` (12 seconds per image)
 5. Round up via `Math.ceil`. If result < 1, return `{ minutes: 0, display: '< 1 min read' }`
 
+All times prefixed with `~` (tilde) to signal they are estimates, e.g. `~5 min read`.
+
 Edge cases:
 - Empty content → 0 words → `< 1 min read`
 - Very short content (< 200 words) → same, since 199 words at 200 wpm rounds to < 1
@@ -59,7 +61,7 @@ Post.content (raw markdown)
   → ReadTimeService.getReadTime(content)
     → stripMarkdown (remove formatting noise)
     → wordCount + imageTimeAdjustment
-    → { minutes, display: "X min read" | "< 1 min read" }
+    → { minutes, display: "~X min read" | "< 1 min read" }
   → attached to post object as post.readTime
   → consumed in EJS template
 ```
