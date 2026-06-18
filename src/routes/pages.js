@@ -1386,6 +1386,7 @@ async function pagesRoutes(fastify) {
         }
 
         const post = await postService.getPostBySlug(slug);
+        post.readTime = getReadTime(post.content).display;
         if (!post) {
             return reply.code(404).view('layouts/default.ejs', {
                 body: renderErrorPage('404', req),

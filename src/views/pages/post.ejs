@@ -1,3 +1,4 @@
+<% const { getReadTime } = require('../services/ReadTimeService'); %>
 <% var metaTitle = post.title || (post.author ? post.author.displayName + '\'s post' : 'Untitled post'); %>
 <script type="application/ld+json">
 <%- JSON.stringify({
@@ -126,7 +127,7 @@
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                     </svg>
-                    <span><%= Math.ceil((post.content || '').length / 1000) || 5 %> min read</span>
+                    <span><%= post.readTime %></span>
                 </div>
             </div>
 
@@ -275,10 +276,7 @@
                                                                 Date(relatedPost.publishedAt).toLocaleDateString() %>
                                                         </span>
                                                         <span class="post-meta-dot"></span>
-                                                        <span>
-                                                            <%= Math.ceil((relatedPost.content || '' ).length / 1000) ||
-                                                                5 %> min read
-                                                        </span>
+                                                        <span><%= getReadTime(relatedPost.content).display %></span>
                                                     </div>
                                                     <h3
                                                         class="font-heading text-lg leading-snug line-clamp-2 post-related-title">
