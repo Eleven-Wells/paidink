@@ -21,7 +21,6 @@ const transactionSchema = new mongoose.Schema({
             'article_reward',
             'read_reward',
             'referral_bonus',
-            'streak_bonus',
             'signup_bonus',
             'withdrawal',
             'bonus',
