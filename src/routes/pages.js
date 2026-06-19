@@ -253,13 +253,16 @@ async function pagesRoutes(fastify) {
         const userId = req.user.id;
         const user = await User.findById(userId);
 
-        const [summary, recentReads, referredCount] = await Promise.all([
+        const RewardRateService = require('../services/RewardRateService');
+
+        const [summary, recentReads, referredCount, currentRate] = await Promise.all([
             DashboardService.getDashboardSummary(userId),
             ReadSession.find({ user: userId })
                 .sort({ startedAt: -1 })
                 .limit(5)
                 .populate('post', 'title slug summary image'),
-            User.countDocuments({ referredBy: userId })
+            User.countDocuments({ referredBy: userId }),
+            RewardRateService.getCurrentRate()
         ]);
 
         const readsToNextMilestone = Math.max(0, 50 - (user?.stats?.totalReads || 0) % 50);
@@ -297,7 +300,8 @@ async function pagesRoutes(fastify) {
             wallet: summary.wallet,
             recentEntries: summary.recentEntries,
             balanceLastSynced: user.wallet.balanceLastSynced,
-            rewardedAd
+            rewardedAd,
+            currentRate
         });
     });
 
@@ -380,7 +384,9 @@ async function pagesRoutes(fastify) {
         const ReadSession = require('../models/ReadSession');
         const userId = req.user.id;
 
-        const [reads, totalReads] = await Promise.all([
+        const RewardRateService = require('../services/RewardRateService');
+
+        const [reads, totalReads, currentRate] = await Promise.all([
             ReadSession.find({ user: userId })
                 .sort({ startedAt: -1 })
                 .limit(50)
@@ -388,7 +394,8 @@ async function pagesRoutes(fastify) {
             ReadSession.countDocuments({
                 user: userId,
                 completed: true
-            })
+            }),
+            RewardRateService.getCurrentRate()
         ]);
 
         return reply.view('pages/reads.ejs', {
@@ -402,7 +409,8 @@ async function pagesRoutes(fastify) {
             reads,
             stats: {
                 totalReads
-            }
+            },
+            currentRate
         });
     });
 

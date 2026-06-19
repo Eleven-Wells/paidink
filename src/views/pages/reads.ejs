@@ -335,7 +335,7 @@
                 </div>
             </section>
 
-            <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <article class="glass-card reads-stat-card rounded-2xl p-5">
                     <div class="flex items-center justify-between gap-4 mb-4">
                         <div>
@@ -381,6 +381,21 @@
                     <p class="reads-stat-copy text-xs">
                         <%= inProgressSessions > 0 ? `${inProgressSessions} session${inProgressSessions === 1 ? '' : 's'} still in progress.` : 'Keep the streak alive with your next read.' %>
                     </p>
+                </article>
+
+                <article class="glass-card reads-stat-card rounded-2xl p-5">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                            <p class="reads-stat-copy text-sm mb-1">Rate per Read</p>
+                            <p class="reads-stat-value font-heading text-3xl font-bold reads-trend-positive">₦<%= ((currentRate || 500) / 100).toFixed(2) %></p>
+                        </div>
+                        <div class="reads-stat-icon is-green">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="reads-stat-copy text-xs">Dynamic rate based on 7-day pool revenue.</p>
                 </article>
             </section>
 
