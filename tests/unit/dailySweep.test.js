@@ -10,9 +10,7 @@ const {
 } = require('../../src/services/ads/AdRevenueService');
 const {
     getReaderPoolBalance,
-    dailyFeedRevenueSweep,
-    dailyReaderRewardSweep,
-    sweepUnfundedReads
+    dailyFeedRevenueSweep
 } = require('../../src/services/ads/ReaderRewardService');
 const { seedDefaultData } = require('../../src/services/ads/AdSimulationService');
 
@@ -35,7 +33,6 @@ describe('Daily Sweep Jobs', () => {
             password: 'password123',
             'wallet.balance': 0,
             'wallet.lifetimeEarned': 0,
-            'wallet.pendingUnfundedReads': 0,
             'stats.totalReads': 0,
             'stats.streak': 1
         });
@@ -158,62 +155,15 @@ describe('Daily Sweep Jobs', () => {
         });
     });
 
-    describe('dailyReaderRewardSweep', () => {
-        test('should call sweepUnfundedReads and return result', async () => {
-            const r = await dailyReaderRewardSweep();
-            expect(r.swept).toBe(0);
-        });
-
-        test('should pay unfunded reads from daily sweep', async () => {
-            await User.updateOne(
-                { _id: testUser._id },
-                { $set: { 'wallet.pendingUnfundedReads': 2 } }
-            );
-
-            const sessions = [];
-            for (let i = 0; i < 2; i++) {
-                const s = await ReadSession.create({
-                    user: testUser._id,
-                    post: testPost._id,
-                    startedAt: new Date(Date.now() - 120000 * (i + 1)),
-                    completed: true,
-                    rewardAwarded: false,
-                    isUnfunded: true,
-                    timeSpentSeconds: 60
-                });
-                sessions.push(s);
-            }
-
-            // Fund pool with enough for 2 reads (₦10): 10 * 4 * 0.30 = 12
-            await createFeedAdEvents(10, 4);
-
-            const r1 = await dailyFeedRevenueSweep();
-            expect(r1.swept).toBeGreaterThanOrEqual(10);
-
-            const poolAfter = await getReaderPoolBalance();
-            expect(poolAfter).toBeGreaterThanOrEqual(10);
-
-            const r = await dailyReaderRewardSweep();
-            expect(r.swept).toBe(2);
-            expect(r.totalAmount).toBe(10);
-
-            const userAfter = await User.findById(testUser._id);
-            expect(userAfter.wallet.balance).toBe(10);
-            expect(userAfter.wallet.pendingUnfundedReads).toBe(0);
-        });
-    });
-
     describe('cron config', () => {
         test('should have sweep schedule env vars', () => {
             expect(process.env.READER_POOL_SWEEP_SCHEDULE).toBeUndefined(); // not set, uses default
-            expect(process.env.UNFUNDED_READS_SWEEP_SCHEDULE).toBeUndefined();
         });
 
         test('should use config defaults when env not set', () => {
             const config = require('../../src/config');
             const cfg = config.loadConfig();
             expect(cfg.READER_POOL_SWEEP_SCHEDULE).toBe('0 0 * * *');
-            expect(cfg.UNFUNDED_READS_SWEEP_SCHEDULE).toBe('30 0 * * *');
         });
     });
 });
