@@ -50,17 +50,11 @@ async function registerCronPlugin(fastify) {
                 cronTime: config.READER_POOL_SWEEP_SCHEDULE,
                 onTick: wrap(cronJobs.readerPoolSweep),
                 runOnInit: false
-            },
-            {
-                name: 'unfunded-reads-sweep',
-                cronTime: config.UNFUNDED_READS_SWEEP_SCHEDULE,
-                onTick: wrap(cronJobs.unfundedReadsSweep),
-                runOnInit: false
             }
         ]
     });
 
-    fastify.log.info('[Cron] fastify-cron plugin registered with 7 jobs');
+    fastify.log.info('[Cron] fastify-cron plugin registered with 6 jobs');
 }
 
 module.exports = fp(registerCronPlugin, {

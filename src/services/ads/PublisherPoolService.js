@@ -23,7 +23,7 @@ async function settlePublisherPayout(publisherId, amount) {
         throw new Error('Insufficient publisher pool balance');
     }
 
-    const user = await User.findById(publisherId).select('wallet.balance wallet.lifetimeEarned wallet.pendingUnfundedReads');
+    const user = await User.findById(publisherId).select('wallet.balance wallet.lifetimeEarned');
     if (!user) {
         throw new Error('Publisher not found');
     }

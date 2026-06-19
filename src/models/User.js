@@ -99,11 +99,6 @@ const userSchema = new mongoose.Schema({
             type: Date,
             default: null
         },
-        pendingUnfundedReads: {
-            type: Number,
-            default: 0,
-            max: 3
-        },
         totalReaderRewards: {
             type: Number,
             default: 0

@@ -96,7 +96,7 @@ describe('RewardRateService', () => {
             expect(rate).toBe(500);
             expect(SystemConfig.findOneAndUpdate).toHaveBeenCalledWith(
                 { key: 'dynamic_read_rate_kobo' },
-                { key: 'dynamic_read_rate_kobo', value: 500, updatedAt: expect.any(Date) },
+                { key: 'dynamic_read_rate_kobo', value: 500 },
                 { upsert: true, new: true }
             );
         });
