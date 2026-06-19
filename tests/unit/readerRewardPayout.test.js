@@ -102,6 +102,28 @@ describe('ReaderRewardService', () => {
             expect(updatedUser.wallet.balance).toBe(result.amount);
             expect(updatedUser.wallet.lifetimeEarned).toBe(result.amount);
         });
+
+        test('should debit reader pool on reward payout', async () => {
+            const session = await ReadSession.create({
+                user: testUser._id,
+                post: testPost._id
+            });
+
+            const poolBefore = await getReaderPoolBalance();
+            const result = await processReadCompletion(testUser, session);
+
+            const poolDebit = await LedgerEntry.findOne({ type: 'reader_reward_payout' });
+            expect(poolDebit).not.toBeNull();
+            expect(poolDebit.amount).toBe(-result.amount);
+            expect(poolDebit.pool).toBe('reader_pool');
+            expect(poolDebit.balanceBefore).toBe(poolBefore);
+            expect(poolDebit.balanceAfter).toBe(poolBefore - result.amount);
+            expect(poolDebit.metadata.sweepType).toBe('immediate');
+            expect(poolDebit.metadata.userId.toString()).toBe(testUser._id.toString());
+
+            const poolAfter = await getReaderPoolBalance();
+            expect(poolAfter).toBe(poolBefore - result.amount);
+        });
     });
 
     describe('ReadSession.markCompleted integration', () => {

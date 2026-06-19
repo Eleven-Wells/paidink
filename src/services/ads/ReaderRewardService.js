@@ -16,6 +16,27 @@ async function getReaderPoolBalance() {
 async function processReadCompletion(user, session) {
     const rate = await RewardRateService.getCurrentRate();
     const balance = await user.addReward(rate, 'read_reward', 'Reward for reading');
+
+    const poolBalance = await getReaderPoolBalance();
+    await LedgerEntry.create({
+        user: null,
+        type: 'reader_reward_payout',
+        amount: -rate,
+        balanceBefore: poolBalance,
+        balanceAfter: poolBalance - rate,
+        status: 'completed',
+        fundedBy: 'reader_pool',
+        correlationId: session._id,
+        correlationModel: 'ReadSession',
+        pool: 'reader_pool',
+        metadata: {
+            readSessionId: session._id,
+            rewardAmount: rate,
+            userId: user._id,
+            sweepType: 'immediate'
+        }
+    });
+
     return { paid: true, amount: rate, balance };
 }
 
