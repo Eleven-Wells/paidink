@@ -29,22 +29,28 @@ describe('Anti-gaming measures', () => {
     });
 
     describe('enforcePostCooldown', () => {
+        function makeThenable(value) {
+            const p = Promise.resolve(value);
+            p.sort = jest.fn().mockReturnValue(p);
+            return p;
+        }
+
         it('returns true when no prior session exists', async () => {
-            ReadSession.findOne.mockResolvedValue(null);
+            ReadSession.findOne.mockReturnValue(makeThenable(null));
             const result = await enforcePostCooldown('user123', 'post456', 24);
             expect(result).toBe(true);
         });
 
         it('returns true when last read was > 24h ago', async () => {
             const oldSession = { createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000) };
-            ReadSession.findOne.mockResolvedValue(oldSession);
+            ReadSession.findOne.mockReturnValue(makeThenable(oldSession));
             const result = await enforcePostCooldown('user123', 'post456', 24);
             expect(result).toBe(true);
         });
 
         it('returns false when last read was < 24h ago', async () => {
             const recentSession = { createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000) };
-            ReadSession.findOne.mockResolvedValue(recentSession);
+            ReadSession.findOne.mockReturnValue(makeThenable(recentSession));
             const result = await enforcePostCooldown('user123', 'post456', 24);
             expect(result).toBe(false);
         });

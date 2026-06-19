@@ -18,7 +18,7 @@ async function enforceDailyCap(userId, cap) {
 async function enforcePostCooldown(userId, postId, cooldownHours) {
     const existing = await ReadSession.findOne({
         user: userId, post: postId, completed: true
-    });
+    }).sort({ createdAt: -1 });
 
     if (!existing) return true;
 
