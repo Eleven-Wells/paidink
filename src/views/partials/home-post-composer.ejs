@@ -5,7 +5,7 @@
         </div>
         <div class="composer-body">
             <label for="post-composer" class="sr-only">What's on your mind?</label>
-            <textarea id="post-composer" name="content" rows="1" maxlength="280" placeholder="Share a thought, link, or quick update..."></textarea>
+            <textarea id="post-composer" name="content" rows="1" maxlength="2000" placeholder="Share a thought, link, or quick update..."></textarea>
             <div id="composerAttachmentPreview" class="composer-attachment-preview" hidden></div>
             <div class="composer-footer">
                 <div class="composer-meta">
@@ -318,7 +318,7 @@
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 132) + 'px';
         btn.disabled = textarea.value.trim().length === 0 && !selectedImage && !selectedLink;
-        if (count) count.textContent = length + '/280';
+        if (count) count.textContent = length + '/2000';
     }
 
     function renderAttachments() {
@@ -364,8 +364,8 @@
                 imageInput.value = '';
                 return;
             }
-            if (file.size > 750 * 1024) {
-                alert('Please choose an image under 750KB.');
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Please choose an image under 2MB.');
                 imageInput.value = '';
                 return;
             }
