@@ -555,6 +555,18 @@
     @media (max-width: 768px) {
         .feed-post {
             gap: 32px;
+            max-width: 100%;
+            width: 100%;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .feed-post-header,
+        .feed-post-meta,
+        .feed-author-copy,
+        .feed-follow-btn{
+            max-width: 100%;
+            flex-wrap: wrap;
         }
 
         .feed-post-header {
@@ -650,6 +662,14 @@
 
         .feed-suggestions-list {
             gap: 24px;
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x:auto ;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+        .feed-suggestions-list::-webkit-scrollbar{
+            display:none;
         }
     }
 </style>
