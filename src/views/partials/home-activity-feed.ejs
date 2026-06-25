@@ -3,7 +3,7 @@
         <% posts.forEach(function(post, index) { %>
             <article class="feed-post">
                 <div class="feed-post-header">
-                    <%- include('../partials/avatar', { user: post.author, size: '80px' }) %>
+                    <%- include('../partials/avatar', { user: post.author, size: '44px' }) %>
 
                         <div class="feed-post-body">
                             <div class="feed-post-meta">
@@ -578,11 +578,14 @@
         }
 
         .feed-author-copy>h3 {
-            font-size: 20px;
+            font-size: 16px;
         }
 
         .feed-author-copy>p {
-            font-size: 14px;
+            font-size: 13px;
+        }
+        .feed-author-copy>h4 {
+            font-size: 15px;
         }
 
         .feed-follow-btn {
@@ -590,32 +593,42 @@
             padding-inline: 14px;
             font-size: 15px;
         }
-
+        
         .feed-post-link>h4 {
-            font-size: 18px;
+            font-size: 15px;
         }
 
         .feed-post-link>p {
-            font-size: 18px;
+            font-size: 15px;
+            line-height: 1.5;
         }
-
+        .feed-post-link>p,
+        .feed-post-link>h4,
+        .feed-author-copy>h3{
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
         .feed-post-image {
             height: 140px;
         }
 
-        .feed-post-interactions>button>span {
-            font-size: 18px;
+        .feed-post-interactions>button>span,
+        .feed-post-options {
+            font-size: 13px;
         }
 
         .feed-post-actions {
             align-items: center;
-            justify-content: flex-start;
-            gap: 12px;
+            justify-content: space-between;
+            gap: 0;
+            display: flex;
             flex-direction: row;
             flex-wrap: nowrap;
-            overflow-x: auto;
+            overflow-x: visible;
+            width: 100%;
             min-width: 0;
-            -webkit-overflow-scrolling: touch;
         }
 
         .feed-post-actions::-webkit-scrollbar {
@@ -634,6 +647,7 @@
 
         .feed-post-options {
             margin-top: 0;
+            margin-left: auto;
         }
 
         .feed-post-options>.feed-read-cta {
