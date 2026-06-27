@@ -43,8 +43,8 @@ async function readsAuthenticate(request, reply) {
     try {
         // Support both cookie and Authorization header
         const authHeader = request.headers.authorization;
-        const token = authHeader 
-            ? authHeader.replace('Bearer ', '') 
+        const token = authHeader
+            ? authHeader.replace('Bearer ', '')
             : request.cookies?.auth_token;
 
         if (!token) {
@@ -140,6 +140,10 @@ module.exports = async function readsRoutes(fastify) {
                 });
             }
 
+            const wordCount = post.content ? post.content.split(/\s+/).filter(Boolean).length : 0;
+            const expectedSeconds = (wordCount / WORDS_PER_MINUTE) * 60;
+            const minTime = Math.max(expectedSeconds * MIN_READ_SPEED_FRACTION, 1);
+
             const session = await ReadSession.create({
                 user: userId,
                 post: postId,
@@ -156,7 +160,7 @@ module.exports = async function readsRoutes(fastify) {
                     sessionId: session._id,
                     startedAt: session.startedAt,
                     reward: currentRate / 100,
-                    minTime: 0
+                    minTime: Number(minTime.toFixed(2))
                 }
             });
 
@@ -255,10 +259,20 @@ module.exports = async function readsRoutes(fastify) {
                 });
             }
 
+            const endedAt = new Date();
+            const elapsedSeconds = session.startedAt
+                ? Math.floor((endedAt - session.startedAt) / 1000)
+                : 0;
+
+            session.endedAt = endedAt;
+            if (elapsedSeconds > 0) {
+                session.timeSpentSeconds = elapsedSeconds;
+            }
+
             const postForSpeedCheck = await Post.findById(session.post).select('content').lean();
             if (postForSpeedCheck) {
                 const wordCount = postForSpeedCheck.content ? postForSpeedCheck.content.split(/\s+/).length : 0;
-                if (!enforceReadSpeed(session.timeSpentSeconds || 0, wordCount, WORDS_PER_MINUTE, MIN_READ_SPEED_FRACTION)) {
+                if (!enforceReadSpeed(elapsedSeconds, wordCount, WORDS_PER_MINUTE, MIN_READ_SPEED_FRACTION)) {
                     session.completed = true;
                     session.rewardAwarded = false;
                     session.rewardAmount = 0;
@@ -267,7 +281,7 @@ module.exports = async function readsRoutes(fastify) {
                         success: true,
                         data: {
                             completed: true,
-                            timeSpent: session.timeSpentSeconds,
+                            timeSpent: elapsedSeconds,
                             rewardAwarded: false,
                             rewardAmount: 0,
                             message: 'Read recorded but reward not earned (read too quickly).'
@@ -299,8 +313,8 @@ module.exports = async function readsRoutes(fastify) {
                     timeSpent: session.timeSpentSeconds,
                     rewardAwarded: session.rewardAwarded,
                     rewardAmount: session.rewardAmount / 100,
-                    message: session.rewardAwarded 
-                        ? `Congratulations! You earned ₦${session.rewardAmount / 100}` 
+                    message: session.rewardAwarded
+                        ? `Congratulations! You earned ₦${session.rewardAmount / 100}`
                         : 'Read completed but minimum time not met'
                 }
             });

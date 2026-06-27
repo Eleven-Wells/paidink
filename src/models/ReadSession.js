@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Credit = require('./Credit');
 
 const READ_REWARD = 500;
-const MIN_READ_TIME_SECONDS = 30;
 
 let User;
 let Post;
@@ -85,7 +84,7 @@ readSessionSchema.index({ user: 1, post: 1 });
 readSessionSchema.index({ user: 1, startedAt: -1 });
 readSessionSchema.index({ completed: 1, rewardAwarded: 1 });
 
-readSessionSchema.pre('save', async function(next) {
+readSessionSchema.pre('save', async function (next) {
     if (this.isNew && (this.startingBalance === undefined || this.startingBalance === null)) {
         try {
             const UserModel = mongoose.model('User');
@@ -100,14 +99,14 @@ readSessionSchema.pre('save', async function(next) {
     next();
 });
 
-readSessionSchema.methods.calculateReward = function() {
-    if (this.completed && !this.rewardAwarded && this.timeSpentSeconds >= MIN_READ_TIME_SECONDS) {
+readSessionSchema.methods.calculateReward = function () {
+    if (this.completed && !this.rewardAwarded) {
         return READ_REWARD;
     }
     return 0;
 };
 
-readSessionSchema.methods.markCompleted = async function() {
+readSessionSchema.methods.markCompleted = async function () {
     getModels();
 
     this.completed = true;
@@ -228,7 +227,7 @@ readSessionSchema.methods.markCompleted = async function() {
     return paidReward;
 };
 
-readSessionSchema.statics.getTodayReads = async function(userId) {
+readSessionSchema.statics.getTodayReads = async function (userId) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -239,7 +238,7 @@ readSessionSchema.statics.getTodayReads = async function(userId) {
     });
 };
 
-readSessionSchema.statics.getRecentReads = async function(userId, limit = 10) {
+readSessionSchema.statics.getRecentReads = async function (userId, limit = 10) {
     return await this.find({ user: userId })
         .sort({ startedAt: -1 })
         .limit(limit)

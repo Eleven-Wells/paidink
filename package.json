@@ -25,9 +25,15 @@
     "blog",
     "ai",
     "fastify",
-    "mongodb"
+    "mongodb",
+    "sharing",
+    "stories",
+    "community",
+    "reading",
+    "writing",
+    "discovering"
   ],
-  "author": "",
+  "author": "Eleven Wells",
   "license": "ISC",
   "packageManager": "pnpm@10.12.4",
   "dependencies": {
@@ -79,8 +85,5 @@
     "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",
     "tailwindcss": "^4.1.16"
-  },
-  "engines": {
-    "node": "20.x"
   }
 }

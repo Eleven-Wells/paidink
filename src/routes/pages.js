@@ -115,6 +115,16 @@ async function pagesRoutes(fastify) {
         }
     });
 
+    fastify.get('/debug-auth', async (req, reply) => {
+        return reply.send({
+            cookies: req.cookies,
+            cookieHeader: req.headers.cookie || req.raw?.headers?.cookie,
+            isLoggedIn: req.isLoggedIn,
+            hasAuthToken: !!req.cookies?.auth_token,
+            authTokenPrefix: req.cookies?.auth_token ? req.cookies.auth_token.substring(0, 20) + '...' : null
+        });
+    });
+
     fastify.get('/sitemap.xml', async (req, reply) => {
         const { content } = await buildSitemapXml();
         reply.type('application/xml; charset=utf-8').send(content);
@@ -260,7 +270,12 @@ async function pagesRoutes(fastify) {
             ReadSession.find({ user: userId })
                 .sort({ startedAt: -1 })
                 .limit(5)
-                .populate('post', 'title slug summary image'),
+                .populate('post', 'title slug summary image')
+                .lean()
+                .then(sessions => sessions.map(s => ({
+                    ...s,
+                    rewardAmount: s.rewardAmount / 100
+                }))),
             User.countDocuments({ referredBy: userId }),
             RewardRateService.getCurrentRate()
         ]);
@@ -390,7 +405,12 @@ async function pagesRoutes(fastify) {
             ReadSession.find({ user: userId })
                 .sort({ startedAt: -1 })
                 .limit(50)
-                .populate('post', 'title slug summary image'),
+                .populate('post', 'title slug summary image')
+                .lean()
+                .then(sessions => sessions.map(s => ({
+                    ...s,
+                    rewardAmount: s.rewardAmount / 100
+                }))),
             ReadSession.countDocuments({
                 user: userId,
                 completed: true
@@ -1379,6 +1399,7 @@ async function pagesRoutes(fastify) {
     });
 
     fastify.get('/post/:slug', async (req, reply) => {
+        console.log('[POST-ROUTE] req.isLoggedIn:', req.isLoggedIn, 'cookies:', JSON.stringify(Object.keys(req.cookies || {})));
         const lang = getLanguage(req);
         const { slug } = req.params;
 
