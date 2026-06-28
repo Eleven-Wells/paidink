@@ -614,8 +614,7 @@
                     <article class="glass-card dashboard-stat-card rounded-2xl p-5">
                         <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">This Week
                             Earned</p>
-                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= (readStats?.earned7d ||
-                                0).toFixed(2) %>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((readStats?.earned7d || 0) / 100).toFixed(2) %>
                         </p>
                         <p
                             class="text-xs mt-2 <%= (readStats?.earned7dDelta || 0) >= 0 ? 'dashboard-trend-up' : 'dashboard-trend-down' %>">
