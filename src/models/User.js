@@ -99,11 +99,6 @@ const userSchema = new mongoose.Schema({
             type: Date,
             default: null
         },
-        pendingUnfundedReads: {
-            type: Number,
-            default: 0,
-            max: 3
-        },
         totalReaderRewards: {
             type: Number,
             default: 0
@@ -113,6 +108,10 @@ const userSchema = new mongoose.Schema({
             default: 0
         },
         lastPoolSweepAt: {
+            type: Date,
+            default: null
+        },
+        lastSessionStart: {
             type: Date,
             default: null
         }

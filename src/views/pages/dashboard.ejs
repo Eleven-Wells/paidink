@@ -639,6 +639,11 @@
                         </p>
                         <p class="dashboard-stat-meta text-xs mt-2">Keep reading daily</p>
                     </article>
+                    <article class="glass-card dashboard-stat-card rounded-2xl p-5">
+                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Rate per Read</p>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((currentRate || 500) / 100).toFixed(2) %></p>
+                        <p class="dashboard-stat-meta text-xs mt-2">Updated hourly from pool revenue</p>
+                    </article>
                 </section>
 
                 <section class="dashboard-workspace">

@@ -4,7 +4,7 @@ const { updateSEOFiles } = require('../seo/seoManager');
 const { fetchLatestBlog } = require('../tools/fetchTools');
 const { addContentJob } = require('../queue/contentQueue');
 const JobLog = require('../models/JobLog');
-const { dailyFeedRevenueSweep, dailyReaderRewardSweep } = require('../services/ads/ReaderRewardService');
+const { dailyFeedRevenueSweep } = require('../services/ads/ReaderRewardService');
 
 const logger = {
     info: (msg, data) => console.log(`[Cron] ${msg}`, data || ''),
@@ -113,22 +113,11 @@ async function readerPoolSweep() {
     }
 }
 
-async function unfundedReadsSweep() {
-    logger.info('Starting unfunded reads sweep');
-    try {
-        const result = await dailyReaderRewardSweep();
-        logger.info('Unfunded reads sweep completed', result);
-    } catch (error) {
-        logger.error('Unfunded reads sweep failed: ' + error.message);
-    }
-}
-
 module.exports = {
     toolsUpdate,
     contentIngestion,
     feedUpdate,
     seoUpdate,
     contentCleanup,
-    readerPoolSweep,
-    unfundedReadsSweep
+    readerPoolSweep
 };

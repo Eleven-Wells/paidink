@@ -16,3 +16,7 @@ public/css/output.css.worktrees/
 
 # superpowers cache
 .superpowers/
+
+# test artifacts
+playwright-report/
+test-results/

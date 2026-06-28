@@ -39,7 +39,7 @@ describe('Reads Tracking System', () => {
     });
 
     beforeEach(async () => {
-        jest.spyOn(ReaderRewardService, 'payoutReaderReward').mockResolvedValue({ paid: true, amount: 5 });
+        jest.spyOn(ReaderRewardService, 'processReadCompletion').mockResolvedValue({ paid: true, amount: 500, balance: { balance: 500, lifetimeEarned: 500 } });
 
         await ReadSession.deleteMany({});
         await Transaction.deleteMany({});

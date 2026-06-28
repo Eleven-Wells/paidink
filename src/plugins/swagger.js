@@ -4,7 +4,7 @@ const apiDocumentation = {
     openapi: '3.0.0',
     info: {
         title: 'Nook API',
-        description: 'AI-powered automated content platform for tech news',
+        description: 'A community reading and writing platform for discovering and sharing stories across all topics',
         version: '1.0.0',
         contact: {
             name: 'API Support',

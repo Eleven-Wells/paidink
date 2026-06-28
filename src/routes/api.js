@@ -17,6 +17,7 @@ const Notification = require('../models/Notification');
 const Achievement = require('../models/Achievement');
 const ReadSession = require('../models/ReadSession');
 const PayoutDetail = require('../models/PayoutDetail');
+const RewardRateService = require('../services/RewardRateService');
 const Comment = require('../models/Comment');
 const Credit = require('../models/Credit');
 const NotificationService = require('../services/NotificationService');
@@ -1301,6 +1302,28 @@ async function apiRoutes(fastify) {
             return reply.code(500).send({
                 success: false,
                 error: 'Failed to mark notifications as read'
+            });
+        }
+    });
+
+    fastify.get('/rewards/rate', async (req, reply) => {
+        try {
+            const rateKobo = await RewardRateService.getCurrentRate();
+            return {
+                success: true,
+                data: {
+                    rateKobo,
+                    rateNaira: rateKobo / 100,
+                    floor: 10,
+                    ceiling: 2000,
+                    windowDays: 7
+                }
+            };
+        } catch (error) {
+            req.log.error({ error: error.message }, 'Get reward rate failed');
+            return reply.code(500).send({
+                success: false,
+                error: 'Failed to get current reward rate'
             });
         }
     });

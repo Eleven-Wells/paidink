@@ -16,6 +16,8 @@
         grid-template-columns: 260px 1fr;
         padding-left: 2rem;
         padding-right: 2rem;
+        color: #544e4e';
+
     }
 }
 
@@ -663,9 +665,17 @@
     display: block;
 }
 
-.publisher-preview h1 { font-size: 1.75rem; }
-.publisher-preview h2 { font-size: 1.5rem; }
-.publisher-preview h3 { font-size: 1.25rem; }
+.publisher-preview h1 {
+    font-size: 1.75rem;
+}
+
+.publisher-preview h2 {
+    font-size: 1.5rem;
+}
+
+.publisher-preview h3 {
+    font-size: 1.25rem;
+}
 
 .publisher-preview p {
     margin: 0.65rem 0;

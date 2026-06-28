@@ -1,10 +1,9 @@
 const LedgerEntry = require('../../models/LedgerEntry');
 const AdEvent = require('../../models/ads/AdEvent');
 const User = require('../../models/User');
-const ReadSession = require('../../models/ReadSession');
+const RewardRateService = require('../RewardRateService');
 
 const MAX_REWARD = 500;
-const MAX_UNFUNDED = 3;
 
 async function getReaderPoolBalance() {
     const result = await LedgerEntry.aggregate([
@@ -14,151 +13,31 @@ async function getReaderPoolBalance() {
     return result.length > 0 ? result[0].balance : 0;
 }
 
-async function payoutReaderReward(readSession, rewardAmount) {
-    const poolBalance = await getReaderPoolBalance();
-    if (poolBalance < rewardAmount) {
-        return await handleUnfundedRead(readSession);
-    }
+async function processReadCompletion(user, session) {
+    const rate = await RewardRateService.getCurrentRate();
+    const balance = await user.addReward(rate, 'read_reward', 'Reward for reading');
 
-    const debitEntry = await LedgerEntry.create({
+    const poolBalance = await getReaderPoolBalance();
+    await LedgerEntry.create({
         user: null,
         type: 'reader_reward_payout',
-        amount: -rewardAmount,
+        amount: -rate,
         balanceBefore: poolBalance,
-        balanceAfter: poolBalance - rewardAmount,
+        balanceAfter: poolBalance - rate,
         status: 'completed',
         fundedBy: 'reader_pool',
-        correlationId: readSession._id,
+        correlationId: session._id,
         correlationModel: 'ReadSession',
         pool: 'reader_pool',
         metadata: {
-            readSessionId: readSession._id,
-            rewardAmount,
+            readSessionId: session._id,
+            rewardAmount: rate,
+            userId: user._id,
             sweepType: 'immediate'
         }
     });
 
-    return { paid: true, amount: rewardAmount, debitEntry, poolBalanceAfter: poolBalance - rewardAmount };
-}
-
-async function handleUnfundedRead(readSession) {
-    const updatedUser = await User.findOneAndUpdate(
-        { _id: readSession.user, 'wallet.pendingUnfundedReads': { $lt: MAX_UNFUNDED } },
-        { $inc: { 'wallet.pendingUnfundedReads': 1 } },
-        { new: true, select: 'wallet.pendingUnfundedReads' }
-    );
-
-    if (!updatedUser) {
-        const user = await User.findById(readSession.user).select('wallet.pendingUnfundedReads');
-        const pendingCount = user ? (user.wallet.pendingUnfundedReads || 0) : 0;
-        return { paid: false, reason: 'max_unfunded_reached', pendingCount };
-    }
-
-    const newCount = updatedUser.wallet.pendingUnfundedReads || 0;
-
-    await ReadSession.updateOne(
-        { _id: readSession._id },
-        {
-            $set: {
-                isUnfunded: true,
-                userPendingCount: newCount
-            }
-        }
-    );
-
-    return { paid: false, reason: 'insufficient_pool', pendingCount: newCount };
-}
-
-async function sweepUnfundedReads() {
-    const unfundedSessions = await ReadSession.find({
-        completed: true,
-        rewardAwarded: false,
-        isUnfunded: true
-    }).sort({ createdAt: 1 });
-
-    if (unfundedSessions.length === 0) {
-        return { swept: 0, totalAmount: 0 };
-    }
-
-    const poolBalance = await getReaderPoolBalance();
-    if (poolBalance < MAX_REWARD) {
-        return { swept: 0, totalAmount: 0, reason: 'insufficient_pool' };
-    }
-
-    let swept = 0;
-    let totalAmount = 0;
-    let remainingBalance = poolBalance;
-
-    for (const session of unfundedSessions) {
-        if (remainingBalance < MAX_REWARD) break;
-
-        const rewardAmount = session.calculateReward ? session.calculateReward() : MAX_REWARD;
-        if (rewardAmount <= 0) continue;
-        if (remainingBalance < rewardAmount) continue;
-
-        const currentUser = await User.findById(session.user).select('wallet.balance wallet.lifetimeEarned');
-        if (!currentUser) continue;
-
-        const balanceBefore = currentUser.wallet.balance;
-        const balanceAfter = balanceBefore + rewardAmount;
-
-        const userResult = await User.findOneAndUpdate(
-            { _id: session.user, 'wallet.balance': balanceBefore, 'wallet.pendingUnfundedReads': { $gt: 0 } },
-            {
-                $set: {
-                    'wallet.balance': balanceAfter,
-                    'wallet.lifetimeEarned': currentUser.wallet.lifetimeEarned + rewardAmount
-                },
-                $inc: { 'wallet.pendingUnfundedReads': -1 }
-            },
-            { new: true }
-        );
-
-        if (!userResult) continue;
-
-        await LedgerEntry.create({
-            user: session.user,
-            type: 'read_reward',
-            amount: rewardAmount,
-            balanceBefore,
-            balanceAfter,
-            referenceId: session._id,
-            referenceModel: 'ReadSession',
-            status: 'completed',
-            fundedBy: 'reader_pool',
-            metadata: { postId: session.post, sweepPayout: true }
-        });
-
-        await LedgerEntry.create({
-            user: null,
-            type: 'reader_reward_payout',
-            amount: -rewardAmount,
-            balanceBefore: remainingBalance,
-            balanceAfter: remainingBalance - rewardAmount,
-            status: 'completed',
-            fundedBy: 'reader_pool',
-            correlationId: session._id,
-            correlationModel: 'ReadSession',
-            pool: 'reader_pool',
-            metadata: { readSessionId: session._id, rewardAmount, sweepType: 'daily_sweep' }
-        });
-
-        await ReadSession.updateOne(
-            { _id: session._id },
-            { $set: { rewardAwarded: true, rewardAmount, isUnfunded: false, poolPayoutAt: new Date() } }
-        );
-
-        remainingBalance -= rewardAmount;
-        swept++;
-        totalAmount += rewardAmount;
-    }
-
-    return { swept, totalAmount, poolBalanceAfter: remainingBalance };
-}
-
-async function getUserUnfundedCount(userId) {
-    const user = await User.findById(userId).select('wallet.pendingUnfundedReads').lean();
-    return (user && user.wallet.pendingUnfundedReads) || 0;
+    return { paid: true, amount: rate, balance };
 }
 
 async function getLastSweepTime() {
@@ -216,19 +95,9 @@ async function dailyFeedRevenueSweep() {
     return { swept: readerPoolShare, entry, poolBalanceAfter: poolBefore + readerPoolShare };
 }
 
-async function dailyReaderRewardSweep() {
-    const result = await sweepUnfundedReads();
-    return result;
-}
-
 module.exports = {
     getReaderPoolBalance,
-    payoutReaderReward,
-    handleUnfundedRead,
-    sweepUnfundedReads,
-    getUserUnfundedCount,
+    processReadCompletion,
     dailyFeedRevenueSweep,
-    dailyReaderRewardSweep,
-    MAX_REWARD,
-    MAX_UNFUNDED
+    MAX_REWARD
 };

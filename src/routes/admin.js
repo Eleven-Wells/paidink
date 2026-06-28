@@ -959,6 +959,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
         const { getReaderPoolBalance } = require('../services/ads/ReaderRewardService');
         const { getReserveStatus } = require('../services/ads/OrgReserveService');
         const { getAllPublisherBalances } = require('../services/ads/PublisherPoolService');
+        const RewardRateService = require('../services/RewardRateService');
 
         const { month } = req.query;
         const now = new Date();
@@ -1013,9 +1014,12 @@ fastify.get('/admin/analytics', async (req, reply) => {
             activeContributors: topContributors.length
         };
 
-        const readerPoolBalance = await getReaderPoolBalance();
-        const reserveStatus = await getReserveStatus();
-        const publisherBalances = await getAllPublisherBalances();
+        const [readerPoolBalance, reserveStatus, publisherBalances, currentRate] = await Promise.all([
+            getReaderPoolBalance(),
+            getReserveStatus(),
+            getAllPublisherBalances(),
+            RewardRateService.getCurrentRate()
+        ]);
 
         const recentLedgerEntries = await LedgerEntry.find({
             $or: [
@@ -1041,7 +1045,8 @@ fastify.get('/admin/analytics', async (req, reply) => {
             readerPoolBalance,
             reserveStatus,
             publisherBalances,
-            recentLedgerEntries
+            recentLedgerEntries,
+            currentRate
         });
         
         return reply.type('text/html').send(html);
