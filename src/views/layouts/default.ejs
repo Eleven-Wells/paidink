@@ -588,7 +588,7 @@
                 <%- include('../partials/header', { activeCategory: activeCategory, CATEGORY_ENUM: catEnum,
                     CATEGORY_NAMES: globalCatNames, categoryNames: activeCatNames }) %>
 
-                    <script>var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>;</script>
+                    <script>var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>;var hapticEnabled = <%= (typeof user !== 'undefined' && user && user.preferences?.hapticFeedback !== false) ? 'true' : 'false' %>;</script>
 
                     <main class="flex-1">
                         <%- body %>

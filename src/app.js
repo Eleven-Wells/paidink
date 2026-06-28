@@ -201,6 +201,9 @@ async function buildApp() {
         credentials: true
     });
 
+    const fastifySSE = require('@fastify/sse');
+    await fastify.register(fastifySSE);
+
     await fastify.register(sentryPlugin);
     await fastify.register(requestIdPlugin);
     await fastify.register(validationPlugin);

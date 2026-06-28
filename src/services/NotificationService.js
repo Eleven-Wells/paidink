@@ -1,13 +1,24 @@
 const Notification = require('../models/Notification');
+const notificationEmitter = require('./NotificationEmitter');
 
 async function createNotification(userId, type, title, message, data = {}) {
-    return await Notification.create({
+    const notification = await Notification.create({
         user: userId,
         type,
         title,
         message,
         data
     });
+    notificationEmitter.emitNotification(String(userId), {
+        _id: notification._id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        data: notification.data,
+        createdAt: notification.createdAt,
+        read: false
+    });
+    return notification;
 }
 
 async function getNotifications(userId, options = {}) {

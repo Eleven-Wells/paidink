@@ -161,6 +161,9 @@ const userSchema = new mongoose.Schema({
         bankAccountName: String,
         mpesaNumber: String
     },
+    preferences: {
+        hapticFeedback: { type: Boolean, default: true }
+    },
     referralCode: {
         type: String,
         unique: true
