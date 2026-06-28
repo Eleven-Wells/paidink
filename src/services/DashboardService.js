@@ -1,6 +1,8 @@
+const mongoose = require('mongoose');
 const LedgerEntry = require('../models/LedgerEntry');
 
 async function getDashboardSummary(userId) {
+    const uid = typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -9,51 +11,51 @@ async function getDashboardSummary(userId) {
 
     const [earningsSummary, recentEntries, pendingWithdrawals] = await Promise.all([
         LedgerEntry.aggregate([
-            { $match: { user: userId, status: 'completed' } },
+            { $match: { user: uid, status: 'completed' } },
             { $group: { _id: null, totalEarned: { $sum: '$amount' } } }
         ]),
-        LedgerEntry.find({ user: userId, status: 'completed' })
+        LedgerEntry.find({ user: uid, status: 'completed' })
             .sort({ createdAt: -1 })
             .limit(20)
             .select('type amount balanceAfter createdAt referenceModel')
             .lean(),
-        LedgerEntry.find({ user: userId, type: 'withdrawal', status: 'pending' })
+        LedgerEntry.find({ user: uid, type: 'withdrawal', status: 'pending' })
             .sort({ createdAt: -1 })
             .lean()
     ]);
 
     const [earned7dAgg, earnedPrev7dAgg, earned30dAgg, typeBreakdown] = await Promise.all([
         LedgerEntry.aggregate([
-            { $match: { user: userId, status: 'completed', createdAt: { $gte: sevenDaysAgo } } },
+            { $match: { user: uid, status: 'completed', createdAt: { $gte: sevenDaysAgo } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]),
         LedgerEntry.aggregate([
-            { $match: { user: userId, status: 'completed', createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } } },
+            { $match: { user: uid, status: 'completed', createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]),
         LedgerEntry.aggregate([
-            { $match: { user: userId, status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
+            { $match: { user: uid, status: 'completed', createdAt: { $gte: thirtyDaysAgo } } },
             { $group: { _id: null, total: { $sum: '$amount' } } }
         ]),
         LedgerEntry.aggregate([
-            { $match: { user: userId, status: 'completed' } },
+            { $match: { user: uid, status: 'completed' } },
             { $group: { _id: '$type', total: { $sum: '$amount' }, count: { $sum: 1 } } },
             { $sort: { count: -1 } }
         ])
     ]);
 
     const readRewardsAgg = await LedgerEntry.aggregate([
-        { $match: { user: userId, type: 'read_reward', status: 'completed' } },
+        { $match: { user: uid, type: 'read_reward', status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
     ]);
 
     const achievementRewardsAgg = await LedgerEntry.aggregate([
-        { $match: { user: userId, type: 'achievement', status: 'completed' } },
+        { $match: { user: uid, type: 'achievement', status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
     ]);
 
     const referralRewardsAgg = await LedgerEntry.aggregate([
-        { $match: { user: userId, type: 'referral', status: 'completed' } },
+        { $match: { user: uid, type: 'referral', status: 'completed' } },
         { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
     ]);
 
@@ -62,7 +64,7 @@ async function getDashboardSummary(userId) {
     const todayEarningsAgg = await LedgerEntry.aggregate([
         {
             $match: {
-                user: userId,
+                user: uid,
                 status: 'completed',
                 type: 'read_reward',
                 createdAt: { $gte: todayStart, $lt: todayEnd }
