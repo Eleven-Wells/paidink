@@ -235,24 +235,6 @@
             </div>
             <% } %>
 
-                <div id="rewardToast"
-                    class="post-reward-toast fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-500 pointer-events-none">
-                    <div class="flex items-center gap-3">
-                        <div class="post-reward-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="font-medium post-reward-title" id="rewardMessage">You earned ₦5!</p>
-                            <p class="text-sm post-reward-copy">Added to your wallet</p>
-                        </div>
-                    </div>
-                </div>
-
                 <section class="post-related-section">
                     <div class="max-w-7xl mx-auto px-6">
                         <div class="text-center mb-12">
@@ -724,13 +706,11 @@
             flex-shrink: 0;
         }
 
-        .post-page .post-author-name,
-        .post-page .post-reward-title {
+        .post-page .post-author-name {
             color: var(--post-heading);
         }
 
         .post-page .post-author-copy,
-        .post-page .post-reward-copy,
         .post-page .post-helper-text,
         .post-page .post-comments-status,
         .post-page .post-related-meta {
@@ -967,26 +947,6 @@
             color: var(--post-accent);
         }
 
-        .post-page .post-reward-toast {
-            z-index: 220;
-            padding: 1rem 1.1rem;
-            border-radius: 1.4rem;
-            border: 1px solid rgba(109, 10, 10, 0.1);
-            background: #ffffff;
-            box-shadow: 0 24px 80px rgba(109, 10, 10, 0.14);
-        }
-
-        .post-page .post-reward-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(22, 163, 74, 0.1);
-            color: #16a34a;
-        }
-
         .post-page .post-related-link {
             color: inherit;
             text-decoration: none;
@@ -1144,12 +1104,6 @@
                 padding: 4rem 0;
             }
 
-            .post-page .post-reward-toast {
-                right: 1rem;
-                bottom: 5.5rem;
-                max-width: calc(100vw - 2rem);
-            }
-
             .post-page .post-related-media {
                 margin: 0.75rem 0.75rem 0;
             }
@@ -1269,8 +1223,16 @@
                         body: JSON.stringify({ sessionId: readSessionId })
                     });
                     const result = await response.json();
+                    console.log('[COMPLETE] response:', JSON.stringify(result));
                     if (result.success && result.data.rewardAwarded) {
-                        showRewardToast(result.data.rewardAmount);
+                        console.log('[TOAST] Calling showToast with amount:', result.data.rewardAmount);
+                        if (typeof showToast === 'function') {
+                            setTimeout(function () {
+                                showToast('You earned \u20A6' + result.data.rewardAmount + '!', 'success');
+                            }, 100);
+                        } else {
+                            console.warn('[TOAST] showToast not available');
+                        }
                     }
                 } catch (error) {
                     console.error('Failed to complete read session:', error);
@@ -1281,18 +1243,6 @@
             document.addEventListener('visibilitychange', function () {
                 isTabVisible = !document.hidden;
             });
-
-            function showRewardToast(amount) {
-                const toast = document.getElementById('rewardToast');
-                const message = document.getElementById('rewardMessage');
-                if (toast && message) {
-                    message.textContent = `You earned ₦${amount}!`;
-                    toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-                    setTimeout(() => {
-                        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-                    }, 4000);
-                }
-            }
 
             window.addEventListener('scroll', function () {
                 const scrollTop = window.pageYOffset;
