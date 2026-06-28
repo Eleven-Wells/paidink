@@ -1223,9 +1223,15 @@
                         body: JSON.stringify({ sessionId: readSessionId })
                     });
                     const result = await response.json();
+                    console.log('[COMPLETE] response:', JSON.stringify(result));
                     if (result.success && result.data.rewardAwarded) {
+                        console.log('[TOAST] Calling showToast with amount:', result.data.rewardAmount);
                         if (typeof showToast === 'function') {
-                            showToast('You earned \u20A6' + result.data.rewardAmount + '!', 'success');
+                            setTimeout(function () {
+                                showToast('You earned \u20A6' + result.data.rewardAmount + '!', 'success');
+                            }, 100);
+                        } else {
+                            console.warn('[TOAST] showToast not available');
                         }
                     }
                 } catch (error) {
