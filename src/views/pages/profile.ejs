@@ -569,6 +569,35 @@
         .profile-info-label { color: var(--dash-muted); }
         .profile-info-value { color: var(--dash-text); }
         .profile-info-value--earned { color: var(--dash-success); }
+        .profile-toggle {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 44px;
+            height: 24px;
+            border-radius: 12px;
+            background: var(--dash-input-border, #ccc);
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s ease;
+            flex-shrink: 0;
+        }
+        .profile-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.2s ease;
+        }
+        .profile-toggle:checked {
+            background: var(--dash-accent, #6d0a0a);
+        }
+        .profile-toggle:checked::after {
+            transform: translateX(20px);
+        }
         .profile-focus-ring:focus-visible,
         .profile-submit-btn:focus-visible {
             outline: none;
@@ -779,6 +808,20 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="glass-card profile-card">
+                    <h3 style="margin:0 0 1rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;">Notifications</h3>
+                    <div class="space-y-4">
+                        <label class="flex items-center justify-between gap-4 cursor-pointer">
+                            <div>
+                                <p class="text-sm font-medium">Vibration feedback</p>
+                                <p class="profile-field-note text-xs mt-1">Vibrate on new notifications</p>
+                            </div>
+                            <input type="checkbox" id="hapticToggle" class="profile-toggle"
+                                <%= (user?.preferences?.hapticFeedback !== false) ? 'checked' : '' %>>
+                        </label>
+                    </div>
+                </div>
                 </div>
             </div>
         </div>
@@ -902,6 +945,8 @@
                 });
             }
 
+            var hapticToggle = document.getElementById('hapticToggle');
+
             form.addEventListener('submit', async function (e) {
                 e.preventDefault();
                 var formData = new FormData(form);
@@ -910,6 +955,9 @@
                     var v = formData.get(k);
                     if (v !== null && String(v).trim() !== '') payload[k] = String(v).trim();
                 });
+                if (hapticToggle) {
+                    payload.preferences = { hapticFeedback: hapticToggle.checked };
+                }
 
                 if (payload.username && (!usernameOk || payload.username !== lastChecked)) {
                     await checkUsernameAvailability(payload.username);

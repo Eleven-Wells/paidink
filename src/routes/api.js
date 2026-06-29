@@ -351,7 +351,7 @@ async function apiRoutes(fastify) {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
         try {
-            const { displayName, username, bio, phone, country } = req.body || {};
+            const { displayName, username, bio, phone, country, preferences } = req.body || {};
 
             // Basic validation
             const updates = {};
@@ -360,6 +360,12 @@ async function apiRoutes(fastify) {
             if (typeof bio === 'string') updates.bio = bio.trim().slice(0, 500) || undefined;
             if (typeof phone === 'string') updates.phone = phone.trim() || undefined;
             if (typeof country === 'string') updates.country = country.trim() || undefined;
+            if (preferences && typeof preferences === 'object') {
+                updates.preferences = {};
+                if (typeof preferences.hapticFeedback === 'boolean') {
+                    updates.preferences.hapticFeedback = preferences.hapticFeedback;
+                }
+            }
 
             // Username validation only if username field present and different from current
             if (Object.prototype.hasOwnProperty.call(req.body || {}, 'username')) {
@@ -433,7 +439,7 @@ async function apiRoutes(fastify) {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
         try {
-            const { displayName, username, bio, phone, country } = req.body || {};
+            const { displayName, username, bio, phone, country, preferences } = req.body || {};
 
             // Basic validation
             const updates = {};
@@ -442,6 +448,12 @@ async function apiRoutes(fastify) {
             if (typeof bio === 'string') updates.bio = bio.trim().slice(0, 500) || undefined;
             if (typeof phone === 'string') updates.phone = phone.trim() || undefined;
             if (typeof country === 'string') updates.country = country.trim() || undefined;
+            if (preferences && typeof preferences === 'object') {
+                updates.preferences = {};
+                if (typeof preferences.hapticFeedback === 'boolean') {
+                    updates.preferences.hapticFeedback = preferences.hapticFeedback;
+                }
+            }
 
             // Username validation only if username field present and different from current
             if (Object.prototype.hasOwnProperty.call(req.body || {}, 'username')) {
@@ -898,6 +910,35 @@ async function apiRoutes(fastify) {
             { read: true }
         );
         return reply.send({ success: true });
+    });
+
+    const notificationEmitter = require('../services/NotificationEmitter');
+
+    fastify.get('/notifications/stream', {
+        sse: true,
+        preHandler: [fastify.authenticate]
+    }, async (req, reply) => {
+        const userId = req.user.id;
+
+        await reply.sse.send({
+            event: 'connected',
+            data: { connected: true }
+        });
+
+        const handler = (notification) => {
+            reply.sse.send({
+                event: 'notification',
+                data: notification
+            }).catch(() => {
+                notificationEmitter.removeNotificationListener(userId, handler);
+            });
+        };
+
+        notificationEmitter.onNotification(userId, handler);
+
+        req.raw.on('close', () => {
+            notificationEmitter.removeNotificationListener(userId, handler);
+        });
     });
 
     fastify.get('/achievements', {

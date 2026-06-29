@@ -36,4 +36,36 @@
             }
         });
     });
+
+    if (typeof isLoggedIn !== 'undefined' && isLoggedIn) {
+        (function() {
+            var es = new EventSource('/api/notifications/stream');
+            var retryCount = 0;
+
+            es.addEventListener('notification', function(e) {
+                try {
+                    var data = JSON.parse(e.data);
+                    if (data.title && data.message && typeof showToast === 'function') {
+                        showToast(data.message, 'info');
+                    }
+                    if (typeof hapticEnabled !== 'undefined' && hapticEnabled && navigator.vibrate) {
+                        navigator.vibrate(40);
+                    }
+                } catch (err) {
+                    console.error('SSE notification parse error:', err);
+                }
+            });
+
+            es.addEventListener('connected', function() {
+                retryCount = 0;
+            });
+
+            es.onerror = function() {
+                retryCount++;
+                if (retryCount > 5) {
+                    es.close();
+                }
+            };
+        })();
+    }
 </script>
