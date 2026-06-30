@@ -59,6 +59,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { loadConfig, getAllowedOrigins, CATEGORY_ENUM, CATEGORY_NAMES } = require('./config');
+const { initLogto } = require('./services/LogtoService');
 const { assetUrl } = require('./config/assets');
 const errorHandlerPlugin = require('./plugins/error-handler');
 const sentryPlugin = require('./plugins/sentry');
@@ -73,6 +74,7 @@ const authPlugin = require('./plugins/auth');
 
 async function buildApp() {
     loadConfig();
+    await initLogto();
 
     // Register static assets plugin only if reply.sendFile isn't already decorated.
     // This avoids "The decorator 'sendFile' has already been added!" when buildApp
