@@ -42,13 +42,22 @@ Fastify Server
 }
 ```
 
-- Linked from `<head>` in `default.ejs`: `<link rel="manifest" href="/manifest.json">`
+- Linked from `<head>` in `default.ejs`: `<link rel="manifest" href="/public/manifest.json">` (matches `@fastify/static` prefix)
 - Icons: generate 192×192 and 512×512 PNGs from the NOOK logo
 - `theme_color: #6d0a0a` matches existing meta tag
 
 ## 2. Service Worker
 
-**File:** `public/sw.js`
+**File:** `public/sw.js` (served at `/sw.js` via custom route)
+
+SW must be served from the root origin for correct scope. In `app.js`:
+
+```js
+fastify.get('/sw.js', (req, reply) => {
+  reply.header('Service-Worker-Allowed', '/');
+  return reply.sendFile('sw.js');
+});
+```
 
 Uses `workbox-sw` (loaded from CDN) with these caching strategies:
 
@@ -178,10 +187,24 @@ try {
 | `src/services/PushService.js` | Create |
 | `src/routes/push.js` | Create |
 | `src/models/PushSubscription.js` | Create |
-| `src/views/layouts/default.ejs` | Add manifest link + SW registration + push permission flow |
-| `src/app.js` | Register push routes |
+| `src/views/layouts/default.ejs` | Add manifest link (`/public/manifest.json`) + SW registration + update banner + push permission flow |
+| `src/app.js` | Register `GET /sw.js` (with `Service-Worker-Allowed` header) + push routes (`/api/push`) |
 
-## 6. Open Questions / Future
+## 6. Implementation Notes
+
+### app.js changes
+
+- Register `GET /sw.js` route (after static plugin — uses `reply.sendFile`)
+- Register push routes at prefix `/api/push`
+
+### default.ejs changes
+
+- Add `<link rel="manifest" href="/public/manifest.json">` to `<head>`
+- Add service worker registration script (deferred, after DOM ready)
+- Add push notification permission + subscription logic (only for logged-in users)
+- Add `controllerchange` listener for update banner
+
+## 7. Open Questions / Future
 
 - **Update banner**: Implement a UI component in the next iteration for the "Update available — refresh" prompt
 - **Followed-topic notifications**: Topic-following model may need expansion to support per-user topic subscriptions
