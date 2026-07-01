@@ -101,13 +101,13 @@ self.addEventListener('message', (event) => {
             self.skipWaiting();
             break;
         case 'SAVE_ARTICLE':
-            handleSaveArticle(event);
+            event.waitUntil(handleSaveArticle(event));
             break;
         case 'GET_SAVED_ARTICLES':
-            handleGetSavedArticles(event);
+            event.waitUntil(handleGetSavedArticles(event));
             break;
         case 'DELETE_SAVED_ARTICLE':
-            handleDeleteSavedArticle(event);
+            event.waitUntil(handleDeleteSavedArticle(event));
             break;
     }
 });

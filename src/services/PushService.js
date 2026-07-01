@@ -45,6 +45,8 @@ async function sendNotification(userId, title, body, url) {
         throw new Error('Invalid userId');
     }
 
+    await ensureVapidKeys();
+
     const subscriptions = await PushSubscription.find({ userId });
 
     if (!subscriptions.length) return;

@@ -11,6 +11,23 @@ async function subscribeRoutes(fastify, opts) {
             return reply.status(400).send({ error: 'Missing subscription fields' });
         }
 
+        let endpointUrl;
+        try {
+            endpointUrl = new URL(endpoint);
+            if (endpointUrl.protocol !== 'https:') {
+                return reply.status(400).send({ error: 'Endpoint must be HTTPS' });
+            }
+        } catch {
+            return reply.status(400).send({ error: 'Endpoint must be a valid URL' });
+        }
+
+        try {
+            atob(keys.p256dh);
+            atob(keys.auth);
+        } catch {
+            return reply.status(400).send({ error: 'Subscription keys must be valid base64' });
+        }
+
         const existing = await PushSubscription.findOne({ endpoint });
         if (existing) {
             if (existing.userId.toString() !== request.user._id.toString()) {
