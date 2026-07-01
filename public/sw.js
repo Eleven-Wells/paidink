@@ -158,8 +158,11 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            const targetPath = new URL(targetUrl, self.location.origin).pathname.replace(/\/+$/, '');
+
             for (const client of windowClients) {
-                if (client.url === targetUrl && 'focus' in client) {
+                const clientPath = new URL(client.url).pathname.replace(/\/+$/, '');
+                if (clientPath === targetPath && 'focus' in client) {
                     return client.focus();
                 }
             }
