@@ -60,6 +60,7 @@ dotenv.config();
 
 const { loadConfig, getAllowedOrigins, CATEGORY_ENUM, CATEGORY_NAMES } = require('./config');
 const { initLogto } = require('./services/LogtoService');
+const { ensureVapidKeys } = require('./services/PushService');
 const { assetUrl } = require('./config/assets');
 const errorHandlerPlugin = require('./plugins/error-handler');
 const sentryPlugin = require('./plugins/sentry');
@@ -137,7 +138,7 @@ async function buildApp() {
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com'],
+                scriptSrc: ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'https://storage.googleapis.com'],
                 scriptSrcAttr: ["'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.jsdelivr.net', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com'],
                 imgSrc: ["'self'", 'data:', 'images.unsplash.com', 'via.placeholder.com'],
@@ -227,6 +228,13 @@ async function buildApp() {
         }
     });
 
+    fastify.get('/sw.js', (req, reply) => {
+        reply.header('Service-Worker-Allowed', '/');
+        reply.header('Cache-Control', 'no-cache');
+        reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.googleapis.com; connect-src 'self' https: http:; worker-src 'self' blob:");
+        return reply.sendFile('sw.js');
+    });
+
     fastify.register(require('./routes/pages'));
     fastify.register(require('./routes/api'), { prefix: '/api' });
     fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
@@ -234,8 +242,13 @@ async function buildApp() {
     fastify.register(require('./routes/admin'));
     fastify.register(require('./routes/recommendations'));
     fastify.register(require('./routes/webhook'));
+    fastify.register(require('./routes/push'), { prefix: '/api/push' });
 
     await fastify.after();
+
+    await ensureVapidKeys().catch((err) => {
+        fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
+    });
 }
 
 fastify.buildApp = buildApp;

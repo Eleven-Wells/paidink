@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const notificationEmitter = require('./NotificationEmitter');
+const PushService = require('./PushService');
 
 async function createNotification(userId, type, title, message, data = {}) {
     const notification = await Notification.create({
@@ -17,6 +18,17 @@ async function createNotification(userId, type, title, message, data = {}) {
         data: notification.data,
         createdAt: notification.createdAt,
         read: false
+    });
+    setImmediate(async () => {
+        try {
+            const results = await PushService.sendNotification(userId, title, message, data?.url || '/');
+            const failed = results.filter((r) => r.status === 'failed');
+            if (failed.length) {
+                console.error('Push notification partial failure:', failed.map((r) => ({ endpoint: r.endpoint.slice(0, 30) + '...', error: r.error })));
+            }
+        } catch (err) {
+            console.error('Push notification failed:', err.message);
+        }
     });
     return notification;
 }
