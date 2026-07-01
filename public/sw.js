@@ -76,7 +76,17 @@ const SENSITIVE_API_PATHS = ['/api/notifications', '/api/wallet', '/api/dashboar
 
 workbox.routing.registerRoute(
     ({ url }) => SENSITIVE_API_PATHS.some((p) => url.pathname.startsWith(p)),
-    new workbox.strategies.NetworkOnly()
+    new workbox.strategies.NetworkFirst({
+        cacheName: CACHE_NAMES.api + '-auth',
+        networkTimeoutSeconds: 3,
+        plugins: [
+            new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [200] }),
+            new workbox.expiration.ExpirationPlugin({
+                maxEntries: 25,
+                maxAgeSeconds: 60
+            })
+        ]
+    })
 );
 
 workbox.routing.registerRoute(
