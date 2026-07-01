@@ -72,8 +72,15 @@ workbox.routing.registerRoute(
     })
 );
 
+const SENSITIVE_API_PATHS = ['/api/notifications', '/api/wallet', '/api/dashboard', '/api/admin'];
+
 workbox.routing.registerRoute(
-    ({ url }) => url.pathname.startsWith('/api/'),
+    ({ url }) => SENSITIVE_API_PATHS.some((p) => url.pathname.startsWith(p)),
+    new workbox.strategies.NetworkOnly()
+);
+
+workbox.routing.registerRoute(
+    ({ url }) => url.pathname.startsWith('/api/') && !SENSITIVE_API_PATHS.some((p) => url.pathname.startsWith(p)),
     new workbox.strategies.NetworkFirst({
         cacheName: CACHE_NAMES.api,
         plugins: [

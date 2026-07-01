@@ -69,6 +69,7 @@ async function sendNotification(userId, title, body, url) {
                     } catch (deleteErr) {
                         console.error('Failed to delete expired push subscription:', deleteErr.message);
                     }
+                    return 'removed';
                 }
                 throw err;
             }
@@ -77,7 +78,7 @@ async function sendNotification(userId, title, body, url) {
 
     return results.map((r, i) => ({
         endpoint: subscriptions[i].endpoint,
-        status: r.status === 'fulfilled' ? 'sent' : 'failed',
+        status: r.status === 'fulfilled' ? r.value : 'failed',
         error: r.status === 'rejected' ? (r.reason?.message || 'Unknown error') : null
     }));
 }
