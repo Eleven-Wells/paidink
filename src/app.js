@@ -227,6 +227,12 @@ async function buildApp() {
         }
     });
 
+    fastify.get('/sw.js', (req, reply) => {
+        reply.header('Service-Worker-Allowed', '/');
+        reply.header('Cache-Control', 'no-cache');
+        return reply.sendFile('sw.js');
+    });
+
     fastify.register(require('./routes/pages'));
     fastify.register(require('./routes/api'), { prefix: '/api' });
     fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
@@ -234,6 +240,7 @@ async function buildApp() {
     fastify.register(require('./routes/admin'));
     fastify.register(require('./routes/recommendations'));
     fastify.register(require('./routes/webhook'));
+    fastify.register(require('./routes/push'), { prefix: '/api/push' });
 
     await fastify.after();
 }
