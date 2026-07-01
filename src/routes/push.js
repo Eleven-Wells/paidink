@@ -13,15 +13,15 @@ async function subscribeRoutes(fastify, opts) {
 
         const existing = await PushSubscription.findOne({ endpoint });
         if (existing) {
-            if (existing.userId.toString() !== request.user.userId) {
-                existing.userId = request.user.userId;
+            if (existing.userId.toString() !== request.user._id.toString()) {
+                existing.userId = request.user._id;
                 await existing.save();
             }
             return reply.send({ status: 'ok' });
         }
 
         await PushSubscription.create({
-            userId: request.user.userId,
+            userId: request.user._id,
             endpoint,
             keys: { p256dh: keys.p256dh, auth: keys.auth },
             userAgent: userAgent || ''
@@ -39,7 +39,7 @@ async function subscribeRoutes(fastify, opts) {
 
         await PushSubscription.deleteOne({
             endpoint,
-            userId: request.user.userId
+            userId: request.user._id
         });
 
         return reply.send({ status: 'ok' });

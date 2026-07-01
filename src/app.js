@@ -137,7 +137,7 @@ async function buildApp() {
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com'],
+                scriptSrc: ["'self'", "'unsafe-inline'", 'cdn.jsdelivr.net', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'https://storage.googleapis.com'],
                 scriptSrcAttr: ["'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.jsdelivr.net', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com'],
                 imgSrc: ["'self'", 'data:', 'images.unsplash.com', 'via.placeholder.com'],
@@ -230,6 +230,7 @@ async function buildApp() {
     fastify.get('/sw.js', (req, reply) => {
         reply.header('Service-Worker-Allowed', '/');
         reply.header('Cache-Control', 'no-cache');
+        reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.googleapis.com; connect-src 'self' https: http:; worker-src 'self' blob:");
         return reply.sendFile('sw.js');
     });
 

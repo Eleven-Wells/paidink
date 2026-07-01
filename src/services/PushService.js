@@ -61,9 +61,14 @@ async function sendNotification(userId, title, body, url) {
                         auth: sub.keys.auth
                     }
                 }, payload);
+                return 'sent';
             } catch (err) {
                 if (err.statusCode === 410 || err.statusCode === 404) {
-                    await PushSubscription.deleteOne({ _id: sub._id });
+                    try {
+                        await PushSubscription.deleteOne({ _id: sub._id });
+                    } catch (deleteErr) {
+                        console.error('Failed to delete expired push subscription:', deleteErr.message);
+                    }
                 }
                 throw err;
             }

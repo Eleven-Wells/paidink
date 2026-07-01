@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const notificationEmitter = require('./NotificationEmitter');
+const PushService = require('./PushService');
 
 async function createNotification(userId, type, title, message, data = {}) {
     const notification = await Notification.create({
@@ -17,6 +18,12 @@ async function createNotification(userId, type, title, message, data = {}) {
         data: notification.data,
         createdAt: notification.createdAt,
         read: false
+    });
+    // Fire push notification asynchronously — never block the HTTP response
+    setImmediate(() => {
+        PushService.sendNotification(userId, title, message, data?.url || '/').catch((err) => {
+            console.error('Push notification failed:', err.message);
+        });
     });
     return notification;
 }

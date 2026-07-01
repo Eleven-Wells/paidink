@@ -19,13 +19,13 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAMES.static).then((cache) => {
             return cache.addAll([
-                '/offline.html',
+                '/public/offline.html',
                 '/public/manifest.json',
                 '/public/icons/icon-192.png',
-                '/public/icons/icon-512.png',
-                '/favicon.svg',
-                '/favicon.ico'
+                '/public/icons/icon-512.png'
             ]);
+        }).catch((err) => {
+            console.error('SW precache failed:', err);
         })
     );
 });
@@ -50,7 +50,8 @@ workbox.routing.registerRoute(
             new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [200] }),
             {
                 handlerDidError: async () => {
-                    return caches.match('/offline.html');
+                    const fallback = await caches.match('/public/offline.html');
+                    return fallback || new Response('Offline', { status: 503 });
                 }
             }
         ]

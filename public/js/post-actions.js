@@ -100,6 +100,15 @@
       document.dispatchEvent(new CustomEvent('nook:post-save', {
         detail: { postId: postId, saved: result.saved }
       }));
+      // Cache article for offline reading via SW
+      if (result.saved && navigator.serviceWorker && navigator.serviceWorker.controller) {
+        var slug = btn.getAttribute('data-slug');
+        var articleUrl = slug ? window.location.origin + '/post/' + slug : window.location.href;
+        navigator.serviceWorker.controller.postMessage({
+          action: 'SAVE_ARTICLE',
+          url: articleUrl
+        });
+      }
     }).catch(function(err) { console.error('Save failed:', err); });
   }
 
