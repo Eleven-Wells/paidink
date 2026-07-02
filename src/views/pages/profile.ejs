@@ -11,6 +11,10 @@
     <link rel="canonical" href="<%= canonical || '' %>">
     <meta name="theme-color" content="#6d0a0a">
     <link rel="manifest" href="/manifest.json">
+    <link rel="prefetch" href="/">
+    <link rel="prefetch" href="/browse">
+    <link rel="prefetch" href="/activity">
+    <link rel="prefetch" href="/dashboard">
     <meta property="og:title" content="<%= title || 'Profile | NOOK' %>">
     <meta property="og:description"
         content="<%= description || 'Manage your NOOK profile, saved posts, and connections.' %>">
@@ -1123,7 +1127,7 @@
                 });
             </script>
 
-            <script src="/public/js/post-actions.js"></script>
+            <script defer src="/public/js/post-actions.js"></script>
             <%- include('../partials/dashboard-scripts') %>
                 <%- include('../partials/mobile-bottom-nav', { currentPage: 'profile' , theme: 'light' , unreadCount:
                     unreadCount }) %>

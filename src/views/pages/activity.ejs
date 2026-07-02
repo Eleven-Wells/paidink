@@ -12,6 +12,10 @@
     <link rel="canonical" href="<%= typeof canonical !== 'undefined' && canonical ? canonical : '' %>">
     <meta name="theme-color" content="#6d0a0a">
     <link rel="manifest" href="/manifest.json">
+    <link rel="prefetch" href="/">
+    <link rel="prefetch" href="/browse">
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/profile">
     <meta property="og:title" content="<%= title || 'Activity | NOOK' %>">
     <meta property="og:description"
         content="<%= description || 'Stay updated with your notifications, interactions, and activity on NOOK.' %>">
@@ -448,7 +452,7 @@
                                     <a href="<%= activity.link || '#' %>"
                                         class="activity-item <%= activity.read ? '' : 'activity-item-unread' %>">
                                         <% if (activity.actor && activity.actor.avatar) { %>
-                                            <img src="<%= activity.actor.avatar %>"
+                                            <img loading="lazy" decoding="async" src="<%= activity.actor.avatar %>"
                                                 alt="<%= activity.actor.displayName %>" class="activity-item-avatar">
                                             <% } else { %>
                                                 <div class="activity-item-avatar"
