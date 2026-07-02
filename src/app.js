@@ -75,7 +75,11 @@ const authPlugin = require('./plugins/auth');
 
 async function buildApp() {
     loadConfig();
-    await initLogto();
+    try {
+        await initLogto();
+    } catch (err) {
+        fastify.log.warn({ component: 'auth' }, 'Logto initialization failed: ' + err.message);
+    }
 
     // Register static assets plugin only if reply.sendFile isn't already decorated.
     // This avoids "The decorator 'sendFile' has already been added!" when buildApp
@@ -233,6 +237,11 @@ async function buildApp() {
         reply.header('Cache-Control', 'no-cache');
         reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.googleapis.com; connect-src 'self' https: http:; worker-src 'self' blob:");
         return reply.sendFile('sw.js');
+    });
+
+    fastify.get('/manifest.json', (req, reply) => {
+        reply.header('Cache-Control', 'public, max-age=3600');
+        return reply.sendFile('manifest.json');
     });
 
     fastify.register(require('./routes/pages'));
