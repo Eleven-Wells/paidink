@@ -9,6 +9,11 @@
     </title>
     <meta name="description" content="<%= description || 'Your Nook home feed.' %>">
     <meta name="theme-color" content="#6d0a0a">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="prefetch" href="/browse">
+    <link rel="prefetch" href="/activity">
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/profile">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -536,9 +541,9 @@
 
         <%- include('../partials/mobile-bottom-nav', { currentPage: 'home' , unreadCount: unreadCount }) %>
             <%- include('../partials/nook-alert') %>
-                <script src="/public/js/nook-alert.js"></script>
-                <script src="/public/js/post-actions.js"></script>
-                <script src="/public/js/search.js"></script>
+                <script defer src="/public/js/nook-alert.js"></script>
+                <script defer src="/public/js/post-actions.js"></script>
+                <script defer src="/public/js/search.js"></script>
                 <script>
                     (function () {
                         var fab = document.getElementById('composerFab');

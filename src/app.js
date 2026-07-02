@@ -60,7 +60,7 @@ dotenv.config();
 
 const { loadConfig, getAllowedOrigins, CATEGORY_ENUM, CATEGORY_NAMES } = require('./config');
 const { initLogto } = require('./services/LogtoService');
-const { ensureVapidKeys } = require('./services/PushService');
+
 const { assetUrl } = require('./config/assets');
 const errorHandlerPlugin = require('./plugins/error-handler');
 const sentryPlugin = require('./plugins/sentry');
@@ -75,7 +75,11 @@ const authPlugin = require('./plugins/auth');
 
 async function buildApp() {
     loadConfig();
-    await initLogto();
+    try {
+        await initLogto();
+    } catch (err) {
+        fastify.log.warn({ component: 'auth' }, 'Logto initialization failed: ' + err.message);
+    }
 
     // Register static assets plugin only if reply.sendFile isn't already decorated.
     // This avoids "The decorator 'sendFile' has already been added!" when buildApp
@@ -104,6 +108,12 @@ async function buildApp() {
                     res.setHeader('X-Content-Type-Options', 'nosniff');
                 }
             });
+
+            fastify.get('/favicon.svg', (req, reply) => reply.sendFile('favicon.svg'));
+            fastify.get('/favicon.ico', (req, reply) => reply.sendFile('favicon.ico'));
+            fastify.get('/manifest.json', (req, reply) => reply.sendFile('manifest.json'));
+            fastify.get('/icons/:icon', (req, reply) => reply.sendFile(path.join('icons', req.params.icon)));
+            fastify.get('/images/:image', (req, reply) => reply.sendFile(path.join('images', req.params.image)));
 
         } catch (err) {
             // If another module already decorated reply.sendFile, skip and warn.
@@ -235,6 +245,12 @@ async function buildApp() {
         return reply.sendFile('sw.js');
     });
 
+    // Use the static asset route for manifest files instead of a custom route.
+    // fastify.get('/manifest.json', (req, reply) => {
+    //     reply.header('Cache-Control', 'public, max-age=3600');
+    //     return reply.sendFile('manifest.json');
+    // });
+
     fastify.register(require('./routes/pages'));
     fastify.register(require('./routes/api'), { prefix: '/api' });
     fastify.register(require('./routes/auth'), { prefix: '/api/auth' });
@@ -245,10 +261,6 @@ async function buildApp() {
     fastify.register(require('./routes/push'), { prefix: '/api/push' });
 
     await fastify.after();
-
-    await ensureVapidKeys().catch((err) => {
-        fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
-    });
 }
 
 fastify.buildApp = buildApp;

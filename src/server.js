@@ -1,6 +1,7 @@
 const { fastify, buildApp } = require('./app');
 const { disconnectRedis, getRedisConnection } = require('./config/redis');
 const { isFeatureEnabled } = require('./config/features');
+const { ensureVapidKeys } = require('./services/PushService');
 const cronPlugin = require('./plugins/cron-plugin');
 
 const DEFAULT_PORT = process.env.PORT || 5050;
@@ -103,6 +104,12 @@ async function start() {
         await initializeRedis();
 
         await initializeDatabase();
+
+        if (dbConnected) {
+            await ensureVapidKeys().catch((err) => {
+                fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
+            });
+        }
 
         if (!isFeatureEnabled('content', 'aiGeneration')) {
             fastify.log.info({ component: 'worker' }, 'AI generation disabled, worker not started');

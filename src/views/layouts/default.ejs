@@ -36,7 +36,10 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="alternate icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/public/images/apple-touch-icon.png">
-    <link rel="manifest" href="/public/manifest.json">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="prefetch" href="/browse">
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/register">
     <link rel="alternate" hreflang="en" href="<%= canonical || '' %>">
     <link rel="alternate" hreflang="x-default" href="<%= canonical || '' %>">
 
@@ -589,7 +592,7 @@
                 <%- include('../partials/header', { activeCategory: activeCategory, CATEGORY_ENUM: catEnum,
                     CATEGORY_NAMES: globalCatNames, categoryNames: activeCatNames }) %>
 
-                    <script>var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>;var hapticEnabled = <%= (typeof user !== 'undefined' && user && user.preferences?.hapticFeedback !== false) ? 'true' : 'false' %>;</script>
+                    <script>var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>; var hapticEnabled = <%= (typeof user !== 'undefined' && user && user.preferences?.hapticFeedback !== false) ? 'true' : 'false' %>;</script>
 
                     <main class="flex-1">
                         <%- body %>
@@ -645,116 +648,116 @@
                                                     });
                                                 }, observerOptions);
 
-                                            document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-                                        });
-                                    </script>
+                                                document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+                                            });
+                                        </script>
 
-                                    <script>
-                                        if ('serviceWorker' in navigator) {
-                                            (async function () {
-                                                try {
-                                                    const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
-
-                                                    function showUpdateBanner(reg) {
-                                                        var existing = document.getElementById('pwa-update-banner');
-                                                        if (existing) return;
-
-                                                        var banner = document.createElement('div');
-                                                        banner.id = 'pwa-update-banner';
-                                                        banner.style.cssText =
-                                                            'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;color:#fff;padding:14px 24px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:flex;align-items:center;gap:16px;font-family:Inter,sans-serif;font-size:0.85rem;border:1px solid rgba(255,255,255,0.08);';
-
-                                                        var msg = document.createElement('span');
-                                                        msg.textContent = 'A new version is available.';
-                                                        banner.appendChild(msg);
-
-                                                        var btn = document.createElement('button');
-                                                        btn.textContent = 'Refresh';
-                                                        btn.style.cssText =
-                                                            'background:#fff;color:#000;border:none;padding:8px 20px;border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;';
-                                                        btn.addEventListener('click', function () {
-                                                            if (reg.waiting) {
-                                                                reg.waiting.postMessage({ action: 'SKIP_WAITING' });
-                                                            }
-                                                        });
-                                                        banner.appendChild(btn);
-                                                        document.body.appendChild(banner);
-                                                    }
-
-                                                    if (registration.waiting) {
-                                                        showUpdateBanner(registration);
-                                                    }
-
-                                                    registration.addEventListener('updatefound', function () {
-                                                        var newWorker = registration.installing;
-                                                        newWorker.addEventListener('statechange', function () {
-                                                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                                                showUpdateBanner(registration);
-                                                            }
-                                                        });
-                                                    });
-
-                                                    navigator.serviceWorker.addEventListener('controllerchange', function () {
-                                                        window.location.reload();
-                                                    });
-                                                } catch (e) {
-                                                    console.warn('SW registration failed:', e);
-                                                }
-                                            })();
-                                        }
-
-                                        if ('Notification' in window && 'PushManager' in window && typeof isLoggedIn !== 'undefined' && isLoggedIn) {
-                                            (async function () {
-                                                if (Notification.permission === 'granted') {
+                                        <script>
+                                            if ('serviceWorker' in navigator) {
+                                                (async function () {
                                                     try {
-                                                        var reg = await navigator.serviceWorker.ready;
-                                                        var sub = await reg.pushManager.getSubscription();
-                                                        if (!sub) {
-                                                            var keyRes = await fetch('/api/push/vapid-public-key');
-                                                            var keyData = await keyRes.json();
-                                                            var subData = await reg.pushManager.subscribe({
-                                                                userVisibleOnly: true,
-                                                                applicationServerKey: urlB64ToUint8Array(keyData.publicKey)
+                                                        const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+
+                                                        function showUpdateBanner(reg) {
+                                                            var existing = document.getElementById('pwa-update-banner');
+                                                            if (existing) return;
+
+                                                            var banner = document.createElement('div');
+                                                            banner.id = 'pwa-update-banner';
+                                                            banner.style.cssText =
+                                                                'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;color:#fff;padding:14px 24px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:flex;align-items:center;gap:16px;font-family:Inter,sans-serif;font-size:0.85rem;border:1px solid rgba(255,255,255,0.08);';
+
+                                                            var msg = document.createElement('span');
+                                                            msg.textContent = 'A new version is available.';
+                                                            banner.appendChild(msg);
+
+                                                            var btn = document.createElement('button');
+                                                            btn.textContent = 'Refresh';
+                                                            btn.style.cssText =
+                                                                'background:#fff;color:#000;border:none;padding:8px 20px;border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;';
+                                                            btn.addEventListener('click', function () {
+                                                                if (reg.waiting) {
+                                                                    reg.waiting.postMessage({ action: 'SKIP_WAITING' });
+                                                                }
                                                             });
-                                                            await fetch('/api/push/subscribe', {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify({
-                                                                    endpoint: subData.endpoint,
-                                                                    keys: { p256dh: arrayBufferToBase64(subData.getKey('p256dh')), auth: arrayBufferToBase64(subData.getKey('auth')) },
-                                                                    userAgent: navigator.userAgent
-                                                                })
-                                                            });
+                                                            banner.appendChild(btn);
+                                                            document.body.appendChild(banner);
                                                         }
+
+                                                        if (registration.waiting) {
+                                                            showUpdateBanner(registration);
+                                                        }
+
+                                                        registration.addEventListener('updatefound', function () {
+                                                            var newWorker = registration.installing;
+                                                            newWorker.addEventListener('statechange', function () {
+                                                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                                                    showUpdateBanner(registration);
+                                                                }
+                                                            });
+                                                        });
+
+                                                        navigator.serviceWorker.addEventListener('controllerchange', function () {
+                                                            window.location.reload();
+                                                        });
                                                     } catch (e) {
-                                                        console.warn('Push subscription failed:', e);
+                                                        console.warn('SW registration failed:', e);
                                                     }
-                                                } else if (Notification.permission !== 'denied') {
-                                                    await Notification.requestPermission();
+                                                })();
+                                            }
+
+                                            if ('Notification' in window && 'PushManager' in window && typeof isLoggedIn !== 'undefined' && isLoggedIn) {
+                                                (async function () {
+                                                    if (Notification.permission === 'granted') {
+                                                        try {
+                                                            var reg = await navigator.serviceWorker.ready;
+                                                            var sub = await reg.pushManager.getSubscription();
+                                                            if (!sub) {
+                                                                var keyRes = await fetch('/api/push/vapid-public-key');
+                                                                var keyData = await keyRes.json();
+                                                                var subData = await reg.pushManager.subscribe({
+                                                                    userVisibleOnly: true,
+                                                                    applicationServerKey: urlB64ToUint8Array(keyData.publicKey)
+                                                                });
+                                                                await fetch('/api/push/subscribe', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({
+                                                                        endpoint: subData.endpoint,
+                                                                        keys: { p256dh: arrayBufferToBase64(subData.getKey('p256dh')), auth: arrayBufferToBase64(subData.getKey('auth')) },
+                                                                        userAgent: navigator.userAgent
+                                                                    })
+                                                                });
+                                                            }
+                                                        } catch (e) {
+                                                            console.warn('Push subscription failed:', e);
+                                                        }
+                                                    } else if (Notification.permission !== 'denied') {
+                                                        await Notification.requestPermission();
+                                                    }
+                                                })();
+                                            }
+
+                                            function urlB64ToUint8Array(base64String) {
+                                                var padding = '='.repeat((4 - base64String.length % 4) % 4);
+                                                var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                                                var rawData = window.atob(base64);
+                                                var output = new Uint8Array(rawData.length);
+                                                for (var i = 0; i < rawData.length; i++) {
+                                                    output[i] = rawData.charCodeAt(i);
                                                 }
-                                            })();
-                                        }
-
-                                        function urlB64ToUint8Array(base64String) {
-                                            var padding = '='.repeat((4 - base64String.length % 4) % 4);
-                                            var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-                                            var rawData = window.atob(base64);
-                                            var output = new Uint8Array(rawData.length);
-                                            for (var i = 0; i < rawData.length; i++) {
-                                                output[i] = rawData.charCodeAt(i);
+                                                return output;
                                             }
-                                            return output;
-                                        }
 
-                                        function arrayBufferToBase64(buffer) {
-                                            var binary = '';
-                                            var bytes = new Uint8Array(buffer);
-                                            for (var i = 0; i < bytes.byteLength; i++) {
-                                                binary += String.fromCharCode(bytes[i]);
+                                            function arrayBufferToBase64(buffer) {
+                                                var binary = '';
+                                                var bytes = new Uint8Array(buffer);
+                                                for (var i = 0; i < bytes.byteLength; i++) {
+                                                    binary += String.fromCharCode(bytes[i]);
+                                                }
+                                                return btoa(binary);
                                             }
-                                            return btoa(binary);
-                                        }
-                                    </script>
+                                        </script>
 </body>
 
 </html>
