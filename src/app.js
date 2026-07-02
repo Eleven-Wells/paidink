@@ -110,7 +110,7 @@ async function buildApp() {
             });
 
             fastify.get('/favicon.svg', (req, reply) => reply.sendFile('favicon.svg'));
-            fastify.get('/favicon.ico', (req, reply) => reply.sendFile('favicon.svg'));
+            fastify.get('/favicon.ico', (req, reply) => reply.sendFile('favicon.ico'));
             fastify.get('/manifest.json', (req, reply) => reply.sendFile('manifest.json'));
 
         } catch (err) {
