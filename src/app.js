@@ -112,6 +112,8 @@ async function buildApp() {
             fastify.get('/favicon.svg', (req, reply) => reply.sendFile('favicon.svg'));
             fastify.get('/favicon.ico', (req, reply) => reply.sendFile('favicon.ico'));
             fastify.get('/manifest.json', (req, reply) => reply.sendFile('manifest.json'));
+            fastify.get('/icons/:icon', (req, reply) => reply.sendFile(path.join('icons', req.params.icon)));
+            fastify.get('/images/:image', (req, reply) => reply.sendFile(path.join('images', req.params.image)));
 
         } catch (err) {
             // If another module already decorated reply.sendFile, skip and warn.

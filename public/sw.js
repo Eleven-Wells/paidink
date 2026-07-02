@@ -21,8 +21,8 @@ self.addEventListener('install', (event) => {
             return cache.addAll([
                 '/public/offline.html',
                 '/manifest.json',
-                '/public/icons/icon-192.png',
-                '/public/icons/icon-512.png'
+                '/icons/icon-192.png',
+                '/icons/icon-512.png'
             ]);
         }).catch((err) => {
             console.error('SW precache failed:', err);
@@ -154,8 +154,8 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
         self.registration.showNotification(data.title, {
             body: data.body || '',
-            icon: '/public/icons/icon-192.png',
-            badge: '/public/icons/icon-192.png',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
             data: { url: data.url || '/' },
             vibrate: [200, 100, 200]
         })
