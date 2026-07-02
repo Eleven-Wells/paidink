@@ -20,7 +20,7 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAMES.static).then((cache) => {
             return cache.addAll([
                 '/public/offline.html',
-                '/public/manifest.json',
+                '/manifest.json',
                 '/public/icons/icon-192.png',
                 '/public/icons/icon-512.png'
             ]);

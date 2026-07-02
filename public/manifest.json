@@ -3,12 +3,21 @@
   "short_name": "NOOK",
   "description": "A community reading and writing platform for discovering and sharing stories across all topics",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#6d0a0a",
   "orientation": "portrait",
   "icons": [
-    { "src": "/public/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/public/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/public/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/public/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

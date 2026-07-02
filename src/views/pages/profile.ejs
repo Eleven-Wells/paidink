@@ -4,994 +4,1129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title || 'Profile | NOOK' %></title>
+    <title>
+        <%= title || 'Profile | NOOK' %>
+    </title>
     <meta name="description" content="<%= description || 'Manage your NOOK profile, saved posts, and connections.' %>">
     <link rel="canonical" href="<%= canonical || '' %>">
     <meta name="theme-color" content="#6d0a0a">
+    <link rel="manifest" href="/public/manifest.json">
     <meta property="og:title" content="<%= title || 'Profile | NOOK' %>">
-    <meta property="og:description" content="<%= description || 'Manage your NOOK profile, saved posts, and connections.' %>">
-    <meta property="og:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:description"
+        content="<%= description || 'Manage your NOOK profile, saved posts, and connections.' %>">
+    <meta property="og:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<%= title || 'Profile | NOOK' %>">
-    <meta name="twitter:description" content="<%= description || 'Manage your NOOK profile, saved posts, and connections.' %>">
-    <meta name="twitter:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta name="twitter:description"
+        content="<%= description || 'Manage your NOOK profile, saved posts, and connections.' %>">
+    <meta name="twitter:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <%- include('../partials/dashboard-css') %>
-    <style>
-        .profile-sidebar-column {
-            position: fixed;
-            top: var(--util-bar-height, 48px);
-            left: 0;
-            width: clamp(220px, 22vw, 300px);
-            height: calc(100vh - var(--util-bar-height, 48px));
-            overflow-y: auto;
-            background: #fff;
-            z-index: 40;
-        }
-
-        .profile-page {
-            margin-left: clamp(220px, 22vw, 300px);
-            width: calc(100% - clamp(220px, 22vw, 300px));
-            color: var(--dash-text);
-        }
-
-        .profile-shell {
-            width: 100%;
-            max-width: none;
-            margin: 0;
-            padding: 0 clamp(1rem, 2vw, 1.75rem) 2.5rem;
-        }
-
-        .profile-hero {
-            position: relative;
-            overflow: hidden;
-            background:
-                radial-gradient(circle at top right, rgba(109, 10, 10, 0.14), transparent 34%),
-                linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 246, 239, 0.98));
-            border-radius: 1.25rem;
-            padding: 1.25rem 1.35rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
-            background-size: 72px 72px;
-            mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .profile-hero__inner {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            align-items: flex-start;
-        }
-
-        .profile-hero__identity {
-            display: flex;
-            gap: 1.25rem;
-            align-items: center;
-            flex: 1 1 280px;
-            min-width: 0;
-        }
-
-        .profile-avatar-img,
-        .profile-avatar-wrap {
-            width: 5.5rem;
-            height: 5.5rem;
-            border-radius: 999px;
-            flex-shrink: 0;
-            box-shadow: 0 14px 36px rgba(109, 10, 10, 0.18);
-        }
-
-        .profile-avatar-img {
-            object-fit: cover;
-            border: 3px solid rgba(255, 255, 255, 0.9);
-        }
-
-        .profile-avatar-wrap {
-            background: linear-gradient(135deg, rgba(109, 10, 10, 0.92), rgba(191, 86, 55, 0.88));
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .profile-hero__name {
-            margin: 0;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            color: var(--dash-text);
-        }
-
-        .profile-hero__handle {
-            margin: 0.2rem 0 0;
-            font-size: 0.9rem;
-            color: var(--dash-muted);
-        }
-
-        .profile-hero__bio {
-            margin: 0.65rem 0 0;
-            font-size: 0.9rem;
-            line-height: 1.55;
-            color: var(--dash-muted);
-            max-width: 36rem;
-        }
-
-        .profile-role-badge {
-            display: inline-flex;
-            margin-top: 0.5rem;
-            padding: 0.2rem 0.65rem;
-            border-radius: 999px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            background: rgba(109, 10, 10, 0.08);
-            color: var(--dash-accent);
-            border: 1px solid rgba(109, 10, 10, 0.14);
-        }
-
-        .profile-hero__actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: flex-start;
-        }
-
-        .profile-quick-link {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.55rem 1rem;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            text-decoration: none;
-            border: 1px solid var(--dash-secondary-border);
-            color: var(--dash-secondary-text);
-            background: var(--dash-secondary-bg);
-            transition: background 0.2s ease, border-color 0.2s ease;
-        }
-
-        .profile-quick-link:hover {
-            background: var(--dash-secondary-hover-bg);
-            border-color: var(--dash-card-border-strong);
-        }
-
-        .profile-quick-link--primary {
-            background: var(--dash-primary-bg);
-            color: var(--dash-primary-text);
-            border-color: transparent;
-        }
-
-        .profile-quick-link--primary:hover {
-            background: var(--dash-primary-hover);
-        }
-
-        .profile-stats {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.65rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-stat-btn {
-            appearance: none;
-            border: 1px solid var(--dash-card-border);
-            background: var(--dash-card-bg);
-            border-radius: 1rem;
-            padding: 0.75rem 0.65rem;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            font-family: inherit;
-            color: inherit;
-        }
-
-        .profile-stat-btn:hover {
-            border-color: var(--dash-card-border-strong);
-            transform: translateY(-2px);
-            box-shadow: var(--dash-card-shadow);
-        }
-
-        .profile-stat-btn__value {
-            display: block;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            color: var(--dash-text);
-        }
-
-        .profile-stat-btn__label {
-            display: block;
-            margin-top: 0.25rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--dash-muted);
-        }
-
-        .profile-tabs {
-            display: flex;
-            gap: 0.35rem;
-            overflow-x: auto;
-            padding-bottom: 0.25rem;
-            margin-bottom: 0.85rem;
-            scrollbar-width: none;
-        }
-
-        .profile-tabs::-webkit-scrollbar { display: none; }
-
-        .profile-tab {
-            flex-shrink: 0;
-            appearance: none;
-            border: 1px solid transparent;
-            background: transparent;
-            padding: 0.65rem 1.1rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--dash-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        .profile-tab:hover {
-            color: var(--dash-text);
-            background: rgba(109, 10, 10, 0.05);
-        }
-
-        .profile-tab.is-active {
-            background: var(--dash-primary-bg);
-            color: var(--dash-primary-text);
-            border-color: transparent;
-        }
-
-        .profile-panel {
-            display: none;
-        }
-
-        .profile-panel.is-active {
-            display: block;
-            animation: profileFadeIn 0.35s ease;
-        }
-
-        @keyframes profileFadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .profile-meta-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.65rem 1.25rem;
-            align-items: center;
-            padding: 0.85rem 1rem;
-            margin-bottom: 1rem;
-            border-radius: 0.85rem;
-            border: 1px solid var(--dash-card-border);
-            background: rgba(255, 255, 255, 0.55);
-        }
-
-        .profile-meta-item {
-            display: flex;
-            align-items: baseline;
-            gap: 0.45rem;
-            font-size: 0.82rem;
-        }
-
-        .profile-meta-item__label {
-            color: var(--dash-muted);
-            font-weight: 600;
-        }
-
-        .profile-meta-item__value {
-            color: var(--dash-text);
-            font-weight: 600;
-        }
-
-        .profile-meta-item__value--mono {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-        }
-
-        .profile-meta-link {
-            margin-left: auto;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--dash-accent);
-            text-decoration: none;
-        }
-
-        .profile-meta-link:hover {
-            text-decoration: underline;
-        }
-
-        .profile-settings-shell {
-            max-width: 40rem;
-        }
-
-        .profile-section-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-section-head h2 {
-            margin: 0;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .profile-section-head a {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--dash-accent);
-            text-decoration: none;
-        }
-
-        .profile-saved-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 1rem;
-        }
-
-        .profile-saved-card {
-            border-radius: 1rem;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .profile-saved-card__image {
-            display: block;
-            height: 140px;
-            background-size: cover;
-            background-position: center;
-            text-decoration: none;
-        }
-
-        .profile-saved-card__body {
-            padding: 1rem 1.1rem 1.15rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .profile-saved-card__meta {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            font-size: 0.75rem;
-            color: var(--dash-muted);
-        }
-
-        .profile-saved-card__dot { opacity: 0.5; }
-
-        .profile-saved-card__title {
-            font-family: 'Abhaya Libre', serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--dash-text);
-            text-decoration: none;
-            line-height: 1.3;
-        }
-
-        .profile-saved-card__title:hover { color: var(--dash-accent); }
-
-        .profile-saved-card__summary {
-            margin: 0;
-            font-size: 0.82rem;
-            line-height: 1.5;
-            color: var(--dash-muted);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .profile-saved-card__actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto;
-            padding-top: 0.35rem;
-        }
-
-        .profile-saved-card__read {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--dash-accent);
-            text-decoration: none;
-        }
-
-        .profile-saved-card__unsave {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            background: rgba(109, 10, 10, 0.06);
-            border: 1px solid rgba(109, 10, 10, 0.12);
-            border-radius: 999px;
-            padding: 0.35rem 0.65rem;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--dash-accent);
-            cursor: pointer;
-        }
-
-        .profile-people-list {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .profile-people-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding: 1rem 1.15rem;
-            border-radius: 1rem;
-        }
-
-        .profile-people-item__main {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            min-width: 0;
-        }
-
-        .profile-people-item__copy {
-            display: flex;
-            flex-direction: column;
-            gap: 0.15rem;
-            min-width: 0;
-        }
-
-        .profile-people-item__name {
-            font-weight: 600;
-            color: var(--dash-text);
-        }
-
-        .profile-people-item__handle {
-            font-size: 0.8rem;
-            color: var(--dash-muted);
-        }
-
-        .profile-people-item__bio {
-            margin: 0.25rem 0 0;
-            font-size: 0.8rem;
-            line-height: 1.45;
-            color: var(--dash-muted);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .profile-people-item__role {
-            flex-shrink: 0;
-            font-size: 0.68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--dash-muted);
-            padding: 0.35rem 0.6rem;
-            border-radius: 999px;
-            background: rgba(109, 10, 10, 0.06);
-        }
-
-        .profile-card {
-            position: relative;
-            overflow: hidden;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .profile-card::before {
-            content: "";
-            position: absolute;
-            inset: 0 auto auto 0;
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
-            pointer-events: none;
-        }
-
-        .profile-label { color: var(--dash-muted-strong); }
-        .profile-input {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--dash-input-border);
-            color: var(--dash-input-text);
-            padding: 0.75rem 0;
-            font-size: 0.875rem;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.2s ease;
-            width: 100%;
-        }
-        .profile-input:focus {
-            outline: none;
-            border-bottom-color: var(--dash-accent);
-        }
-        .profile-input::placeholder { color: var(--dash-input-placeholder); }
-        .profile-field-note { color: var(--dash-muted); }
-        .profile-divider { border-color: rgba(109, 10, 10, 0.1); }
-        .profile-submit-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.85rem 1.5rem;
-            border-radius: 999px;
-            border: none;
-            background: var(--dash-primary-bg);
-            color: var(--dash-primary-text);
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-            width: 100%;
-        }
-        .profile-submit-btn:hover {
-            transform: translateY(-1px);
-            background: var(--dash-primary-hover);
-            box-shadow: var(--dash-primary-shadow);
-        }
-        .profile-info-label { color: var(--dash-muted); }
-        .profile-info-value { color: var(--dash-text); }
-        .profile-info-value--earned { color: var(--dash-success); }
-        .profile-toggle {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 44px;
-            height: 24px;
-            border-radius: 12px;
-            background: var(--dash-input-border, #ccc);
-            cursor: pointer;
-            position: relative;
-            transition: background 0.2s ease;
-            flex-shrink: 0;
-        }
-        .profile-toggle::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #fff;
-            transition: transform 0.2s ease;
-        }
-        .profile-toggle:checked {
-            background: var(--dash-accent, #6d0a0a);
-        }
-        .profile-toggle:checked::after {
-            transform: translateX(20px);
-        }
-        .profile-focus-ring:focus-visible,
-        .profile-submit-btn:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
-        }
-
-        #usernameStatus {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.25rem;
-        }
-        .username-status-icon { width: 1rem; height: 1rem; display: inline-block; }
-        .username-status-spinner { animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .username-status-ok { color: #059669; }
-        .username-status-error { color: #dc2626; }
-        .username-status-checking { color: #d97706; }
-
-        @media (max-width: 1024px) {
-            .profile-sidebar-column { display: none; }
-            .profile-page {
-                margin-left: 0;
-                width: 100%;
-                padding-top: 1.25rem !important;
+        <style>
+            .profile-sidebar-column {
+                position: fixed;
+                top: var(--util-bar-height, 48px);
+                left: 0;
+                width: clamp(220px, 22vw, 300px);
+                height: calc(100vh - var(--util-bar-height, 48px));
+                overflow-y: auto;
+                background: #fff;
+                z-index: 40;
             }
-        }
 
-        @media (max-width: 720px) {
-            .profile-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-            .profile-hero__actions { width: 100%; }
-            .profile-meta-link { margin-left: 0; width: 100%; }
-        }
-    </style>
+            .profile-page {
+                margin-left: clamp(220px, 22vw, 300px);
+                width: calc(100% - clamp(220px, 22vw, 300px));
+                color: var(--dash-text);
+            }
+
+            .profile-shell {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 0 clamp(1rem, 2vw, 1.75rem) 2.5rem;
+            }
+
+            .profile-hero {
+                position: relative;
+                overflow: hidden;
+                background:
+                    radial-gradient(circle at top right, rgba(109, 10, 10, 0.14), transparent 34%),
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 246, 239, 0.98));
+                border-radius: 1.25rem;
+                padding: 1.25rem 1.35rem;
+                margin-bottom: 1rem;
+            }
+
+            .profile-hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background-image:
+                    linear-gradient(rgba(109, 10, 10, 0.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(109, 10, 10, 0.035) 1px, transparent 1px);
+                background-size: 72px 72px;
+                mask-image: radial-gradient(circle at top right, black 14%, transparent 70%);
+                pointer-events: none;
+            }
+
+            .profile-hero__inner {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1.5rem;
+                align-items: flex-start;
+            }
+
+            .profile-hero__identity {
+                display: flex;
+                gap: 1.25rem;
+                align-items: center;
+                flex: 1 1 280px;
+                min-width: 0;
+            }
+
+            .profile-avatar-img,
+            .profile-avatar-wrap {
+                width: 5.5rem;
+                height: 5.5rem;
+                border-radius: 999px;
+                flex-shrink: 0;
+                box-shadow: 0 14px 36px rgba(109, 10, 10, 0.18);
+            }
+
+            .profile-avatar-img {
+                object-fit: cover;
+                border: 3px solid rgba(255, 255, 255, 0.9);
+            }
+
+            .profile-avatar-wrap {
+                background: linear-gradient(135deg, rgba(109, 10, 10, 0.92), rgba(191, 86, 55, 0.88));
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.75rem;
+                font-weight: 700;
+                font-family: 'Space Grotesk', sans-serif;
+            }
+
+            .profile-hero__name {
+                margin: 0;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 1.75rem;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                color: var(--dash-text);
+            }
+
+            .profile-hero__handle {
+                margin: 0.2rem 0 0;
+                font-size: 0.9rem;
+                color: var(--dash-muted);
+            }
+
+            .profile-hero__bio {
+                margin: 0.65rem 0 0;
+                font-size: 0.9rem;
+                line-height: 1.55;
+                color: var(--dash-muted);
+                max-width: 36rem;
+            }
+
+            .profile-role-badge {
+                display: inline-flex;
+                margin-top: 0.5rem;
+                padding: 0.2rem 0.65rem;
+                border-radius: 999px;
+                font-size: 0.65rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                background: rgba(109, 10, 10, 0.08);
+                color: var(--dash-accent);
+                border: 1px solid rgba(109, 10, 10, 0.14);
+            }
+
+            .profile-hero__actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .profile-quick-link {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.55rem 1rem;
+                border-radius: 999px;
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                text-decoration: none;
+                border: 1px solid var(--dash-secondary-border);
+                color: var(--dash-secondary-text);
+                background: var(--dash-secondary-bg);
+                transition: background 0.2s ease, border-color 0.2s ease;
+            }
+
+            .profile-quick-link:hover {
+                background: var(--dash-secondary-hover-bg);
+                border-color: var(--dash-card-border-strong);
+            }
+
+            .profile-quick-link--primary {
+                background: var(--dash-primary-bg);
+                color: var(--dash-primary-text);
+                border-color: transparent;
+            }
+
+            .profile-quick-link--primary:hover {
+                background: var(--dash-primary-hover);
+            }
+
+            .profile-stats {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.65rem;
+                margin-bottom: 1rem;
+            }
+
+            .profile-stat-btn {
+                appearance: none;
+                border: 1px solid var(--dash-card-border);
+                background: var(--dash-card-bg);
+                border-radius: 1rem;
+                padding: 0.75rem 0.65rem;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+                font-family: inherit;
+                color: inherit;
+            }
+
+            .profile-stat-btn:hover {
+                border-color: var(--dash-card-border-strong);
+                transform: translateY(-2px);
+                box-shadow: var(--dash-card-shadow);
+            }
+
+            .profile-stat-btn__value {
+                display: block;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 1.5rem;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                color: var(--dash-text);
+            }
+
+            .profile-stat-btn__label {
+                display: block;
+                margin-top: 0.25rem;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                color: var(--dash-muted);
+            }
+
+            .profile-tabs {
+                display: flex;
+                gap: 0.35rem;
+                overflow-x: auto;
+                padding-bottom: 0.25rem;
+                margin-bottom: 0.85rem;
+                scrollbar-width: none;
+            }
+
+            .profile-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .profile-tab {
+                flex-shrink: 0;
+                appearance: none;
+                border: 1px solid transparent;
+                background: transparent;
+                padding: 0.65rem 1.1rem;
+                border-radius: 999px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--dash-muted);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: inherit;
+            }
+
+            .profile-tab:hover {
+                color: var(--dash-text);
+                background: rgba(109, 10, 10, 0.05);
+            }
+
+            .profile-tab.is-active {
+                background: var(--dash-primary-bg);
+                color: var(--dash-primary-text);
+                border-color: transparent;
+            }
+
+            .profile-panel {
+                display: none;
+            }
+
+            .profile-panel.is-active {
+                display: block;
+                animation: profileFadeIn 0.35s ease;
+            }
+
+            @keyframes profileFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .profile-meta-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.65rem 1.25rem;
+                align-items: center;
+                padding: 0.85rem 1rem;
+                margin-bottom: 1rem;
+                border-radius: 0.85rem;
+                border: 1px solid var(--dash-card-border);
+                background: rgba(255, 255, 255, 0.55);
+            }
+
+            .profile-meta-item {
+                display: flex;
+                align-items: baseline;
+                gap: 0.45rem;
+                font-size: 0.82rem;
+            }
+
+            .profile-meta-item__label {
+                color: var(--dash-muted);
+                font-weight: 600;
+            }
+
+            .profile-meta-item__value {
+                color: var(--dash-text);
+                font-weight: 600;
+            }
+
+            .profile-meta-item__value--mono {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.78rem;
+            }
+
+            .profile-meta-link {
+                margin-left: auto;
+                font-size: 0.78rem;
+                font-weight: 600;
+                color: var(--dash-accent);
+                text-decoration: none;
+            }
+
+            .profile-meta-link:hover {
+                text-decoration: underline;
+            }
+
+            .profile-settings-shell {
+                max-width: 40rem;
+            }
+
+            .profile-section-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .profile-section-head h2 {
+                margin: 0;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+
+            .profile-section-head a {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--dash-accent);
+                text-decoration: none;
+            }
+
+            .profile-saved-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 1rem;
+            }
+
+            .profile-saved-card {
+                border-radius: 1rem;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .profile-saved-card__image {
+                display: block;
+                height: 140px;
+                background-size: cover;
+                background-position: center;
+                text-decoration: none;
+            }
+
+            .profile-saved-card__body {
+                padding: 1rem 1.1rem 1.15rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                flex: 1;
+            }
+
+            .profile-saved-card__meta {
+                display: flex;
+                align-items: center;
+                gap: 0.45rem;
+                font-size: 0.75rem;
+                color: var(--dash-muted);
+            }
+
+            .profile-saved-card__dot {
+                opacity: 0.5;
+            }
+
+            .profile-saved-card__title {
+                font-family: 'Abhaya Libre', serif;
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: var(--dash-text);
+                text-decoration: none;
+                line-height: 1.3;
+            }
+
+            .profile-saved-card__title:hover {
+                color: var(--dash-accent);
+            }
+
+            .profile-saved-card__summary {
+                margin: 0;
+                font-size: 0.82rem;
+                line-height: 1.5;
+                color: var(--dash-muted);
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .profile-saved-card__actions {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: auto;
+                padding-top: 0.35rem;
+            }
+
+            .profile-saved-card__read {
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--dash-accent);
+                text-decoration: none;
+            }
+
+            .profile-saved-card__unsave {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                background: rgba(109, 10, 10, 0.06);
+                border: 1px solid rgba(109, 10, 10, 0.12);
+                border-radius: 999px;
+                padding: 0.35rem 0.65rem;
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: var(--dash-accent);
+                cursor: pointer;
+            }
+
+            .profile-people-list {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .profile-people-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1rem 1.15rem;
+                border-radius: 1rem;
+            }
+
+            .profile-people-item__main {
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                min-width: 0;
+            }
+
+            .profile-people-item__copy {
+                display: flex;
+                flex-direction: column;
+                gap: 0.15rem;
+                min-width: 0;
+            }
+
+            .profile-people-item__name {
+                font-weight: 600;
+                color: var(--dash-text);
+            }
+
+            .profile-people-item__handle {
+                font-size: 0.8rem;
+                color: var(--dash-muted);
+            }
+
+            .profile-people-item__bio {
+                margin: 0.25rem 0 0;
+                font-size: 0.8rem;
+                line-height: 1.45;
+                color: var(--dash-muted);
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .profile-people-item__role {
+                flex-shrink: 0;
+                font-size: 0.68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--dash-muted);
+                padding: 0.35rem 0.6rem;
+                border-radius: 999px;
+                background: rgba(109, 10, 10, 0.06);
+            }
+
+            .profile-card {
+                position: relative;
+                overflow: hidden;
+                border-radius: 1rem;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .profile-card::before {
+                content: "";
+                position: absolute;
+                inset: 0 auto auto 0;
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(109, 10, 10, 0.18), rgba(109, 10, 10, 0));
+                pointer-events: none;
+            }
+
+            .profile-label {
+                color: var(--dash-muted-strong);
+            }
+
+            .profile-input {
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid var(--dash-input-border);
+                color: var(--dash-input-text);
+                padding: 0.75rem 0;
+                font-size: 0.875rem;
+                font-family: 'Inter', sans-serif;
+                transition: border-color 0.2s ease;
+                width: 100%;
+            }
+
+            .profile-input:focus {
+                outline: none;
+                border-bottom-color: var(--dash-accent);
+            }
+
+            .profile-input::placeholder {
+                color: var(--dash-input-placeholder);
+            }
+
+            .profile-field-note {
+                color: var(--dash-muted);
+            }
+
+            .profile-divider {
+                border-color: rgba(109, 10, 10, 0.1);
+            }
+
+            .profile-submit-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.85rem 1.5rem;
+                border-radius: 999px;
+                border: none;
+                background: var(--dash-primary-bg);
+                color: var(--dash-primary-text);
+                cursor: pointer;
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+                width: 100%;
+            }
+
+            .profile-submit-btn:hover {
+                transform: translateY(-1px);
+                background: var(--dash-primary-hover);
+                box-shadow: var(--dash-primary-shadow);
+            }
+
+            .profile-info-label {
+                color: var(--dash-muted);
+            }
+
+            .profile-info-value {
+                color: var(--dash-text);
+            }
+
+            .profile-info-value--earned {
+                color: var(--dash-success);
+            }
+
+            .profile-toggle {
+                appearance: none;
+                -webkit-appearance: none;
+                width: 44px;
+                height: 24px;
+                border-radius: 12px;
+                background: var(--dash-input-border, #ccc);
+                cursor: pointer;
+                position: relative;
+                transition: background 0.2s ease;
+                flex-shrink: 0;
+            }
+
+            .profile-toggle::after {
+                content: '';
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: #fff;
+                transition: transform 0.2s ease;
+            }
+
+            .profile-toggle:checked {
+                background: var(--dash-accent, #6d0a0a);
+            }
+
+            .profile-toggle:checked::after {
+                transform: translateX(20px);
+            }
+
+            .profile-focus-ring:focus-visible,
+            .profile-submit-btn:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 4px rgba(109, 10, 10, 0.12);
+            }
+
+            #usernameStatus {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-top: 0.25rem;
+            }
+
+            .username-status-icon {
+                width: 1rem;
+                height: 1rem;
+                display: inline-block;
+            }
+
+            .username-status-spinner {
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .username-status-ok {
+                color: #059669;
+            }
+
+            .username-status-error {
+                color: #dc2626;
+            }
+
+            .username-status-checking {
+                color: #d97706;
+            }
+
+            @media (max-width: 1024px) {
+                .profile-sidebar-column {
+                    display: none;
+                }
+
+                .profile-page {
+                    margin-left: 0;
+                    width: 100%;
+                    padding-top: 1.25rem !important;
+                }
+            }
+
+            @media (max-width: 720px) {
+                .profile-stats {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+
+                .profile-hero__actions {
+                    width: 100%;
+                }
+
+                .profile-meta-link {
+                    margin-left: 0;
+                    width: 100%;
+                }
+            }
+        </style>
 </head>
 
 <body class="min-h-screen dashboard-page">
     <div class="bg-noise"></div>
     <div class="bg-grid"></div>
 
-    <%- include('../partials/app-utility-bar', { pageTitle: 'Profile', unreadCount: unreadCount, user: user }) %>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Profile' , unreadCount: unreadCount, user: user }) %>
 
-    <aside class="profile-sidebar-column">
-        <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
-    </aside>
+        <aside class="profile-sidebar-column">
+            <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
+        </aside>
 
-    <main class="profile-page relative z-10 pt-16 pb-12">
-        <div class="profile-shell">
-            <% const stats = typeof profileStats !== 'undefined' ? profileStats : { followingCount: 0, followersCount: 0, savedCount: 0 }; %>
-            <% const roleLabel = user?.role === 'publisher' ? 'Publisher' : (user?.role === 'admin' ? 'Admin' : 'Reader'); %>
+        <main class="profile-page relative z-10 pt-16 pb-12">
+            <div class="profile-shell">
+                <% const stats=typeof profileStats !=='undefined' ? profileStats : { followingCount: 0, followersCount:
+                    0, savedCount: 0 }; %>
+                    <% const roleLabel=user?.role==='publisher' ? 'Publisher' : (user?.role==='admin' ? 'Admin'
+                        : 'Reader' ); %>
 
-            <section class="glass-card profile-hero">
-                <div class="profile-hero__inner">
-                    <div class="profile-hero__identity">
-                        <% if (user?.avatar) { %>
-                            <img src="<%= user.avatar %>" alt="" class="profile-avatar-img">
-                        <% } else { %>
-                            <div class="profile-avatar-wrap" aria-hidden="true">
-                                <%= user?.displayName?.charAt(0).toUpperCase() || 'U' %>
+                        <section class="glass-card profile-hero">
+                            <div class="profile-hero__inner">
+                                <div class="profile-hero__identity">
+                                    <% if (user?.avatar) { %>
+                                        <img src="<%= user.avatar %>" alt="" class="profile-avatar-img">
+                                        <% } else { %>
+                                            <div class="profile-avatar-wrap" aria-hidden="true">
+                                                <%= user?.displayName?.charAt(0).toUpperCase() || 'U' %>
+                                            </div>
+                                            <% } %>
+                                                <div>
+                                                    <h1 class="profile-hero__name">
+                                                        <%= user?.displayName || 'User' %>
+                                                    </h1>
+                                                    <% if (user?.username) { %>
+                                                        <p class="profile-hero__handle">@<%= user.username %>
+                                                        </p>
+                                                        <% } %>
+                                                            <% if (user?.bio) { %>
+                                                                <p class="profile-hero__bio">
+                                                                    <%= user.bio %>
+                                                                </p>
+                                                                <% } else { %>
+                                                                    <p class="profile-hero__bio">Add a bio in Settings
+                                                                        to tell readers a little about yourself.</p>
+                                                                    <% } %>
+                                                                        <span class="profile-role-badge">
+                                                                            <%= roleLabel %>
+                                                                        </span>
+                                                </div>
+                                </div>
+                                <div class="profile-hero__actions">
+                                    <button type="button" class="profile-quick-link profile-quick-link--primary"
+                                        data-profile-tab="settings">Edit profile</button>
+                                    <a href="/dashboard" class="profile-quick-link">Dashboard</a>
+                                    <a href="/reads" class="profile-quick-link">My reads</a>
+                                </div>
                             </div>
-                        <% } %>
-                        <div>
-                            <h1 class="profile-hero__name"><%= user?.displayName || 'User' %></h1>
-                            <% if (user?.username) { %>
-                                <p class="profile-hero__handle">@<%= user.username %></p>
-                            <% } %>
-                            <% if (user?.bio) { %>
-                                <p class="profile-hero__bio"><%= user.bio %></p>
-                            <% } else { %>
-                                <p class="profile-hero__bio">Add a bio in Settings to tell readers a little about yourself.</p>
-                            <% } %>
-                            <span class="profile-role-badge"><%= roleLabel %></span>
+                        </section>
+
+                        <div class="profile-stats" role="group" aria-label="Profile stats">
+                            <button type="button" class="profile-stat-btn glass-card" data-profile-tab="saved">
+                                <span class="profile-stat-btn__value">
+                                    <%= stats.savedCount %>
+                                </span>
+                                <span class="profile-stat-btn__label">Saved</span>
+                            </button>
+                            <button type="button" class="profile-stat-btn glass-card" data-profile-tab="following">
+                                <span class="profile-stat-btn__value">
+                                    <%= stats.followingCount %>
+                                </span>
+                                <span class="profile-stat-btn__label">Following</span>
+                            </button>
+                            <button type="button" class="profile-stat-btn glass-card" data-profile-tab="followers">
+                                <span class="profile-stat-btn__value">
+                                    <%= stats.followersCount %>
+                                </span>
+                                <span class="profile-stat-btn__label">Followers</span>
+                            </button>
                         </div>
-                    </div>
-                    <div class="profile-hero__actions">
-                        <button type="button" class="profile-quick-link profile-quick-link--primary" data-profile-tab="settings">Edit profile</button>
-                        <a href="/dashboard" class="profile-quick-link">Dashboard</a>
-                        <a href="/reads" class="profile-quick-link">My reads</a>
-                    </div>
-                </div>
-            </section>
 
-            <div class="profile-stats" role="group" aria-label="Profile stats">
-                <button type="button" class="profile-stat-btn glass-card" data-profile-tab="saved">
-                    <span class="profile-stat-btn__value"><%= stats.savedCount %></span>
-                    <span class="profile-stat-btn__label">Saved</span>
-                </button>
-                <button type="button" class="profile-stat-btn glass-card" data-profile-tab="following">
-                    <span class="profile-stat-btn__value"><%= stats.followingCount %></span>
-                    <span class="profile-stat-btn__label">Following</span>
-                </button>
-                <button type="button" class="profile-stat-btn glass-card" data-profile-tab="followers">
-                    <span class="profile-stat-btn__value"><%= stats.followersCount %></span>
-                    <span class="profile-stat-btn__label">Followers</span>
-                </button>
-            </div>
+                        <nav class="profile-tabs" aria-label="Profile sections">
+                            <button type="button" class="profile-tab is-active"
+                                data-profile-tab="overview">Overview</button>
+                            <button type="button" class="profile-tab" data-profile-tab="saved">Saved</button>
+                            <button type="button" class="profile-tab" data-profile-tab="following">Following</button>
+                            <button type="button" class="profile-tab" data-profile-tab="followers">Followers</button>
+                            <button type="button" class="profile-tab" data-profile-tab="settings">Settings</button>
+                        </nav>
 
-            <nav class="profile-tabs" aria-label="Profile sections">
-                <button type="button" class="profile-tab is-active" data-profile-tab="overview">Overview</button>
-                <button type="button" class="profile-tab" data-profile-tab="saved">Saved</button>
-                <button type="button" class="profile-tab" data-profile-tab="following">Following</button>
-                <button type="button" class="profile-tab" data-profile-tab="followers">Followers</button>
-                <button type="button" class="profile-tab" data-profile-tab="settings">Settings</button>
-            </nav>
-
-            <div id="panel-overview" class="profile-panel is-active" role="tabpanel">
-                <div class="profile-meta-bar glass-card">
-                    <div class="profile-meta-item">
-                        <span class="profile-meta-item__label">Member since</span>
-                        <span class="profile-meta-item__value"><%= user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A' %></span>
-                    </div>
-                    <div class="profile-meta-item">
-                        <span class="profile-meta-item__label">Referral</span>
-                        <span class="profile-meta-item__value profile-meta-item__value--mono"><%= user?.referralCode || '—' %></span>
-                    </div>
-                    <a href="/dashboard" class="profile-meta-link">Streak &amp; earnings on dashboard →</a>
-                </div>
-
-                <div class="profile-section-head">
-                    <h2>Recently saved</h2>
-                    <% if (typeof savedPosts !== 'undefined' && savedPosts.length > 0) { %>
-                        <a href="#" data-profile-tab-link="saved">View all</a>
-                    <% } %>
-                </div>
-                <% if (typeof savedPosts !== 'undefined' && savedPosts.length > 0) { %>
-                    <%- include('../partials/profile-saved-list', { savedPosts: savedPosts.slice(0, 3) }) %>
-                <% } else { %>
-                    <%- include('../partials/empty-state-card', {
-                        title: 'Nothing saved yet',
-                        copy: 'Save posts from your feed to build your reading list.',
-                        ctaText: 'Browse explore',
-                        ctaHref: '/explore',
-                        compact: true
-                    }) %>
-                <% } %>
-            </div>
-
-            <div id="panel-saved" class="profile-panel" role="tabpanel" hidden>
-                <div class="profile-section-head">
-                    <h2>Saved posts</h2>
-                    <span style="font-size:0.8rem;color:var(--dash-muted);"><%= stats.savedCount %> total</span>
-                </div>
-                <%- include('../partials/profile-saved-list', { savedPosts: savedPosts }) %>
-            </div>
-
-            <div id="panel-following" class="profile-panel" role="tabpanel" hidden>
-                <div class="profile-section-head">
-                    <h2>Following</h2>
-                    <span style="font-size:0.8rem;color:var(--dash-muted);"><%= stats.followingCount %> people</span>
-                </div>
-                <%- include('../partials/profile-people-list', { peopleList: followingUsers, listType: 'following' }) %>
-            </div>
-
-            <div id="panel-followers" class="profile-panel" role="tabpanel" hidden>
-                <div class="profile-section-head">
-                    <h2>Followers</h2>
-                    <span style="font-size:0.8rem;color:var(--dash-muted);"><%= stats.followersCount %> people</span>
-                </div>
-                <%- include('../partials/profile-people-list', { peopleList: followersUsers, listType: 'followers' }) %>
-            </div>
-
-            <div id="panel-settings" class="profile-panel" role="tabpanel" hidden>
-                <div class="profile-settings-shell">
-                <div class="glass-card profile-card">
-                    <h2 style="margin:0 0 1.25rem;font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;">Personal details</h2>
-                    <form id="profileForm" class="space-y-6">
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Display name</label>
-                            <input type="text" name="displayName" class="profile-input profile-focus-ring" value="<%= user?.displayName || '' %>" placeholder="Enter your display name">
-                        </div>
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Username</label>
-                            <input type="text" name="username" class="profile-input profile-focus-ring" value="<%= user?.username || '' %>" placeholder="Choose a username">
-                            <p id="usernameStatus" class="profile-field-note text-xs mt-1"></p>
-                            <p class="profile-field-note text-xs mt-1">Used on your public profile</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Bio</label>
-                            <textarea name="bio" rows="3" class="profile-input profile-focus-ring w-full" placeholder="Tell us about yourself"><%= user?.bio || '' %></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm profile-label mb-2">Phone number</label>
-                            <input type="tel" name="phone" class="profile-input profile-focus-ring" value="<%= user?.phone || '' %>" placeholder="+2348012345678">
-                            <p class="profile-field-note text-xs mt-1">Required for mobile money withdrawals</p>
-                        </div>
-                        <div class="custom-select">
-                            <select name="country" data-custom-select>
-                                <option value="Nigeria" <%= user?.country === 'Nigeria' ? 'selected' : '' %>>Nigeria</option>
-                                <option value="Kenya" <%= user?.country === 'Kenya' ? 'selected' : '' %>>Kenya</option>
-                                <option value="Ghana" <%= user?.country === 'Ghana' ? 'selected' : '' %>>Ghana</option>
-                                <option value="South Africa" <%= user?.country === 'South Africa' ? 'selected' : '' %>>South Africa</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="profile-submit-btn profile-focus-ring">Save changes</button>
-                    </form>
-                </div>
-
-                <div class="glass-card profile-card">
-                    <h3 style="margin:0 0 1rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;">Account</h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="flex justify-between gap-4">
-                            <span class="profile-info-label">Email</span>
-                            <span class="profile-info-value"><%= user?.email || '' %></span>
-                        </div>
-                        <div class="flex justify-between gap-4">
-                            <span class="profile-info-label">Country</span>
-                            <span class="profile-info-value"><%= user?.country || 'Nigeria' %></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card profile-card">
-                    <h3 style="margin:0 0 1rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;">Notifications</h3>
-                    <div class="space-y-4">
-                        <label class="flex items-center justify-between gap-4 cursor-pointer">
-                            <div>
-                                <p class="text-sm font-medium">Vibration feedback</p>
-                                <p class="profile-field-note text-xs mt-1">Vibrate on new notifications</p>
+                        <div id="panel-overview" class="profile-panel is-active" role="tabpanel">
+                            <div class="profile-meta-bar glass-card">
+                                <div class="profile-meta-item">
+                                    <span class="profile-meta-item__label">Member since</span>
+                                    <span class="profile-meta-item__value">
+                                        <%= user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                                            month: 'short' , year: 'numeric' }) : 'N/A' %>
+                                    </span>
+                                </div>
+                                <div class="profile-meta-item">
+                                    <span class="profile-meta-item__label">Referral</span>
+                                    <span class="profile-meta-item__value profile-meta-item__value--mono">
+                                        <%= user?.referralCode || '—' %>
+                                    </span>
+                                </div>
+                                <a href="/dashboard" class="profile-meta-link">Streak &amp; earnings on dashboard →</a>
                             </div>
-                            <input type="checkbox" id="hapticToggle" class="profile-toggle"
-                                <%= (user?.preferences?.hapticFeedback !== false) ? 'checked' : '' %>>
-                        </label>
-                    </div>
-                </div>
-                </div>
+
+                            <div class="profile-section-head">
+                                <h2>Recently saved</h2>
+                                <% if (typeof savedPosts !=='undefined' && savedPosts.length> 0) { %>
+                                    <a href="#" data-profile-tab-link="saved">View all</a>
+                                    <% } %>
+                            </div>
+                            <% if (typeof savedPosts !=='undefined' && savedPosts.length> 0) { %>
+                                <%- include('../partials/profile-saved-list', { savedPosts: savedPosts.slice(0, 3) }) %>
+                                    <% } else { %>
+                                        <%- include('../partials/empty-state-card', { title: 'Nothing saved yet' ,
+                                            copy: 'Save posts from your feed to build your reading list.' ,
+                                            ctaText: 'Browse explore' , ctaHref: '/explore' , compact: true }) %>
+                                            <% } %>
+                        </div>
+
+                        <div id="panel-saved" class="profile-panel" role="tabpanel" hidden>
+                            <div class="profile-section-head">
+                                <h2>Saved posts</h2>
+                                <span style="font-size:0.8rem;color:var(--dash-muted);">
+                                    <%= stats.savedCount %> total
+                                </span>
+                            </div>
+                            <%- include('../partials/profile-saved-list', { savedPosts: savedPosts }) %>
+                        </div>
+
+                        <div id="panel-following" class="profile-panel" role="tabpanel" hidden>
+                            <div class="profile-section-head">
+                                <h2>Following</h2>
+                                <span style="font-size:0.8rem;color:var(--dash-muted);">
+                                    <%= stats.followingCount %> people
+                                </span>
+                            </div>
+                            <%- include('../partials/profile-people-list', { peopleList: followingUsers,
+                                listType: 'following' }) %>
+                        </div>
+
+                        <div id="panel-followers" class="profile-panel" role="tabpanel" hidden>
+                            <div class="profile-section-head">
+                                <h2>Followers</h2>
+                                <span style="font-size:0.8rem;color:var(--dash-muted);">
+                                    <%= stats.followersCount %> people
+                                </span>
+                            </div>
+                            <%- include('../partials/profile-people-list', { peopleList: followersUsers,
+                                listType: 'followers' }) %>
+                        </div>
+
+                        <div id="panel-settings" class="profile-panel" role="tabpanel" hidden>
+                            <div class="profile-settings-shell">
+                                <div class="glass-card profile-card">
+                                    <h2
+                                        style="margin:0 0 1.25rem;font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;">
+                                        Personal details</h2>
+                                    <form id="profileForm" class="space-y-6">
+                                        <div>
+                                            <label class="block text-sm profile-label mb-2">Display name</label>
+                                            <input type="text" name="displayName"
+                                                class="profile-input profile-focus-ring"
+                                                value="<%= user?.displayName || '' %>"
+                                                placeholder="Enter your display name">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm profile-label mb-2">Username</label>
+                                            <input type="text" name="username" class="profile-input profile-focus-ring"
+                                                value="<%= user?.username || '' %>" placeholder="Choose a username">
+                                            <p id="usernameStatus" class="profile-field-note text-xs mt-1"></p>
+                                            <p class="profile-field-note text-xs mt-1">Used on your public profile</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm profile-label mb-2">Bio</label>
+                                            <textarea name="bio" rows="3"
+                                                class="profile-input profile-focus-ring w-full"
+                                                placeholder="Tell us about yourself"><%= user?.bio || '' %></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm profile-label mb-2">Phone number</label>
+                                            <input type="tel" name="phone" class="profile-input profile-focus-ring"
+                                                value="<%= user?.phone || '' %>" placeholder="+2348012345678">
+                                            <p class="profile-field-note text-xs mt-1">Required for mobile money
+                                                withdrawals</p>
+                                        </div>
+                                        <div class="custom-select">
+                                            <select name="country" data-custom-select>
+                                                <option value="Nigeria" <%=user?.country==='Nigeria' ? 'selected' : ''
+                                                    %>>Nigeria</option>
+                                                <option value="Kenya" <%=user?.country==='Kenya' ? 'selected' : '' %>
+                                                    >Kenya</option>
+                                                <option value="Ghana" <%=user?.country==='Ghana' ? 'selected' : '' %>
+                                                    >Ghana</option>
+                                                <option value="South Africa" <%=user?.country==='South Africa'
+                                                    ? 'selected' : '' %>>South Africa</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="profile-submit-btn profile-focus-ring">Save
+                                            changes</button>
+                                    </form>
+                                </div>
+
+                                <div class="glass-card profile-card">
+                                    <h3
+                                        style="margin:0 0 1rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;">
+                                        Account</h3>
+                                    <div class="space-y-4 text-sm">
+                                        <div class="flex justify-between gap-4">
+                                            <span class="profile-info-label">Email</span>
+                                            <span class="profile-info-value">
+                                                <%= user?.email || '' %>
+                                            </span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="profile-info-label">Country</span>
+                                            <span class="profile-info-value">
+                                                <%= user?.country || 'Nigeria' %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="glass-card profile-card">
+                                    <h3
+                                        style="margin:0 0 1rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;">
+                                        Notifications</h3>
+                                    <div class="space-y-4">
+                                        <label class="flex items-center justify-between gap-4 cursor-pointer">
+                                            <div>
+                                                <p class="text-sm font-medium">Vibration feedback</p>
+                                                <p class="profile-field-note text-xs mt-1">Vibrate on new notifications
+                                                </p>
+                                            </div>
+                                            <input type="checkbox" id="hapticToggle" class="profile-toggle"
+                                                <%=(user?.preferences?.hapticFeedback !==false) ? 'checked' : '' %>>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
             </div>
-        </div>
-    </main>
+        </main>
 
-    <%- include('../partials/nook-alert') %>
+        <%- include('../partials/nook-alert') %>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var tabs = document.querySelectorAll('[data-profile-tab]');
-            var panels = {
-                overview: document.getElementById('panel-overview'),
-                saved: document.getElementById('panel-saved'),
-                following: document.getElementById('panel-following'),
-                followers: document.getElementById('panel-followers'),
-                settings: document.getElementById('panel-settings')
-            };
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var tabs = document.querySelectorAll('[data-profile-tab]');
+                    var panels = {
+                        overview: document.getElementById('panel-overview'),
+                        saved: document.getElementById('panel-saved'),
+                        following: document.getElementById('panel-following'),
+                        followers: document.getElementById('panel-followers'),
+                        settings: document.getElementById('panel-settings')
+                    };
 
-            function activateTab(name) {
-                if (!panels[name]) return;
-                document.querySelectorAll('.profile-tab').forEach(function (tab) {
-                    tab.classList.toggle('is-active', tab.getAttribute('data-profile-tab') === name);
-                });
-                Object.keys(panels).forEach(function (key) {
-                    var panel = panels[key];
-                    var active = key === name;
-                    panel.classList.toggle('is-active', active);
-                    if (active) {
-                        panel.removeAttribute('hidden');
-                    } else {
-                        panel.setAttribute('hidden', '');
-                    }
-                });
-                if (location.hash !== '#' + name) {
-                    history.replaceState(null, '', '#' + name);
-                }
-            }
-
-            tabs.forEach(function (el) {
-                el.addEventListener('click', function () {
-                    activateTab(el.getAttribute('data-profile-tab'));
-                });
-            });
-
-            document.querySelectorAll('[data-profile-tab-link]').forEach(function (link) {
-                link.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    activateTab(link.getAttribute('data-profile-tab-link'));
-                });
-            });
-
-            var hash = (location.hash || '#overview').replace('#', '');
-            if (panels[hash]) {
-                activateTab(hash);
-            }
-
-            document.addEventListener('nook:post-save', function (e) {
-                if (!e.detail || e.detail.saved) return;
-                document.querySelectorAll('.profile-saved-card .save-btn').forEach(function (btn) {
-                    if (btn.getAttribute('data-post-id') === String(e.detail.postId)) {
-                        var card = btn.closest('.profile-saved-card');
-                        if (card) card.remove();
-                    }
-                });
-            });
-
-            var form = document.getElementById('profileForm');
-            if (!form) return;
-
-            var usernameInput = form.querySelector('input[name="username"]');
-            var usernameStatus = document.getElementById('usernameStatus');
-            var submitBtn = form.querySelector('button[type="submit"]');
-            var availabilityTimer = null;
-            var lastChecked = '';
-            var usernameOk = true;
-
-            function setUsernameStatus(msg, state) {
-                if (!usernameStatus) return;
-                usernameStatus.className = 'profile-field-note';
-                if (state) usernameStatus.classList.add('username-status-' + state);
-                usernameOk = state !== 'error';
-                if (submitBtn) submitBtn.disabled = !usernameOk || state === 'checking';
-                if (!msg) { usernameStatus.innerHTML = ''; return; }
-                var iconHtml = '';
-                if (state === 'ok') {
-                    iconHtml = '<svg class="username-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
-                } else if (state === 'error') {
-                    iconHtml = '<svg class="username-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.414-9.414a1 1 0 011.414 0L10 9.586l.586-.586a1 1 0 111.414 1.414L11.414 11l.586.586a1 1 0 11-1.414 1.414L10 12.414l-.586.586a1 1 0 11-1.414-1.414L8.586 11l-.586-.586a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
-                } else if (state === 'checking') {
-                    iconHtml = '<svg class="username-status-icon username-status-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.25"></circle><path d="M22 12a10 10 0 00-10-10"></path></svg>';
-                }
-                usernameStatus.innerHTML = iconHtml + '<span>' + msg + '</span>';
-            }
-
-            async function checkUsernameAvailability(value) {
-                if (!value) { setUsernameStatus('Username cannot be empty', 'error'); return; }
-                if (!/^[a-zA-Z0-9_]{3,30}$/.test(value)) {
-                    setUsernameStatus('3–30 characters: letters, numbers, underscores only', 'error');
-                    return;
-                }
-                setUsernameStatus('Checking availability…', 'checking');
-                try {
-                    var res = await fetch('/api/users/username-available?username=' + encodeURIComponent(value));
-                    var data = await res.json().catch(function () { return {}; });
-                    if (!res.ok) { setUsernameStatus(data.error || 'Unable to check username', 'error'); return; }
-                    setUsernameStatus(data.available ? 'Username is available' : 'Username already taken', data.available ? 'ok' : 'error');
-                } catch (e) {
-                    setUsernameStatus('Network error while checking username', 'error');
-                }
-            }
-
-            if (usernameInput) {
-                usernameInput.addEventListener('input', function (ev) {
-                    var v = ev.target.value.trim();
-                    if (availabilityTimer) clearTimeout(availabilityTimer);
-                    availabilityTimer = setTimeout(function () {
-                        if (v === lastChecked) return;
-                        lastChecked = v;
-                        checkUsernameAvailability(v);
-                    }, 500);
-                });
-            }
-
-            var hapticToggle = document.getElementById('hapticToggle');
-
-            form.addEventListener('submit', async function (e) {
-                e.preventDefault();
-                var formData = new FormData(form);
-                var payload = {};
-                ['displayName', 'username', 'bio', 'phone', 'country'].forEach(function (k) {
-                    var v = formData.get(k);
-                    if (v !== null && String(v).trim() !== '') payload[k] = String(v).trim();
-                });
-                if (hapticToggle) {
-                    payload.preferences = { hapticFeedback: hapticToggle.checked };
-                }
-
-                if (payload.username && (!usernameOk || payload.username !== lastChecked)) {
-                    await checkUsernameAvailability(payload.username);
-                    if (!usernameOk) { showToast('Please choose a different username', 'error'); return; }
-                }
-
-                try {
-                    var res = await fetch('/api/user', {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    var data = await res.json();
-                    if (res.ok && data && data.success) {
-                        showToast('Profile updated', 'success');
-                        var nameEl = document.querySelector('.profile-hero__name');
-                        if (nameEl && data.user && data.user.displayName) nameEl.textContent = data.user.displayName;
-                        var bioEl = document.querySelector('.profile-hero__bio');
-                        if (bioEl && data.user) {
-                            bioEl.textContent = data.user.bio || 'Add a bio in Settings to tell readers a little about yourself.';
+                    function activateTab(name) {
+                        if (!panels[name]) return;
+                        document.querySelectorAll('.profile-tab').forEach(function (tab) {
+                            tab.classList.toggle('is-active', tab.getAttribute('data-profile-tab') === name);
+                        });
+                        Object.keys(panels).forEach(function (key) {
+                            var panel = panels[key];
+                            var active = key === name;
+                            panel.classList.toggle('is-active', active);
+                            if (active) {
+                                panel.removeAttribute('hidden');
+                            } else {
+                                panel.setAttribute('hidden', '');
+                            }
+                        });
+                        if (location.hash !== '#' + name) {
+                            history.replaceState(null, '', '#' + name);
                         }
-                    } else {
-                        showToast((data && data.error) || 'Failed to update profile', 'error');
                     }
-                } catch (err) {
-                    showToast('Network error while updating profile', 'error');
-                }
-            });
-        });
-    </script>
 
-    <script src="/public/js/post-actions.js"></script>
-    <%- include('../partials/dashboard-scripts') %>
-    <%- include('../partials/mobile-bottom-nav', { currentPage: 'profile', theme: 'light', unreadCount: unreadCount }) %>
+                    tabs.forEach(function (el) {
+                        el.addEventListener('click', function () {
+                            activateTab(el.getAttribute('data-profile-tab'));
+                        });
+                    });
+
+                    document.querySelectorAll('[data-profile-tab-link]').forEach(function (link) {
+                        link.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            activateTab(link.getAttribute('data-profile-tab-link'));
+                        });
+                    });
+
+                    var hash = (location.hash || '#overview').replace('#', '');
+                    if (panels[hash]) {
+                        activateTab(hash);
+                    }
+
+                    document.addEventListener('nook:post-save', function (e) {
+                        if (!e.detail || e.detail.saved) return;
+                        document.querySelectorAll('.profile-saved-card .save-btn').forEach(function (btn) {
+                            if (btn.getAttribute('data-post-id') === String(e.detail.postId)) {
+                                var card = btn.closest('.profile-saved-card');
+                                if (card) card.remove();
+                            }
+                        });
+                    });
+
+                    var form = document.getElementById('profileForm');
+                    if (!form) return;
+
+                    var usernameInput = form.querySelector('input[name="username"]');
+                    var usernameStatus = document.getElementById('usernameStatus');
+                    var submitBtn = form.querySelector('button[type="submit"]');
+                    var availabilityTimer = null;
+                    var lastChecked = '';
+                    var usernameOk = true;
+
+                    function setUsernameStatus(msg, state) {
+                        if (!usernameStatus) return;
+                        usernameStatus.className = 'profile-field-note';
+                        if (state) usernameStatus.classList.add('username-status-' + state);
+                        usernameOk = state !== 'error';
+                        if (submitBtn) submitBtn.disabled = !usernameOk || state === 'checking';
+                        if (!msg) { usernameStatus.innerHTML = ''; return; }
+                        var iconHtml = '';
+                        if (state === 'ok') {
+                            iconHtml = '<svg class="username-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
+                        } else if (state === 'error') {
+                            iconHtml = '<svg class="username-status-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.414-9.414a1 1 0 011.414 0L10 9.586l.586-.586a1 1 0 111.414 1.414L11.414 11l.586.586a1 1 0 11-1.414 1.414L10 12.414l-.586.586a1 1 0 11-1.414-1.414L8.586 11l-.586-.586a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+                        } else if (state === 'checking') {
+                            iconHtml = '<svg class="username-status-icon username-status-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.25"></circle><path d="M22 12a10 10 0 00-10-10"></path></svg>';
+                        }
+                        usernameStatus.innerHTML = iconHtml + '<span>' + msg + '</span>';
+                    }
+
+                    async function checkUsernameAvailability(value) {
+                        if (!value) { setUsernameStatus('Username cannot be empty', 'error'); return; }
+                        if (!/^[a-zA-Z0-9_]{3,30}$/.test(value)) {
+                            setUsernameStatus('3–30 characters: letters, numbers, underscores only', 'error');
+                            return;
+                        }
+                        setUsernameStatus('Checking availability…', 'checking');
+                        try {
+                            var res = await fetch('/api/users/username-available?username=' + encodeURIComponent(value));
+                            var data = await res.json().catch(function () { return {}; });
+                            if (!res.ok) { setUsernameStatus(data.error || 'Unable to check username', 'error'); return; }
+                            setUsernameStatus(data.available ? 'Username is available' : 'Username already taken', data.available ? 'ok' : 'error');
+                        } catch (e) {
+                            setUsernameStatus('Network error while checking username', 'error');
+                        }
+                    }
+
+                    if (usernameInput) {
+                        usernameInput.addEventListener('input', function (ev) {
+                            var v = ev.target.value.trim();
+                            if (availabilityTimer) clearTimeout(availabilityTimer);
+                            availabilityTimer = setTimeout(function () {
+                                if (v === lastChecked) return;
+                                lastChecked = v;
+                                checkUsernameAvailability(v);
+                            }, 500);
+                        });
+                    }
+
+                    var hapticToggle = document.getElementById('hapticToggle');
+
+                    form.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+                        var formData = new FormData(form);
+                        var payload = {};
+                        ['displayName', 'username', 'bio', 'phone', 'country'].forEach(function (k) {
+                            var v = formData.get(k);
+                            if (v !== null && String(v).trim() !== '') payload[k] = String(v).trim();
+                        });
+                        if (hapticToggle) {
+                            payload.preferences = { hapticFeedback: hapticToggle.checked };
+                        }
+
+                        if (payload.username && (!usernameOk || payload.username !== lastChecked)) {
+                            await checkUsernameAvailability(payload.username);
+                            if (!usernameOk) { showToast('Please choose a different username', 'error'); return; }
+                        }
+
+                        try {
+                            var res = await fetch('/api/user', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            var data = await res.json();
+                            if (res.ok && data && data.success) {
+                                showToast('Profile updated', 'success');
+                                var nameEl = document.querySelector('.profile-hero__name');
+                                if (nameEl && data.user && data.user.displayName) nameEl.textContent = data.user.displayName;
+                                var bioEl = document.querySelector('.profile-hero__bio');
+                                if (bioEl && data.user) {
+                                    bioEl.textContent = data.user.bio || 'Add a bio in Settings to tell readers a little about yourself.';
+                                }
+                            } else {
+                                showToast((data && data.error) || 'Failed to update profile', 'error');
+                            }
+                        } catch (err) {
+                            showToast('Network error while updating profile', 'error');
+                        }
+                    });
+                });
+            </script>
+
+            <script src="/public/js/post-actions.js"></script>
+            <%- include('../partials/dashboard-scripts') %>
+                <%- include('../partials/mobile-bottom-nav', { currentPage: 'profile' , theme: 'light' , unreadCount:
+                    unreadCount }) %>
 </body>
 
 </html>

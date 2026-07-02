@@ -109,6 +109,10 @@ async function buildApp() {
                 }
             });
 
+            fastify.get('/favicon.svg', (req, reply) => reply.sendFile('favicon.svg'));
+            fastify.get('/favicon.ico', (req, reply) => reply.sendFile('favicon.svg'));
+            fastify.get('/manifest.json', (req, reply) => reply.sendFile('manifest.json'));
+
         } catch (err) {
             // If another module already decorated reply.sendFile, skip and warn.
             if (err && err.message && err.message.includes("The decorator 'sendFile' has already been added")) {
@@ -239,10 +243,11 @@ async function buildApp() {
         return reply.sendFile('sw.js');
     });
 
-    fastify.get('/manifest.json', (req, reply) => {
-        reply.header('Cache-Control', 'public, max-age=3600');
-        return reply.sendFile('manifest.json');
-    });
+    // Use the static asset route for manifest files instead of a custom route.
+    // fastify.get('/manifest.json', (req, reply) => {
+    //     reply.header('Cache-Control', 'public, max-age=3600');
+    //     return reply.sendFile('manifest.json');
+    // });
 
     fastify.register(require('./routes/pages'));
     fastify.register(require('./routes/api'), { prefix: '/api' });

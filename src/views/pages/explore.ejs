@@ -1,33 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title || 'Explore | NOOK' %></title>
-    <meta name="description" content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
+    <title>
+        <%= title || 'Explore | NOOK' %>
+    </title>
+    <meta name="description"
+        content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
     <link rel="canonical" href="<%= typeof canonical !== 'undefined' && canonical ? canonical : '' %>">
     <meta name="theme-color" content="#6d0a0a">
+    <link rel="manifest" href="/public/manifest.json">
     <meta property="og:title" content="<%= title || 'Explore | NOOK' %>">
-    <meta property="og:description" content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
-    <meta property="og:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta property="og:description"
+        content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
+    <meta property="og:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<%= title || 'Explore | NOOK' %>">
-    <meta name="twitter:description" content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
-    <meta name="twitter:image" content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
+    <meta name="twitter:description"
+        content="<%= description || 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.' %>">
+    <meta name="twitter:image"
+        content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Abhaya+Libre:wght@400;500;600;700;800&family=Zen+Tokyo+Zoo&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Abhaya+Libre:wght@400;500;600;700;800&family=Zen+Tokyo+Zoo&display=swap"
+        rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        * { 
-            box-sizing: border-box; 
+        * {
+            box-sizing: border-box;
         }
-        
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background-color: #ffffff; 
-            color: #000000; 
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
             min-height: 100vh;
             margin: 0;
             padding: 0;
@@ -69,14 +80,12 @@
             bottom: 0;
             left: var(--explore-nav-width);
             width: 1px;
-            background: linear-gradient(
-                180deg,
-                transparent 0,
-                rgba(109, 10, 10, 0.08) 48px,
-                rgba(109, 10, 10, 0.2) 16%,
-                rgba(109, 10, 10, 0.14) 84%,
-                transparent 100%
-            );
+            background: linear-gradient(180deg,
+                    transparent 0,
+                    rgba(109, 10, 10, 0.08) 48px,
+                    rgba(109, 10, 10, 0.2) 16%,
+                    rgba(109, 10, 10, 0.14) 84%,
+                    transparent 100%);
             pointer-events: none;
             z-index: 90;
         }
@@ -178,7 +187,7 @@
         }
 
         /* ========== RESPONSIVE BREAKPOINTS ========== */
-        
+
         /* Large screens (1400px - 1700px) */
         @media (max-width: 1700px) {
             .explore-container {
@@ -206,7 +215,7 @@
                 grid-template-columns: 1fr;
                 margin-left: var(--explore-nav-width);
             }
-            
+
             .explore-right-column {
                 display: none;
             }
@@ -221,7 +230,7 @@
                 align-content: center;
                 width: 100%;
             }
-            
+
             .explore-left-column {
                 display: none;
             }
@@ -229,11 +238,11 @@
             .explore-container::before {
                 display: none;
             }
-            
+
             .explore-right-column {
                 display: none;
             }
-            
+
             .explore-top-nav-bar {
                 padding: 8px 0;
                 width: 100%;
@@ -245,7 +254,7 @@
                 padding-left: 16px;
                 padding-right: 16px;
             }
-            
+
             .explore-search-form {
                 width: 80vw;
                 margin: 0 auto;
@@ -264,45 +273,46 @@
                 align-content: flex-start;
                 min-height: auto;
             }
+
             .explore-middle-column {
                 padding: 12px 16px 80px 16px;
                 width: 100%;
                 max-width: 100%;
             }
-            
+
             .explore-feed-wrapper {
                 width: 100%;
             }
-            
+
             .explore-search-wrapper {
                 width: 100%;
                 max-width: 100%;
             }
-            
+
             .explore-search-form {
                 height: 44px;
                 padding: 6px;
                 width: 80vw;
                 margin: 0 auto;
             }
-            
+
             .explore-search-input {
                 font-size: 14px;
             }
-            
+
             .explore-search-input-wrapper svg {
                 width: 18px;
                 height: 18px;
             }
-            
+
             .explore-top-nav-bar {
                 padding: 6px 12px;
             }
-            
+
             .explore-top-nav {
                 gap: 6px !important;
             }
-            
+
             .explore-tab-btn {
                 height: 30px !important;
                 padding: 4px 10px !important;
@@ -321,113 +331,94 @@
             white-space: nowrap;
             border: 0;
         }
-
     </style>
     <%- include('../partials/nook-alert-css') %>
 </head>
+
 <body>
 
-<%- include('../partials/app-utility-bar', { pageTitle: 'Explore', unreadCount: unreadCount, user: user }) %>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Explore' , unreadCount: unreadCount, user: user }) %>
 
-<!-- Main Grid Container -->
-<div class="explore-container">
+        <!-- Main Grid Container -->
+        <div class="explore-container">
 
-    <!-- Top Navigation Bar - Spans Full Width -->
-    <nav class="explore-top-nav-bar">
-        <%- include('../partials/explore-top-nav', { activeTab: activeTab }) %>
-    </nav>
-    
-    <!-- LEFT COLUMN: Side Navigation (Desktop only) -->
-    <aside class="explore-left-column">
-        <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
-    </aside>
+            <!-- Top Navigation Bar - Spans Full Width -->
+            <nav class="explore-top-nav-bar">
+                <%- include('../partials/explore-top-nav', { activeTab: activeTab }) %>
+            </nav>
 
-    <!-- MIDDLE COLUMN: Main Content -->
-    <main class="explore-middle-column">
-        
-        <!-- Search Bar (visible only on tablet/mobile when right column is hidden) -->
-        <div class="explore-search-wrapper explore-search-mobile">
-            <form action="/search" method="GET" role="search" class="explore-search-form">
-                <label for="search-nook-mobile" class="sr-only">Search</label>
-                <div class="explore-search-input-wrapper">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    <input 
-                        id="search-nook-mobile" 
-                        name="q" 
-                        type="search" 
-                        placeholder="search Nook" 
-                        aria-label="search Nook" 
-                        class="explore-search-input"
-                    />
+            <!-- LEFT COLUMN: Side Navigation (Desktop only) -->
+            <aside class="explore-left-column">
+                <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
+            </aside>
+
+            <!-- MIDDLE COLUMN: Main Content -->
+            <main class="explore-middle-column">
+
+                <!-- Search Bar (visible only on tablet/mobile when right column is hidden) -->
+                <div class="explore-search-wrapper explore-search-mobile">
+                    <form action="/search" method="GET" role="search" class="explore-search-form">
+                        <label for="search-nook-mobile" class="sr-only">Search</label>
+                        <div class="explore-search-input-wrapper">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                            <input id="search-nook-mobile" name="q" type="search" placeholder="search Nook"
+                                aria-label="search Nook" class="explore-search-input" />
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
 
-        <!-- Feed Content -->
-        <div class="explore-feed-wrapper">
-            <%- include('../partials/explore-feed', { 
-                posts: posts, 
-                feedSuggestions: feedSuggestions,
-                feedAds: feedAds,
-                user: user
-            }) %>
-        </div>
-        
-    </main>
-
-    <!-- RIGHT COLUMN: Sidebars (Desktop only, hides on smaller screens) -->
-    <aside class="explore-right-column">
-        <!-- Search Bar -->
-        <div class="explore-search-wrapper">
-            <form action="/search" method="GET" role="search" class="explore-search-form">
-                <label for="search-input" class="sr-only">Search</label>
-                <div class="explore-search-input-wrapper">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    <input 
-                        id="search-input" 
-                        name="q" 
-                        type="search" 
-                        placeholder="search Nook" 
-                        aria-label="search Nook" 
-                        class="explore-search-input"
-                    />
+                <!-- Feed Content -->
+                <div class="explore-feed-wrapper">
+                    <%- include('../partials/explore-feed', { posts: posts, feedSuggestions: feedSuggestions, feedAds:
+                        feedAds, user: user }) %>
                 </div>
-                <div id="search-results" class="hidden"></div>
-            </form>
+
+            </main>
+
+            <!-- RIGHT COLUMN: Sidebars (Desktop only, hides on smaller screens) -->
+            <aside class="explore-right-column">
+                <!-- Search Bar -->
+                <div class="explore-search-wrapper">
+                    <form action="/search" method="GET" role="search" class="explore-search-form">
+                        <label for="search-input" class="sr-only">Search</label>
+                        <div class="explore-search-input-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                            <input id="search-input" name="q" type="search" placeholder="search Nook"
+                                aria-label="search Nook" class="explore-search-input" />
+                        </div>
+                        <div id="search-results" class="hidden"></div>
+                    </form>
+                </div>
+
+                <!-- Trending Section -->
+                <div class="explore-trending-wrapper">
+                    <%- include('../partials/explore-trending', { trendingPosts: trendingPosts }) %>
+                </div>
+
+                <!-- Who to Follow Section -->
+                <%- include('../partials/explore-who-to-follow', { suggestedUsers: suggestedUsers }) %>
+                    <% if (typeof sidebarAd !=='undefined' && sidebarAd) { %>
+                        <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
+                            <% } %>
+            </aside>
+
         </div>
 
-        <!-- Trending Section -->
-        <div class="explore-trending-wrapper">
-            <%- include('../partials/explore-trending', { 
-                trendingPosts: trendingPosts 
-            }) %>
-        </div>
-        
-        <!-- Who to Follow Section -->
-        <%- include('../partials/explore-who-to-follow', { 
-            suggestedUsers: suggestedUsers 
-        }) %>
-        <% if (typeof sidebarAd !== 'undefined' && sidebarAd) { %>
-            <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
-        <% } %>
-    </aside>
+        <!-- Mobile Bottom Navigation (shows only on mobile) -->
+        <%- include('../partials/mobile-bottom-nav', { currentPage: 'explore' }) %>
 
-</div>
-
-<!-- Mobile Bottom Navigation (shows only on mobile) -->
-<%- include('../partials/mobile-bottom-nav', { 
-    currentPage: 'explore' 
-}) %>
-
-<%- include('../partials/nook-alert') %>
-<script src="/public/js/nook-alert.js"></script>
-<script src="/public/js/post-actions.js"></script>
+            <%- include('../partials/nook-alert') %>
+                <script src="/public/js/nook-alert.js"></script>
+                <script src="/public/js/post-actions.js"></script>
 
 </body>
+
 </html>

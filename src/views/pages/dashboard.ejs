@@ -11,6 +11,7 @@
         content="<%= description || 'Track your reading activity, earnings, and milestones on NOOK.' %>">
     <link rel="canonical" href="<%= canonical || '' %>">
     <meta name="theme-color" content="#6d0a0a">
+    <link rel="manifest" href="/public/manifest.json">
     <meta property="og:title" content="<%= title || 'Dashboard | NOOK' %>">
     <meta property="og:description"
         content="<%= description || 'Track your reading activity, earnings, and milestones on NOOK.' %>">
@@ -226,7 +227,7 @@
                 padding: 0.85rem 0;
             }
 
-            .dashboard-action-row + .dashboard-action-row {
+            .dashboard-action-row+.dashboard-action-row {
                 border-top: 1px solid rgba(109, 10, 10, 0.08);
             }
 
@@ -563,11 +564,11 @@
     <div class="bg-grid"></div>
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
-    <%- include('../partials/app-utility-bar', { pageTitle: 'Dashboard', unreadCount: unreadCount, user: user }) %>
+    <%- include('../partials/app-utility-bar', { pageTitle: 'Dashboard' , unreadCount: unreadCount, user: user }) %>
 
-    <aside class="dashboard-sidebar-column">
-        <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
-    </aside>
+        <aside class="dashboard-sidebar-column">
+            <%- include('../partials/home-side-nav', { unreadCount: unreadCount }) %>
+        </aside>
 
         <main class="dashboard-shell relative z-10 pt-16 pb-16">
             <div class="max-w-7xl mx-auto px-6">
@@ -606,15 +607,16 @@
                     <article class="glass-card dashboard-stat-card rounded-2xl p-5">
                         <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Available
                         </p>
-                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%=
-                                ((user?.wallet?.balance || 0) / 100).toFixed(2) %>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((user?.wallet?.balance ||
+                                0) / 100).toFixed(2) %>
                         </p>
                         <p class="dashboard-stat-meta text-xs mt-2">Ready for withdrawal</p>
                     </article>
                     <article class="glass-card dashboard-stat-card rounded-2xl p-5">
                         <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">This Week
                             Earned</p>
-                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((readStats?.earned7d || 0) / 100).toFixed(2) %>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((readStats?.earned7d || 0)
+                                / 100).toFixed(2) %>
                         </p>
                         <p
                             class="text-xs mt-2 <%= (readStats?.earned7dDelta || 0) >= 0 ? 'dashboard-trend-up' : 'dashboard-trend-down' %>">
@@ -639,8 +641,11 @@
                         <p class="dashboard-stat-meta text-xs mt-2">Keep reading daily</p>
                     </article>
                     <article class="glass-card dashboard-stat-card rounded-2xl p-5">
-                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Rate per Read</p>
-                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((currentRate || 500) / 100).toFixed(2) %></p>
+                        <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Rate per
+                            Read</p>
+                        <p class="dashboard-stat-value font-heading text-3xl font-bold">₦<%= ((currentRate || 500) /
+                                100).toFixed(2) %>
+                        </p>
                         <p class="dashboard-stat-meta text-xs mt-2">Updated hourly from pool revenue</p>
                     </article>
                 </section>
@@ -715,8 +720,11 @@
                         <div class="glass-card dashboard-panel rounded-2xl p-6">
                             <div class="dashboard-section-heading">
                                 <div>
-                                    <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-1">Momentum</p>
-                                    <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Progress Goals</h2>
+                                    <p
+                                        class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-1">
+                                        Momentum</p>
+                                    <h2 class="dashboard-panel-title font-heading text-xl font-semibold">Progress Goals
+                                    </h2>
                                 </div>
                                 <a href="/achievements" class="dashboard-panel-link text-xs font-mono">Milestones</a>
                             </div>
@@ -754,12 +762,17 @@
                         </div>
                     </div>
 
-                    <aside class="glass-card dashboard-panel dashboard-action-hub rounded-2xl p-6" aria-labelledby="dashboard-next-up-title">
+                    <aside class="glass-card dashboard-panel dashboard-action-hub rounded-2xl p-6"
+                        aria-labelledby="dashboard-next-up-title">
                         <div class="dashboard-hub-header">
                             <div>
-                                <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">Next up</p>
-                                <h2 id="dashboard-next-up-title" class="dashboard-panel-title font-heading text-xl font-semibold">Your dashboard queue</h2>
-                                <p class="dashboard-hub-copy text-sm mt-2">The few things that may need attention, kept in one place.</p>
+                                <p class="dashboard-stat-label font-mono text-[11px] uppercase tracking-widest mb-2">
+                                    Next up</p>
+                                <h2 id="dashboard-next-up-title"
+                                    class="dashboard-panel-title font-heading text-xl font-semibold">Your dashboard
+                                    queue</h2>
+                                <p class="dashboard-hub-copy text-sm mt-2">The few things that may need attention, kept
+                                    in one place.</p>
                             </div>
                         </div>
 
@@ -784,79 +797,79 @@
                                 <div class="dashboard-empty-state dashboard-empty-state-compact">Loading achievements...
                                 </div>
                             </div>
-                            <a href="/achievements" class="dashboard-panel-link block text-sm mt-4">View all achievements</a>
+                            <a href="/achievements" class="dashboard-panel-link block text-sm mt-4">View all
+                                achievements</a>
                         </div>
 
                         <% if (typeof rewardedAd !=='undefined' && rewardedAd) { %>
                             <div class="dashboard-hub-section">
                                 <%- include('../partials/ad-rewarded', { ad: rewardedAd }) %>
                             </div>
-                        <% } %>
+                            <% } %>
 
-                        <div class="dashboard-hub-section dashboard-quick-actions">
-                            <div class="dashboard-action-row">
-                                <div>
-                                    <h3 class="dashboard-action-title text-sm font-semibold">Beta review</h3>
-                                    <p class="dashboard-action-copy text-xs mt-1">Send feedback when something feels off.</p>
-                                </div>
-                                <button type="button"
-                                    class="dashboard-referral-button dashboard-focus-ring px-4 py-2 rounded-xl font-semibold text-sm"
-                                    data-open-review>Review</button>
-                            </div>
+                                <div class="dashboard-hub-section dashboard-quick-actions">
+                                    <div class="dashboard-action-row">
+                                        <div>
+                                            <h3 class="dashboard-action-title text-sm font-semibold">Beta review</h3>
+                                            <p class="dashboard-action-copy text-xs mt-1">Send feedback when something
+                                                feels off.</p>
+                                        </div>
+                                        <button type="button"
+                                            class="dashboard-referral-button dashboard-focus-ring px-4 py-2 rounded-xl font-semibold text-sm"
+                                            data-open-review>Review</button>
+                                    </div>
 
-                            <div class="dashboard-action-row">
-                                <div class="min-w-0">
-                                    <h3 class="dashboard-action-title text-sm font-semibold">Referral link</h3>
-                                    <p class="dashboard-action-copy text-xs mt-1">Earn ₦50 per referral.</p>
+                                    <div class="dashboard-action-row">
+                                        <div class="min-w-0">
+                                            <h3 class="dashboard-action-title text-sm font-semibold">Referral link</h3>
+                                            <p class="dashboard-action-copy text-xs mt-1">Earn ₦50 per referral.</p>
+                                        </div>
+                                        <div class="dashboard-copy-pill">
+                                            <p id="referralCode"
+                                                class="dashboard-referral-code text-sm font-mono font-bold">
+                                                <%= user?.referralCode || 'N/A' %>
+                                            </p>
+                                            <button id="copyReferralBtn"
+                                                class="dashboard-referral-button dashboard-focus-ring p-2 rounded-xl"
+                                                title="Copy referral link" aria-label="Copy referral link">
+                                                <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" width="16"
+                                                    height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                                    </path>
+                                                </svg>
+                                                <svg id="checkIcon" class="dashboard-copy-check hidden"
+                                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="dashboard-copy-pill">
-                                    <p id="referralCode"
-                                        class="dashboard-referral-code text-sm font-mono font-bold">
-                                        <%= user?.referralCode || 'N/A' %>
-                                    </p>
-                                    <button id="copyReferralBtn"
-                                        class="dashboard-referral-button dashboard-focus-ring p-2 rounded-xl"
-                                        title="Copy referral link"
-                                        aria-label="Copy referral link">
-                                        <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" width="16"
-                                            height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path
-                                                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
-                                            </path>
-                                        </svg>
-                                        <svg id="checkIcon" class="dashboard-copy-check hidden"
-                                            xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                            stroke-width="2">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </aside>
                 </section>
             </div>
         </main>
 
         <%- include('../partials/nook-alert') %>
-        <script>
-            async function loadAchievements() {
-                try {
-                    const res = await fetch('/api/achievements');
-                    const data = await res.json();
-                    if (!data.success) return;
-                    const countEl = document.getElementById('achievementCount');
-                    const listEl = document.getElementById('achievementsList');
-                    if (countEl) countEl.textContent = `${data.unlockedCount}/${data.totalAchievements} unlocked`;
-                    if (!listEl) return;
-                    if (!data.achievements || data.achievements.length === 0) {
-                        listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No achievements yet.</div>';
-                        return;
-                    }
-                    listEl.innerHTML = data.achievements.slice(0, 2).map((a) => `
+            <script>
+                async function loadAchievements() {
+                    try {
+                        const res = await fetch('/api/achievements');
+                        const data = await res.json();
+                        if (!data.success) return;
+                        const countEl = document.getElementById('achievementCount');
+                        const listEl = document.getElementById('achievementsList');
+                        if (countEl) countEl.textContent = `${data.unlockedCount}/${data.totalAchievements} unlocked`;
+                        if (!listEl) return;
+                        if (!data.achievements || data.achievements.length === 0) {
+                            listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No achievements yet.</div>';
+                            return;
+                        }
+                        listEl.innerHTML = data.achievements.slice(0, 2).map((a) => `
                     <div class="dashboard-achievement-item">
                         <div class="dashboard-achievement-icon ${a.earned ? 'is-earned' : 'is-locked'}">
                             ${a.earned ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>'}
@@ -867,71 +880,71 @@
                         </div>
                     </div>
                 `).join('');
-                } catch (error) {
-                    console.error('Failed to load achievements', error);
-                }
-            }
-
-            async function loadNotifications() {
-                try {
-                    const res = await fetch('/api/notifications');
-                    const data = await res.json();
-                    const listEl = document.getElementById('notifList');
-                    if (!listEl || !data.success) return;
-                    if (!data.notifications || data.notifications.length === 0) {
-                        listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No notifications yet.</div>';
-                        return;
+                    } catch (error) {
+                        console.error('Failed to load achievements', error);
                     }
-                    listEl.innerHTML = data.notifications.slice(0, 3).map((n) => `
+                }
+
+                async function loadNotifications() {
+                    try {
+                        const res = await fetch('/api/notifications');
+                        const data = await res.json();
+                        const listEl = document.getElementById('notifList');
+                        if (!listEl || !data.success) return;
+                        if (!data.notifications || data.notifications.length === 0) {
+                            listEl.innerHTML = '<div class="dashboard-empty-state dashboard-empty-state-compact text-sm">No notifications yet.</div>';
+                            return;
+                        }
+                        listEl.innerHTML = data.notifications.slice(0, 3).map((n) => `
                     <button class="dashboard-notif-item dashboard-focus-ring w-full text-left p-3 rounded-xl ${n.read ? 'is-read' : ''}" onclick="handleNotifClick('${n._id}')">
                         <p class="dashboard-notif-title text-sm font-medium truncate">${n.title}</p>
                         <p class="dashboard-notif-copy text-xs mt-1 line-clamp-2">${n.message}</p>
                     </button>
                 `).join('');
-                } catch (error) {
-                    console.error('Failed to load notifications', error);
+                    } catch (error) {
+                        console.error('Failed to load notifications', error);
+                    }
                 }
-            }
 
-            window.handleNotifClick = async function (id) {
-                await fetch(`/api/notifications/${id}/read`, {
-                    method: 'PUT'
-                });
-                loadNotifications();
-            };
+                window.handleNotifClick = async function (id) {
+                    await fetch(`/api/notifications/${id}/read`, {
+                        method: 'PUT'
+                    });
+                    loadNotifications();
+                };
 
-            document.addEventListener('DOMContentLoaded', function () {
-                const markAllRead = document.getElementById('markAllRead');
-                const copyBtn = document.getElementById('copyReferralBtn');
-                if (markAllRead) {
-                    markAllRead.addEventListener('click', async function () {
-                        await fetch('/api/notifications/read-all', {
-                            method: 'PUT'
+                document.addEventListener('DOMContentLoaded', function () {
+                    const markAllRead = document.getElementById('markAllRead');
+                    const copyBtn = document.getElementById('copyReferralBtn');
+                    if (markAllRead) {
+                        markAllRead.addEventListener('click', async function () {
+                            await fetch('/api/notifications/read-all', {
+                                method: 'PUT'
+                            });
+                            loadNotifications();
                         });
-                        loadNotifications();
-                    });
-                }
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', async function () {
-                        const referralCode = document.getElementById('referralCode');
-                        const link = `${window.location.origin}/register?ref=${referralCode?.textContent || ''}`;
-                        await navigator.clipboard.writeText(link);
-                        document.getElementById('copyIcon')?.classList.add('hidden');
-                        document.getElementById('checkIcon')?.classList.remove('hidden');
-                        setTimeout(() => {
-                            document.getElementById('copyIcon')?.classList.remove('hidden');
-                            document.getElementById('checkIcon')?.classList.add('hidden');
-                        }, 1600);
-                    });
-                }
-                loadAchievements();
-                loadNotifications();
-            });
-        </script>
-        <%- include('../partials/dashboard-scripts') %>
+                    }
+                    if (copyBtn) {
+                        copyBtn.addEventListener('click', async function () {
+                            const referralCode = document.getElementById('referralCode');
+                            const link = `${window.location.origin}/register?ref=${referralCode?.textContent || ''}`;
+                            await navigator.clipboard.writeText(link);
+                            document.getElementById('copyIcon')?.classList.add('hidden');
+                            document.getElementById('checkIcon')?.classList.remove('hidden');
+                            setTimeout(() => {
+                                document.getElementById('copyIcon')?.classList.remove('hidden');
+                                document.getElementById('checkIcon')?.classList.add('hidden');
+                            }, 1600);
+                        });
+                    }
+                    loadAchievements();
+                    loadNotifications();
+                });
+            </script>
+            <%- include('../partials/dashboard-scripts') %>
 
-            <%- include('../partials/mobile-bottom-nav', { currentPage: 'dashboard' , theme: 'light' , unreadCount:
-                unreadCount }) %>
+                <%- include('../partials/mobile-bottom-nav', { currentPage: 'dashboard' , theme: 'light' , unreadCount:
+                    unreadCount }) %>
 </body>
 
 </html>
