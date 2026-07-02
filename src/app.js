@@ -60,7 +60,7 @@ dotenv.config();
 
 const { loadConfig, getAllowedOrigins, CATEGORY_ENUM, CATEGORY_NAMES } = require('./config');
 const { initLogto } = require('./services/LogtoService');
-const { ensureVapidKeys } = require('./services/PushService');
+
 const { assetUrl } = require('./config/assets');
 const errorHandlerPlugin = require('./plugins/error-handler');
 const sentryPlugin = require('./plugins/sentry');
@@ -245,10 +245,6 @@ async function buildApp() {
     fastify.register(require('./routes/push'), { prefix: '/api/push' });
 
     await fastify.after();
-
-    await ensureVapidKeys().catch((err) => {
-        fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
-    });
 }
 
 fastify.buildApp = buildApp;
