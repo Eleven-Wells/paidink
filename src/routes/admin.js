@@ -255,7 +255,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'dashboard',
             pageTitle: 'Dashboard',
             pageSubtitle: 'Overview of your content and system',
-            title: 'Admin Dashboard | Nook',
+            title: 'Admin Dashboard | PaidInk',
             stats,
             recentPosts
         });
@@ -282,7 +282,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'posts',
             pageTitle: 'Posts',
             pageSubtitle: 'Manage your content',
-            title: 'Posts | Nook Admin',
+            title: 'Posts | PaidInk Admin',
             posts,
             pagination: {
                 page: parseInt(page),
@@ -348,7 +348,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'reviews',
             pageTitle: 'Reviews',
             pageSubtitle: 'Beta tester feedback from the app and Discord delivery status',
-            title: 'Reviews | Nook Admin',
+            title: 'Reviews | PaidInk Admin',
             reviews,
             filters: { rating, status },
             stats: {
@@ -376,7 +376,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'create-post',
             pageTitle: 'Create Post',
             pageSubtitle: 'Add new content',
-            title: 'Create Post | Nook Admin'
+            title: 'Create Post | PaidInk Admin'
         });
         
         return reply.type('text/html').send(html);
@@ -416,7 +416,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'posts',
             pageTitle: 'Edit Post',
             pageSubtitle: post.title,
-            title: `Edit: ${post.title} | Nook Admin`,
+            title: `Edit: ${post.title} | PaidInk Admin`,
             post
         });
         
@@ -513,7 +513,7 @@ module.exports = async function adminRoutes(fastify) {
             currentPage: 'jobs',
             pageTitle: 'Jobs Queue',
             pageSubtitle: 'Content generation pipeline',
-            title: 'Jobs Queue | Nook Admin',
+            title: 'Jobs Queue | PaidInk Admin',
             queueStats,
             jobs,
             hourlyData
@@ -640,7 +640,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'analytics',
             pageTitle: 'Analytics',
             pageSubtitle: 'Traffic and engagement metrics',
-            title: 'Analytics | Nook Admin',
+            title: 'Analytics | PaidInk Admin',
             analytics
         });
 
@@ -747,7 +747,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'performance',
             pageTitle: 'Performance',
             pageSubtitle: 'Application metrics',
-            title: 'Performance | Nook Admin',
+            title: 'Performance | PaidInk Admin',
             performance
         });
 
@@ -812,7 +812,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'health',
             pageTitle: 'System Health',
             pageSubtitle: 'Service status and diagnostics',
-            title: 'System Health | Nook Admin',
+            title: 'System Health | PaidInk Admin',
             health
         });
         
@@ -884,7 +884,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'publisher-requests',
             pageTitle: 'Publisher Requests',
             pageSubtitle: 'Review and approve publisher applications',
-            title: 'Publisher Requests | Nook Admin',
+            title: 'Publisher Requests | PaidInk Admin',
             users,
             pendingCount,
             status,
@@ -945,7 +945,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'settings',
             pageTitle: 'Settings',
             pageSubtitle: 'Configure your application',
-            title: 'Settings | Nook Admin'
+            title: 'Settings | PaidInk Admin'
         });
         
         return reply.type('text/html').send(html);
@@ -1036,7 +1036,7 @@ fastify.get('/admin/analytics', async (req, reply) => {
             currentPage: 'earnings',
             pageTitle: 'Earnings',
             pageSubtitle: 'Manage contributor payments and revenue',
-            title: 'Earnings | Nook Admin',
+            title: 'Earnings | PaidInk Admin',
             stats,
             monthlyData,
             leaderboard,

@@ -73,7 +73,7 @@ module.exports = async function authRoutes(fastify) {
                 }
             }
 
-            await user.addReward(SIGNUP_BONUS, 'signup_bonus', 'Welcome bonus for joining NOOK Rewards');
+            await user.addReward(SIGNUP_BONUS, 'signup_bonus', 'Welcome bonus for joining PaidInk Rewards');
 
             const token = fastify.jwt.sign({
                 id: user._id,

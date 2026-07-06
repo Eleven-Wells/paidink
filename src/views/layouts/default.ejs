@@ -5,27 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        <%= title || 'NOOK - Stay Informed' %>
+        <%= title || 'Paidink - Stay Informed' %>
     </title>
     <meta name="description"
         content="<%= description || 'Stay ahead with the latest in AI, web development, cloud computing, and technology innovation.' %>">
 
-    <meta property="og:title" content="<%= title || 'NOOK - Stay Informed' %>">
+    <meta property="og:title" content="<%= title || 'Paidink - Stay Informed' %>">
     <meta property="og:description"
-        content="<%= description || 'Read. Write. Engage. On Nook, attention isn\'t wasted, it\'s returned.' %>">
+        content="<%= description || 'Read. Write. Engage. On PaidInk, attention isn\'t wasted, it\'s returned.' %>">
     <meta property="og:image"
         content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:type" content="<%= typeof ogType !== 'undefined' && ogType ? ogType : 'website' %>">
     <meta property="og:url" content="<%= canonical || '' %>">
-    <meta property="og:site_name" content="NOOK">
+    <meta property="og:site_name" content="Paidink">
     <meta property="og:locale" content="<%= lang || 'en_US' %>">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<%= title || 'NOOK - Stay Informed' %>">
+    <meta name="twitter:title" content="<%= title || 'Paidink - Stay Informed' %>">
     <meta name="twitter:description"
-        content="<%= description || 'Read. Write. Engage. On Nook, attention isn\'t wasted, it\'s returned.' %>">
+        content="<%= description || 'Read. Write. Engage. On PaidInk, attention isn\'t wasted, it\'s returned.' %>">
     <meta name="twitter:image"
         content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
@@ -47,9 +47,9 @@
     <%- JSON.stringify({
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "NOOK",
+      "name": "Paidink",
       "url": process.env.BASE_URL || '',
-      "description": "Read. Write. Engage. On Nook, attention isn't wasted, it's returned.",
+      "description": "Read. Write. Engage. On PaidInk, attention isn't wasted, it's returned.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": (process.env.BASE_URL || '') + "/?q={search_term_string}",
@@ -61,7 +61,7 @@
     <%- JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Organization",
-      "name": "NOOK",
+      "name": "Paidink",
       "url": process.env.BASE_URL || '',
       "logo": (process.env.BASE_URL || '') + '/images/nook-logo.png',
       "sameAs": []

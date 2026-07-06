@@ -343,7 +343,7 @@ Create `src/views/pages/auth-callback.ejs`:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completing sign in... | NOOK</title>
+    <title>Completing sign in... | Paidink </title>
     <meta name="theme-color" content="#6d0a0a">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
@@ -428,7 +428,7 @@ Find the pages route file and add a new route for `/auth/callback`. Look for whe
     fastify.get('/auth/callback', async (req, reply) => {
         return reply.view('pages/auth-callback.ejs', {
             title: 'Completing sign in...',
-            description: 'Completing your sign in to Nook.'
+            description: 'Completing your sign in to Paidink.'
         });
     });
 ```

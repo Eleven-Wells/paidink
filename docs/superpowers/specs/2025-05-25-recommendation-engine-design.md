@@ -2,7 +2,7 @@
 
 ## Context
 
-Nook is a reward-based content platform ("Read to Earn") built with Fastify + MongoDB + EJS. The current "recommendation" system is limited to tag/category scoring in `src/seo/internalLinking.js` (primarily for SEO internal linking). Feed is sorted by `publishedAt` DESC with no personalization. Rich engagement data exists via `ReadSession` (time spent, scroll depth, completion), likes, saves, shares, and comments.
+Paidink is a reward-based content platform ("Read to Earn") built with Fastify + MongoDB + EJS. The current "recommendation" system is limited to tag/category scoring in `src/seo/internalLinking.js` (primarily for SEO internal linking). Feed is sorted by `publishedAt` DESC with no personalization. Rich engagement data exists via `ReadSession` (time spent, scroll depth, completion), likes, saves, shares, and comments.
 
 **Primary business goal**: Increase publisher engagement — help publishers' content get discovered, incentivizing them to create more.
 
