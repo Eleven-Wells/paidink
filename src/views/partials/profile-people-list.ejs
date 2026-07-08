@@ -8,7 +8,7 @@
                 <div class="profile-people-item__main">
                     <%- include('./avatar', { user: person, size: '48px' }) %>
                     <div class="profile-people-item__copy">
-                        <span class="profile-people-item__name"><%= person.displayName || 'Nook reader' %></span>
+                        <span class="profile-people-item__name"><%= person.displayName || 'PaidInk reader' %></span>
                         <% if (person.username) { %>
                             <span class="profile-people-item__handle">@<%= person.username %></span>
                         <% } %>
@@ -27,7 +27,7 @@
         copy: peopleType === 'followers'
             ? 'When others follow you, they will appear here.'
             : 'Discover writers and readers on Explore and follow people you enjoy.',
-        ctaText: peopleType === 'followers' ? '' : 'Explore Nook',
+        ctaText: peopleType === 'followers' ? '' : 'Explore PaidInk',
         ctaHref: peopleType === 'followers' ? '' : '/explore'
     }) %>
 <% } %>

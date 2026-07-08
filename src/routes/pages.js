@@ -192,8 +192,8 @@ async function pagesRoutes(fastify) {
             activeCategory: null,
             lang,
             theme: req.cookies?.theme || 'light',
-            title: 'About Us | NOOK',
-            description: 'Learn more about NOOK, our mission, and the community behind it.',
+            title: 'About Us | PaidInk',
+            description: 'Learn more about PaidInk, our mission, and the community behind it.',
             canonical: `${process.env.BASE_URL || ''}/about`,
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null
@@ -208,8 +208,8 @@ async function pagesRoutes(fastify) {
             activeCategory: null,
             lang,
             theme: req.cookies?.theme || 'light',
-            title: 'Contact Us | NOOK',
-            description: 'Get in touch with the NOOK team. We\'d love to hear from you.',
+            title: 'Contact Us | PaidInk',
+            description: 'Get in touch with the PaidInk team. We\'d love to hear from you.',
             canonical: `${process.env.BASE_URL || ''}/contact`,
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null
@@ -224,8 +224,8 @@ async function pagesRoutes(fastify) {
             activeCategory: null,
             lang,
             theme: req.cookies?.theme || 'light',
-            title: 'Privacy Policy | NOOK',
-            description: 'Read our privacy policy to understand how NOOK handles your data.',
+            title: 'Privacy Policy | PaidInk',
+            description: 'Read our privacy policy to understand how PaidInk handles your data.',
             canonical: `${process.env.BASE_URL || ''}/privacy`,
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null
@@ -240,8 +240,8 @@ async function pagesRoutes(fastify) {
             activeCategory: null,
             lang,
             theme: req.cookies?.theme || 'light',
-            title: 'Terms of Service | NOOK',
-            description: 'Read our terms of service to understand the rules and regulations for using NOOK.',
+            title: 'Terms of Service | PaidInk',
+            description: 'Read our terms of service to understand the rules and regulations for using PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/terms`,
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null
@@ -290,8 +290,8 @@ async function pagesRoutes(fastify) {
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
-            title: 'Dashboard | NOOK',
-            description: 'Track your reading activity, earnings, and milestones on NOOK.',
+            title: 'Dashboard | PaidInk',
+            description: 'Track your reading activity, earnings, and milestones on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/dashboard`,
             readHistory: recentReads,
             readStats: {
@@ -372,8 +372,8 @@ async function pagesRoutes(fastify) {
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
-            title: 'Profile | NOOK',
-            description: 'Manage your NOOK profile, saved posts, and connections.',
+            title: 'Profile | PaidInk',
+            description: 'Manage your PaidInk profile, saved posts, and connections.',
             canonical: `${process.env.BASE_URL || ''}/profile`,
             savedPosts: savedPostsPrepared,
             followingUsers: followingUsers.map(mapPerson),
@@ -416,8 +416,8 @@ async function pagesRoutes(fastify) {
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
-            title: 'My Reads | NOOK',
-            description: 'Review your reading history and track articles you have explored on NOOK.',
+            title: 'My Reads | PaidInk',
+            description: 'Review your reading history and track articles you have explored on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/reads`,
             reads,
             stats: {
@@ -491,8 +491,8 @@ async function pagesRoutes(fastify) {
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
-            title: 'Withdraw | NOOK',
-            description: 'Cash out your NOOK earnings and manage your withdrawal history.',
+            title: 'Withdraw | PaidInk',
+            description: 'Cash out your PaidInk earnings and manage your withdrawal history.',
             canonical: `${process.env.BASE_URL || ''}/withdraw`
         });
     });
@@ -555,8 +555,8 @@ async function pagesRoutes(fastify) {
             isLoggedIn: true,
             unreadCount: req.unreadCount,
             dashboardTheme: 'light',
-            title: 'Achievements | NOOK',
-            description: 'Explore your achievements and milestones earned through reading and engagement on NOOK.',
+            title: 'Achievements | PaidInk',
+            description: 'Explore your achievements and milestones earned through reading and engagement on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/achievements`,
             achievements: achievementProgress,
             unlockedCount: earnedAchievements.length,
@@ -811,7 +811,7 @@ async function pagesRoutes(fastify) {
         });
 
         return reply.view('layouts/default.ejs', {
-            title: 'Earnings | Nook Publisher',
+            title: 'Earnings | PaidInk Publisher',
             currentPage: 'earnings',
             user: req.user.toPublicJSON(),
             body,
@@ -1059,7 +1059,7 @@ async function pagesRoutes(fastify) {
                 CATEGORY_ENUM,
                 CATEGORY_NAMES,
                 categoryNames: CATEGORY_NAMES[lang],
-                title: 'NOOK - Read. Write. Engage.',
+                title: 'PaidInk - Read. Write. Engage.',
                 description: 'Stay ahead with the latest in AI, web development, cloud computing, and technology innovation.',
                 canonical: `${process.env.BASE_URL || ''}/`,
                 ogImage: '/public/images/og-default.png'
@@ -1074,8 +1074,8 @@ async function pagesRoutes(fastify) {
                 activeCategory: null,
                 lang,
                 theme: req.cookies?.theme || 'light',
-                title: '404 - Page Not Found | NOOK',
-                description: 'The page you are looking for could not be found on NOOK.',
+                title: '404 - Page Not Found | PaidInk',
+                description: 'The page you are looking for could not be found on PaidInk.',
                 canonical: `${process.env.BASE_URL || ''}${req.url}`
             });
         }
@@ -1099,8 +1099,8 @@ async function pagesRoutes(fastify) {
             activeCategory: category,
             lang,
             theme: req.cookies?.theme || 'light',
-            title: categoryName ? `${categoryName} - NOOK` : 'NOOK - Read. Write. Engage.',
-            description: categoryName ? `Latest ${categoryName.toLowerCase()} news` : 'Read. Write. Engage. On Nook, attention isn\'t wasted, it\'s returned.',
+            title: categoryName ? `${categoryName} - PaidInk` : 'PaidInk - Read. Write. Engage.',
+            description: categoryName ? `Latest ${categoryName.toLowerCase()} news` : 'Read. Write. Engage. On PaidInk, attention isn\'t wasted, it\'s returned.',
             ogImage: '/public/images/og-default.png',
             canonical: `${process.env.BASE_URL || ''}${req.url.split('?')[0]}`,
             isLoggedIn: req.isLoggedIn,
@@ -1227,8 +1227,8 @@ async function pagesRoutes(fastify) {
             CATEGORY_ENUM,
             CATEGORY_NAMES,
             categoryNames: CATEGORY_NAMES[lang],
-            title: 'Explore | NOOK',
-            description: 'Discover trending stories, fresh perspectives, and the latest in technology on NOOK.',
+            title: 'Explore | PaidInk',
+            description: 'Discover trending stories, fresh perspectives, and the latest in technology on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/browse`,
             ogImage: '/public/images/og-default.png'
         });
@@ -1384,8 +1384,8 @@ async function pagesRoutes(fastify) {
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null,
             lang,
-            title: 'Activity | NOOK',
-            description: 'Stay updated with your notifications, interactions, and activity on NOOK.',
+            title: 'Activity | PaidInk',
+            description: 'Stay updated with your notifications, interactions, and activity on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/activity`,
             ogImage: '/public/images/og-default.png'
         });
@@ -1402,8 +1402,8 @@ async function pagesRoutes(fastify) {
                 activeCategory: null,
                 lang,
                 theme: req.cookies?.theme || 'light',
-                title: '404 - Page Not Found | NOOK',
-                description: 'The page you are looking for could not be found on NOOK.',
+                title: '404 - Page Not Found | PaidInk',
+                description: 'The page you are looking for could not be found on PaidInk.',
                 canonical: `${process.env.BASE_URL || ''}/post/${slug}`
             });
         }
@@ -1415,8 +1415,8 @@ async function pagesRoutes(fastify) {
                 activeCategory: null,
                 lang,
                 theme: req.cookies?.theme || 'light',
-                title: '404 - Page Not Found | NOOK',
-                description: 'The page you are looking for could not be found on NOOK.',
+                title: '404 - Page Not Found | PaidInk',
+                description: 'The page you are looking for could not be found on PaidInk.',
                 canonical: `${process.env.BASE_URL || ''}/post/${slug}`
             });
         }
@@ -1526,8 +1526,8 @@ async function pagesRoutes(fastify) {
                 activeCategory: null,
                 lang,
                 theme: req.cookies?.theme || 'light',
-                title: '404 - Page Not Found | NOOK',
-                description: 'The page you are looking for could not be found on NOOK.',
+                title: '404 - Page Not Found | PaidInk',
+                description: 'The page you are looking for could not be found on PaidInk.',
                 canonical: `${process.env.BASE_URL || ''}/category/${category}`
             });
         }
@@ -1550,8 +1550,8 @@ async function pagesRoutes(fastify) {
             activeCategory: category,
             lang,
             theme: req.cookies?.theme || 'light',
-            title: `${categoryName} | NOOK`,
-            description: `Latest ${categoryName.toLowerCase()} news, articles, and insights on NOOK.`,
+            title: `${categoryName} | PaidInk`,
+            description: `Latest ${categoryName.toLowerCase()} news, articles, and insights on PaidInk.`,
             ogImage: '/public/images/og-default.png',
             canonical: `${process.env.BASE_URL || ''}/category/${category}`
         });
@@ -1603,8 +1603,8 @@ async function pagesRoutes(fastify) {
 
         return reply.view('layouts/default.ejs', {
             body: pageContent,
-            title: `${query} — Search | NOOK`,
-            description: `Search results for "${query}" on NOOK.`,
+            title: `${query} — Search | PaidInk`,
+            description: `Search results for "${query}" on PaidInk.`,
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null,
             unreadCount: req.unreadCount,

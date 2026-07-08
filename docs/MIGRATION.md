@@ -1,12 +1,12 @@
-# Nook — Render to Vercel Migration
+# Paiink — Render to Vercel Migration
 
 ## Overview
 
-This document tracks the migration of **Nook** from **Render** (container-based hosting) to **Vercel** (serverless + edge hosting). The application is a Fastify 5 + MongoDB + Redis + BullMQ tech news platform with server-side EJS rendering.
+This document tracks the migration of **PaidInk** from **Render** (container-based hosting) to **Vercel** (serverless + edge hosting). The application is a Fastify 5 + MongoDB + Redis + BullMQ tech news platform with server-side EJS rendering.
 
 ### Why This Is Complex
 
-Nook is a **traditional long-running server** — it starts up, opens persistent connections to MongoDB and Redis, registers cron jobs, starts a BullMQ worker, and listens on a port. Vercel is a **serverless platform** — functions are invoked per-request, can't keep long-running processes, and have different constraints around connections, filesystem, and execution duration.
+Paidink is a **traditional long-running server** — it starts up, opens persistent connections to MongoDB and Redis, registers cron jobs, starts a BullMQ worker, and listens on a port. Vercel is a **serverless platform** — functions are invoked per-request, can't keep long-running processes, and have different constraints around connections, filesystem, and execution duration.
 
 A direct "deploy the same code" approach would fail. This migration requires an **architectural split**: the request-response layer moves to Vercel's serverless functions, while background processing (BullMQ worker + cron jobs) runs on a separate container service.
 
@@ -198,7 +198,7 @@ A direct "deploy the same code" approach would fail. This migration requires an 
 
 #### `package.json`
 - Added `"start:worker": "node worker/index.js"` script
-- Removed `"name": "LatestTechNews"` → `"Nook"` (from previous rebranding)
+- Removed `"name": "LatestTechNews"` → `"Paidink"` (from previous rebranding)
 
 ### Deleted Files
 
@@ -437,9 +437,9 @@ curl "http://localhost:5050/api/cron?job=content-cleanup"
 |--------|---------|---------|
 | `VERCEL_TOKEN` | Vercel deploy | Vercel API authentication |
 | `VERCEL_ORG_ID` | Vercel deploy | Vercel team/org ID |
-| `VERCEL_PROJECT_ID` | Vercel deploy | Nook project in Vercel |
+| `VERCEL_PROJECT_ID` | Vercel deploy | paidink project in Vercel |
 | `FLY_API_TOKEN` | Worker deploy | Fly.io API authentication |
-| `APP_URL` | Health check | Production URL (e.g., `https://nook-app.vercel.app`) |
+| `APP_URL` | Health check | Production URL (e.g., `https://paidink.app`) |
 | `DISCORD_WEBHOOK_URL` | Notify | Deployment status notifications via Discord webhook (optional) |
 
 **Notifications:** The `notify` job sends a Discord webhook with deployment status (color-coded: green for success, red for failure). Requires `DISCORD_WEBHOOK_URL` secret. Remove the step if not needed.
