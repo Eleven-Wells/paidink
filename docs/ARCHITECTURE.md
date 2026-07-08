@@ -1,8 +1,8 @@
-# Nook Rewards - System Architecture
+# Paidink Rewards - System Architecture
 
 ## 1. Core Concept
 
-**Nook Rewards** - A reward-based content platform where users earn money by reading content and engaging with ads, while content creators monetize their articles.
+* Paidink Rewards** - A reward-based content platform where users earn money by reading content and engaging with ads, while content creators monetize their articles.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐

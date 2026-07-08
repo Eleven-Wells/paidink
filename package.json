@@ -1,5 +1,5 @@
 {
-  "name": "Nook",
+  "name": "Paidink",
   "version": "1.0.0",
   "description": "A community reading and writing platform for discovering and sharing stories across all topics",
   "main": "src/server.js",

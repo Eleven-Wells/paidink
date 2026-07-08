@@ -63,7 +63,7 @@ const configSchema = {
         ALLOWED_ORIGINS: { default: 'http://localhost:5050,http://localhost:3000' },
         BASE_URL: {
             default: process.env.NODE_ENV === 'production'
-                ? 'https://nook-app.onrender.com'
+                ? 'https://paidink.app'
                 : `http://localhost:${process.env.PORT || 5050}`
         },
         SMTP_HOST: { default: null },

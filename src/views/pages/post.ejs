@@ -15,12 +15,12 @@
   "dateModified": post.updatedAt ? new Date(post.updatedAt).toISOString() : new Date().toISOString(),
   "author": {
     "@type": "Organization",
-    "name": "NOOK",
+    "name": "PaidInk
     "url": process.env.BASE_URL || ''
   },
   "publisher": {
     "@type": "Organization",
-    "name": "NOOK",
+    "name": "PaidInk
     "url": process.env.BASE_URL || ''
   },
   "mainEntityOfPage": {
@@ -154,7 +154,7 @@
                                             <div>
                                                 <p class="font-medium post-author-name">
                                                     <%= post.author && (post.author.username || post.author.displayName)
-                                                        ? (post.author.username || post.author.displayName) : 'NOOK' %>
+                                                        ? (post.author.username || post.author.displayName) : 'PaidInk' %>
                                                 </p>
                                                 <p class="text-sm post-author-copy">
                                                     <%= post.author && post.author.bio ? post.author.bio
@@ -249,7 +249,7 @@
                                         .replace(/\s+/g, ' ').trim()); %>
                                         <% const relatedPreview=relatedPost.summary || (relatedPlain ?
                                             relatedPlain.substring(0, 120) + (relatedPlain.length> 120 ? '...' : '') :
-                                            'Continue reading this story on Nook.'); %>
+                                            'Continue reading this story on PaidInk.'); %>
                                             <a href="/post/<%= relatedPost.slug %>"
                                                 class="post-related-link block h-full">
                                                 <article class="post-related-card group h-full">

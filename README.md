@@ -1,4 +1,4 @@
-# Nook
+# Paidink
 
 A modern community platform for reading, writing, and engaging with stories across all topics. Readers discover content through personalized feeds, categories, and search. Writers publish and grow their audience.
 
@@ -20,7 +20,7 @@ A modern community platform for reading, writing, and engaging with stories acro
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           Nook Architecture                                │
+│                           PaidInk Architecture                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                    │
