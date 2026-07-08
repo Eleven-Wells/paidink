@@ -59,7 +59,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { loadConfig, getAllowedOrigins, CATEGORY_ENUM, CATEGORY_NAMES } = require('./config');
-const { initLogto } = require('./services/LogtoService');
+const ClerkService = require('./services/ClerkService');
 
 const { assetUrl } = require('./config/assets');
 const errorHandlerPlugin = require('./plugins/error-handler');
@@ -75,10 +75,14 @@ const authPlugin = require('./plugins/auth');
 
 async function buildApp() {
     loadConfig();
-    try {
-        await initLogto();
-    } catch (err) {
-        fastify.log.warn({ component: 'auth' }, 'Logto initialization failed: ' + err.message);
+    ClerkService.initClerk();
+
+    if (ClerkService.isConfigured()) {
+        const { clerkPlugin } = require('@clerk/fastify');
+        await fastify.register(clerkPlugin);
+        fastify.log.info({ component: 'auth' }, 'Clerk plugin registered');
+    } else {
+        fastify.log.info({ component: 'auth' }, 'Clerk OAuth not configured — social login disabled');
     }
 
     // Register static assets plugin only if reply.sendFile isn't already decorated.

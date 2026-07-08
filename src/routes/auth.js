@@ -2,7 +2,7 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const LedgerEntry = require('../models/LedgerEntry');
 const crypto = require('crypto');
-const { getAuthorizationUrl, handleCallback } = require('../services/LogtoService');
+const ClerkService = require('../services/ClerkService');
 
 const SIGNUP_BONUS = 100;
 
@@ -261,53 +261,34 @@ module.exports = async function authRoutes(fastify) {
         }
     });
 
-    fastify.get('/logto/login', async (req, reply) => {
+    fastify.get('/clerk/login', async (req, reply) => {
         try {
+            if (!ClerkService.isConfigured()) {
+                return reply.redirect('/login?error=social_auth_unavailable');
+            }
+
             const provider = req.query.provider;
-            const redirectUri = `${process.env.BASE_URL || 'http://localhost:5050'}/api/auth/logto/callback`;
-            const { url, codeVerifier, state, nonce } = await getAuthorizationUrl(redirectUri, provider);
+            const redirectUri = `${process.env.BASE_URL || 'http://localhost:5050'}/api/auth/clerk/callback`;
+            const authorizationUrl = await ClerkService.getOAuthUrl(provider, redirectUri);
 
-            reply.setCookie('logto_state', JSON.stringify({ codeVerifier, state, nonce }), {
-                path: '/',
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                maxAge: 60 * 5
-            });
-
-            return reply.redirect(url);
+            return reply.redirect(authorizationUrl);
         } catch (err) {
-            req.log.error(err, 'Logto login error');
+            req.log.error(err, 'Clerk login error');
             return reply.redirect('/login?error=social_auth_unavailable');
         }
     });
 
-    fastify.get('/logto/callback', async (req, reply) => {
+    fastify.get('/clerk/callback', async (req, reply) => {
         try {
-            const pkceCookie = req.cookies.logto_state;
-            if (!pkceCookie) {
+            const sessionToken = req.query._clerk_session_token;
+            if (!sessionToken) {
                 return reply.redirect('/login?error=auth_expired');
             }
 
-            let pkceParams;
-            try {
-                pkceParams = JSON.parse(pkceCookie);
-            } catch {
-                return reply.redirect('/login?error=auth_expired');
-            }
+            const tokenPayload = await ClerkService.verifySessionToken(sessionToken);
+            const userInfo = await ClerkService.getUserInfo(tokenPayload.sub);
 
-            reply.clearCookie('logto_state', { path: '/' });
-
-            const redirectUri = `${process.env.BASE_URL || 'http://localhost:5050'}/api/auth/logto/callback`;
-            const userInfo = await handleCallback(
-                req.url,
-                redirectUri,
-                pkceParams.codeVerifier,
-                pkceParams.state,
-                pkceParams.nonce
-            );
-
-            const authUserId = `logto:${userInfo.sub}`;
+            const authUserId = `clerk:${userInfo.sub}`;
             const email = userInfo.email;
             const displayName = userInfo.name || (email ? email.split('@')[0] : 'User');
             const avatar = userInfo.picture || null;
@@ -323,7 +304,7 @@ module.exports = async function authRoutes(fastify) {
                 const existingEmail = email ? await User.findOne({ email }) : null;
                 if (existingEmail) {
                     existingEmail.authUserId = authUserId;
-                    existingEmail.authProvider = 'logto';
+                    existingEmail.authProvider = 'clerk';
                     existingEmail.lastLogin = new Date();
                     if (avatar) existingEmail.avatar = avatar;
                     if (displayName) existingEmail.displayName = displayName;
@@ -331,12 +312,12 @@ module.exports = async function authRoutes(fastify) {
                     user = existingEmail;
                 } else {
                     user = new User({
-                        email: email || `${userInfo.sub}@logto.auth`,
+                        email: email || `${userInfo.sub}@clerk.auth`,
                         authUserId,
-                        authProvider: 'logto',
+                        authProvider: 'clerk',
                         displayName,
                         avatar,
-                        username: `user_${Date.now().toString(36)}`,
+                        username: userInfo.username || `user_${Date.now().toString(36)}`,
                         lastLogin: new Date()
                     });
                     await user.save();
@@ -359,7 +340,7 @@ module.exports = async function authRoutes(fastify) {
 
             return reply.redirect('/dashboard');
         } catch (err) {
-            req.log.error(err, 'Logto callback error');
+            req.log.error(err, 'Clerk callback error');
             return reply.redirect('/login?error=auth_failed');
         }
     });

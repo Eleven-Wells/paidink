@@ -37,6 +37,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.12.4",
   "dependencies": {
+    "@clerk/fastify": "^3.1.45",
     "@fastify/caching": "^9.0.3",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.1.0",

@@ -28,7 +28,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script>
-        var LOGTO_ENABLED = <%= process.env.LOGTO_ENDPOINT && process.env.LOGTO_APP_ID ? 'true' : 'false' %>;
+        var CLERK_ENABLED = <%= process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY ? 'true' : 'false' %>;
         function handleSocialLogin(btn, url) {
             btn.classList.add('loading');
             var loader = btn.querySelector('.dot-loader');
@@ -230,7 +230,7 @@
                         Continue with</p>
                     <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;">
                         <button type="button" class="social-auth-btn google-btn"
-                            onclick="handleSocialLogin(this, '/api/auth/logto/login?provider=google')"
+                            onclick="handleSocialLogin(this, '/api/auth/clerk/login?provider=google')"
                             aria-label="Sign in with Google">
                             <svg width="22" height="22" viewBox="0 0 24 24">
                                 <path fill="#4285F4"
@@ -246,7 +246,7 @@
                             <div class="dot-loader hidden"><span></span><span></span><span></span></div>
                         </button>
                         <button type="button" class="social-auth-btn x-btn"
-                            onclick="handleSocialLogin(this, '/api/auth/logto/login?provider=twitter')"
+                            onclick="handleSocialLogin(this, '/api/auth/clerk/login?provider=twitter')"
                             aria-label="Sign in with X" style="display:none">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path
@@ -256,7 +256,7 @@
                             <div class="dot-loader hidden"><span></span><span></span><span></span></div>
                         </button>
                         <button type="button" class="social-auth-btn discord-btn"
-                            onclick="handleSocialLogin(this, '/api/auth/logto/login?provider=discord')"
+                            onclick="handleSocialLogin(this, '/api/auth/clerk/login?provider=discord')"
                             aria-label="Sign in with Discord" style="display:none">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="#5865F2">
                                 <path
