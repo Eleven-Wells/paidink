@@ -19,6 +19,11 @@ const PLACEMENTS = Object.freeze({
     TRENDING: 'trending'
 });
 
+function safeInt(value, fallback) {
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 function loadAdConfig() {
     return Object.freeze({
         enabled: process.env.ADS_ENABLED !== 'false',
@@ -26,9 +31,9 @@ function loadAdConfig() {
         rotation: process.env.ADS_ROTATION || 'none',
         providers: (process.env.ADS_PROVIDERS || 'mock').split(',').map(s => s.trim()),
         providerWeights: parseWeights(process.env.ADS_PROVIDER_WEIGHTS || ''),
-        healthCheckTTL: parseInt(process.env.ADS_HEALTH_CHECK_TTL || '60', 10),
+        healthCheckTTL: safeInt(process.env.ADS_HEALTH_CHECK_TTL, 60),
         cacheEnabled: process.env.ADS_CACHE_ENABLED === 'true',
-        cacheTTL: parseInt(process.env.ADS_CACHE_TTL || '300', 10),
+        cacheTTL: safeInt(process.env.ADS_CACHE_TTL, 300),
         trackImpressions: process.env.ADS_TRACK_IMPRESSIONS !== 'false',
         trackClicks: process.env.ADS_TRACK_CLICKS !== 'false',
         disableForRoles: (process.env.ADS_DISABLE_FOR_ROLES || 'premium,administrator').split(',').map(s => s.trim())
@@ -40,7 +45,9 @@ function parseWeights(raw) {
     const weights = {};
     raw.split(',').forEach(pair => {
         const [name, weight] = pair.split('=').map(s => s.trim());
-        if (name && weight) weights[name] = parseInt(weight, 10);
+        if (name && weight) {
+            weights[name] = safeInt(weight, 0);
+        }
     });
     return weights;
 }
