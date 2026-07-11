@@ -6,7 +6,6 @@ const cronPlugin = require('./plugins/cron-plugin');
 
 let dbConnected = false;
 let paymentWorkerInstance = null;
-let serverState = 'starting';
 const servicesReady = { database: false, redis: false };
 
 async function initializeRedis() {
@@ -138,12 +137,9 @@ async function start() {
         });
 
         fastify.get('/readyz', async (req, reply) => {
-            if (serverState === 'starting') {
-                return reply.code(503).send({ status: 'starting' });
-            }
             return reply.code(200).send({
-                status: serverState,
-                services: { ...servicesReady }
+                status: 'ready',
+                database: dbConnected
             });
         });
 
@@ -185,10 +181,8 @@ async function start() {
                     fastify.log.warn({ component: 'worker' }, 'Dependencies not ready, workers deferred');
                 }
 
-                serverState = redisOk && dbOk ? 'ready' : 'degraded';
-                fastify.log.info({ component: 'server', state: serverState, services: servicesReady }, 'Background initialization complete');
+                fastify.log.info({ component: 'server', services: servicesReady }, 'Background initialization complete');
             } catch (err) {
-                serverState = 'degraded';
                 fastify.log.warn({ component: 'server', error: err.message }, 'Startup dependency failed');
             }
         })();
