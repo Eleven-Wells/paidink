@@ -16,7 +16,7 @@ async function connectDB() {
         // environments, append driver options to the connection URI instead
         // of passing them to mongoose.connect as top-level setters.
         let mongoUri = process.env.MONGO_URI;
-        const params = 'serverSelectionTimeoutMS=5000&socketTimeoutMS=45000';
+        const params = 'serverSelectionTimeoutMS=5000&socketTimeoutMS=45000&maxPoolSize=5';
 
         if (!mongoUri.includes('?')) {
             mongoUri = `${mongoUri}?${params}`;
