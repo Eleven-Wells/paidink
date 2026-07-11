@@ -6,6 +6,7 @@ const ABTest = require('../../models/ads/ABTest');
 const User = require('../../models/User');
 const ReadSession = require('../../models/ReadSession');
 const { distributeAdRevenue } = require('./AdRevenueService');
+const { AD_EVENTS } = require('../../config/ads');
 
 const AD_TYPE_REVENUE = {
     banner: { baseCpm: 2, baseCpc: 0.1 },
@@ -530,7 +531,28 @@ async function seedDefaultData() {
     return { banner, interstitial, native, rewarded };
 }
 
+function subscribeToEventBus(eventBus) {
+    eventBus.on(AD_EVENTS.IMPRESSION, async (data) => {
+        if (process.env.ADS_TRACK_IMPRESSIONS === 'false') return;
+        try {
+            await simulateImpression(data.adConfigId, data.userId, data.placement, data.sessionId);
+        } catch (err) {
+            console.error('AdSimulationService: EventBus impression handler error:', err);
+        }
+    });
+
+    eventBus.on(AD_EVENTS.CLICKED, async (data) => {
+        if (process.env.ADS_TRACK_CLICKS === 'false') return;
+        try {
+            await simulateClick(data.impressionId);
+        } catch (err) {
+            console.error('AdSimulationService: EventBus click handler error:', err);
+        }
+    });
+}
+
 module.exports = {
+    subscribeToEventBus,
     triggerAdForUser,
     triggerRewardedAd,
     simulateImpression,
