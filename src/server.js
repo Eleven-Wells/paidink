@@ -43,6 +43,7 @@ async function initializeDatabase() {
     } catch (err) {
         fastify.log.error({ component: 'database', error: err.message }, 'MongoDB connection failed');
         dbConnected = false;
+        return false;
     }
 }
 
@@ -155,6 +156,8 @@ async function start() {
 
         const PORT = Number(process.env.PORT || 5050);
 
+        const dbReady = await initializeDatabase();
+
         await fastify.listen({
             port: PORT,
             host: '0.0.0.0'
@@ -164,15 +167,9 @@ async function start() {
 
         (async () => {
             try {
-                const results = await Promise.allSettled([
-                    initializeRedis(),
-                    initializeDatabase()
-                ]);
+                const redisOk = await initializeRedis();
 
-                const redisOk = results[0].status === 'fulfilled' && results[0].value === true;
-                const dbOk = results[1].status === 'fulfilled' && results[1].value === true;
-
-                if (dbOk) {
+                if (dbReady) {
                     await ensureVapidKeys().catch((err) => {
                         fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
                     });
@@ -185,7 +182,7 @@ async function start() {
                     fastify.log.info({ component: 'cron' }, 'All cron jobs started');
                 }
 
-                if (redisOk && dbOk) {
+                if (redisOk && dbReady) {
                     await startWorkers();
                 } else {
                     fastify.log.warn({ component: 'worker' }, 'Dependencies not ready, workers deferred');
