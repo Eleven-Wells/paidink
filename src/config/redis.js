@@ -18,7 +18,7 @@ const redisConfig = {
         return Math.min(times * 200, 2000);
     },
     retryDelayOnFailover: 100,
-    lazyConnect: false
+    lazyConnect: true
 };
 
 let redisConnection = null;
