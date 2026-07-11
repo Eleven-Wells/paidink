@@ -4,37 +4,17 @@ const { isFeatureEnabled } = require('./config/features');
 const { ensureVapidKeys } = require('./services/PushService');
 const cronPlugin = require('./plugins/cron-plugin');
 
-const DEFAULT_PORT = process.env.PORT || 5050;
-let PORT = DEFAULT_PORT;
 let dbConnected = false;
-
-async function isPortInUse(port) {
-    return new Promise((resolve) => {
-        const server = require('net').createServer();
-        server.once('error', (err) => {
-            resolve(err.code === 'EADDRINUSE');
-        });
-        server.once('listening', () => {
-            server.close();
-            resolve(false);
-        });
-        server.listen(port, '0.0.0.0');
-    });
-}
-
-async function findAvailablePort(startPort) {
-    let port = startPort;
-    while (await isPortInUse(port)) {
-        port++;
-    }
-    return port;
-}
+let paymentWorkerInstance = null;
+const servicesReady = { database: false, redis: false };
 
 async function initializeRedis() {
+    fastify.log.info({ component: 'redis' }, 'Connecting Redis');
     try {
         const redis = getRedisConnection();
         await redis.ping();
-        fastify.log.info({ component: 'redis' }, 'Redis connected successfully');
+        servicesReady.redis = true;
+        fastify.log.info({ component: 'redis' }, 'Redis connected');
         return true;
     } catch (err) {
         fastify.log.warn({ component: 'redis', error: err.message }, 'Redis connection failed');
@@ -43,11 +23,13 @@ async function initializeRedis() {
 }
 
 async function initializeDatabase() {
+    fastify.log.info({ component: 'database' }, 'Connecting MongoDB');
     try {
         const { connectDB } = require('./db');
         await connectDB();
         dbConnected = true;
-        fastify.log.info({ component: 'database' }, 'Database connected successfully');
+        servicesReady.database = true;
+        fastify.log.info({ component: 'database' }, 'MongoDB connected');
 
         try {
             const { seedDefaultData } = require('./services/ads/AdSimulationService');
@@ -57,9 +39,9 @@ async function initializeDatabase() {
             fastify.log.warn({ component: 'ads', error: err.message }, 'Default ad data seeding failed');
         }
 
-        fastify.log.info({ component: 'init' }, 'Deprecated blog fetch removed');
+        return true;
     } catch (err) {
-        fastify.log.error({ component: 'database', error: err.message }, 'Database connection failed');
+        fastify.log.error({ component: 'database', error: err.message }, 'MongoDB connection failed');
         dbConnected = false;
     }
 }
@@ -75,13 +57,72 @@ function addDecorators() {
     });
 }
 
+function registerProviders() {
+    const ProviderFactory = require('./services/ads/providers/ProviderFactory');
+    const MockProvider = require('./services/ads/providers/MockProvider');
+    ProviderFactory.register('mock', MockProvider);
+
+    const AdProviderInterface = require('./services/ads/providers/AdProviderInterface');
+    class DirectProvider extends AdProviderInterface {
+        get name() { return 'direct'; }
+        async getAds() { return []; }
+        async recordImpression() {}
+        async recordClick() {}
+        async healthCheck() { return true; }
+    }
+    ProviderFactory.register('direct', DirectProvider);
+}
+
+async function startWorkers() {
+    if (!servicesReady.redis) {
+        fastify.log.warn({ component: 'worker' }, 'Redis unavailable, workers deferred');
+        return;
+    }
+    if (!servicesReady.database) {
+        fastify.log.warn({ component: 'worker' }, 'Database unavailable, workers deferred');
+        return;
+    }
+
+    if (isFeatureEnabled('content', 'aiGeneration')) {
+        fastify.log.info({ component: 'worker' }, 'Starting content worker');
+        const worker = require('./worker');
+        try {
+            const status = await worker.start();
+            fastify.log.info({ component: 'worker', status }, 'Content worker ready');
+        } catch (err) {
+            fastify.log.warn({ component: 'worker', error: err.message }, 'Content worker startup failed');
+        }
+    } else {
+        fastify.log.info({ component: 'worker' }, 'Content worker disabled');
+    }
+
+    fastify.log.info({ component: 'payment-worker' }, 'Starting payment worker');
+    const { startPaymentWorker } = require('./worker/paymentWorker');
+    try {
+        const pw = await startPaymentWorker();
+        if (pw) {
+            paymentWorkerInstance = pw;
+            fastify.log.info({ component: 'payment-worker' }, 'Payment worker ready');
+        } else {
+            fastify.log.warn({ component: 'payment-worker' }, 'Payment worker not started (no Redis)');
+        }
+    } catch (err) {
+        fastify.log.warn({ component: 'payment-worker', error: err.message }, 'Payment worker startup failed');
+    }
+
+    fastify.log.info({ component: 'server' }, 'Workers started');
+}
+
 async function start() {
     try {
+        fastify.log.info({ component: 'server' }, 'Starting Paidink server');
+
         await buildApp();
         addDecorators();
 
         if (process.env.NODE_ENV === 'production') {
             fastify.addHook('onRequest', async (request, reply) => {
+                if (request.url === '/healthz' || request.url === '/readyz') return;
                 const proto = request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http');
                 if (proto !== 'https') {
                     reply.code(301).redirect(`https://${request.headers.host}${request.url}`);
@@ -91,73 +132,60 @@ async function start() {
 
         await fastify.register(cronPlugin);
 
-        await initializeRedis();
-
-        await initializeDatabase();
-
-        // Provider registration
-        const ProviderFactory = require('./services/ads/providers/ProviderFactory');
-        const MockProvider = require('./services/ads/providers/MockProvider');
-        ProviderFactory.register('mock', MockProvider);
-
-        const AdProviderInterface = require('./services/ads/providers/AdProviderInterface');
-        class DirectProvider extends AdProviderInterface {
-            get name() { return 'direct'; }
-            async getAds() { return []; }
-            async recordImpression() {}
-            async recordClick() {}
-            async healthCheck() { return true; }
-        }
-        ProviderFactory.register('direct', DirectProvider);
-
-        if (dbConnected) {
-            await ensureVapidKeys().catch((err) => {
-                fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
-            });
-        }
-
-        if (!isFeatureEnabled('content', 'aiGeneration')) {
-            fastify.log.info({ component: 'worker' }, 'AI generation disabled, worker not started');
-        } else {
-            const worker = require('./worker');
-            worker.start().then(status => {
-                fastify.log.info({ component: 'worker', status }, 'Worker started');
-            }).catch(err => {
-                fastify.log.warn({ component: 'worker', error: err.message }, 'Worker startup failed');
-            });
-        }
-
-        const { startPaymentWorker } = require('./worker/paymentWorker');
-        startPaymentWorker().then(worker => {
-            if (worker) {
-                fastify.log.info({ component: 'payment-worker' }, 'Payment worker started');
-            } else {
-                fastify.log.warn({ component: 'payment-worker' }, 'Payment worker not started (no Redis)');
-            }
-        }).catch(err => {
-            fastify.log.warn({ component: 'payment-worker', error: err.message }, 'Payment worker startup failed');
+        fastify.get('/healthz', async (req, reply) => {
+            return reply.code(200).send({ status: 'ok' });
         });
 
-        PORT = await findAvailablePort(DEFAULT_PORT);
-        if (PORT !== DEFAULT_PORT) {
-            fastify.log.warn({ component: 'server', port: PORT }, `Port ${DEFAULT_PORT} in use`);
-        }
+        fastify.get('/readyz', async (req, reply) => {
+            return reply.code(200).send({
+                status: 'ready',
+                database: dbConnected
+            });
+        });
+
+        const port = parseInt(process.env.PORT, 10) || 5050;
 
         await fastify.listen({
-            port: PORT,
+            port,
             host: '0.0.0.0'
         });
+
+        fastify.log.info({ component: 'server', port, environment: process.env.NODE_ENV }, 'Paidink HTTP server ready');
 
         if (fastify.cron && fastify.cron.startAllJobs) {
             fastify.cron.startAllJobs();
             fastify.log.info({ component: 'cron' }, 'All cron jobs started');
         }
 
-        fastify.log.info({
-            component: 'server',
-            port: PORT,
-            environment: process.env.NODE_ENV
-        }, `Server running at http://localhost:${PORT}`);
+        (async () => {
+            try {
+                const results = await Promise.allSettled([
+                    initializeRedis(),
+                    initializeDatabase()
+                ]);
+
+                const redisOk = results[0].status === 'fulfilled' && results[0].value === true;
+                const dbOk = results[1].status === 'fulfilled' && results[1].value === true;
+
+                if (dbOk) {
+                    await ensureVapidKeys().catch((err) => {
+                        fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);
+                    });
+                }
+
+                registerProviders();
+
+                if (redisOk && dbOk) {
+                    await startWorkers();
+                } else {
+                    fastify.log.warn({ component: 'worker' }, 'Dependencies not ready, workers deferred');
+                }
+
+                fastify.log.info({ component: 'server', services: servicesReady }, 'Background initialization complete');
+            } catch (err) {
+                fastify.log.warn({ component: 'server', error: err.message }, 'Startup dependency failed');
+            }
+        })();
 
     } catch (err) {
         fastify.log.fatal({ component: 'server', error: err.message }, 'Server startup failed');
@@ -175,6 +203,14 @@ async function gracefulShutdown(signal) {
 
         await fastify.close();
         fastify.log.info({ component: 'server' }, 'HTTP server closed');
+
+        const { closeWorker } = require('./worker');
+        await closeWorker().catch(() => {});
+
+        if (paymentWorkerInstance) {
+            await paymentWorkerInstance.close().catch(() => {});
+            paymentWorkerInstance = null;
+        }
 
         if (dbConnected) {
             const mongoose = require('mongoose');
@@ -202,7 +238,7 @@ process.on('uncaughtException', (err) => {
     gracefulShutdown('uncaughtException');
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
     fastify.log.fatal({ component: 'unhandled', reason: String(reason) }, 'Unhandled rejection');
     gracefulShutdown('unhandledRejection');
 });
