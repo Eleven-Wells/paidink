@@ -121,15 +121,17 @@ async function start() {
         addDecorators();
 
         if (process.env.NODE_ENV === 'production') {
+            const healthPaths = new Set(['/health', '/healthz', '/ready', '/readyz', '/live']);
+            const localHosts = new Set(['localhost', '127.0.0.1']);
+
             fastify.addHook('onRequest', async (request, reply) => {
-                const proto = request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http');
-                if (
-                    request.url !== '/healthz' &&
-                    request.url !== '/readyz' &&
-                    proto !== 'https'
-                ) {
-                    reply.code(301).redirect(`https://${request.headers.host}${request.url}`);
-                }
+                if (healthPaths.has(request.url)) return;
+                if (localHosts.has(request.hostname)) return;
+
+                const proto = request.headers['x-forwarded-proto'];
+                if (typeof proto !== 'string' || proto === 'https') return;
+
+                return reply.code(301).redirect(`https://${request.headers.host}${request.url}`);
             });
         }
 
