@@ -77,6 +77,9 @@ async function buildApp() {
     loadConfig();
     ClerkService.initClerk();
 
+    const EventBus = require('./services/ads/EventBus');
+    const eventBus = new EventBus();
+
     if (ClerkService.isConfigured()) {
         const { clerkPlugin } = require('@clerk/fastify');
         await fastify.register(clerkPlugin);
@@ -263,6 +266,10 @@ async function buildApp() {
     fastify.register(require('./routes/recommendations'));
     fastify.register(require('./routes/webhook'));
     fastify.register(require('./routes/push'), { prefix: '/api/push' });
+
+    const adsRoutes = require('./routes/ads');
+    fastify.register(adsRoutes, { prefix: '/api/ads' });
+    adsRoutes.setEventBus(eventBus);
 
     await fastify.after();
 }
