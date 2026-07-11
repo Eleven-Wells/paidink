@@ -16,12 +16,6 @@ async function registerCronPlugin(fastify) {
     fastify.register(require('fastify-cron'), {
         jobs: [
             {
-                name: 'tools-update',
-                cronTime: config.TOOLS_UPDATE_SCHEDULE,
-                onTick: wrap(cronJobs.toolsUpdate),
-                runOnInit: false
-            },
-            {
                 name: 'content-ingestion',
                 cronTime: config.CONTENT_INGESTION_SCHEDULE,
                 onTick: wrap(cronJobs.contentIngestion),
@@ -54,7 +48,7 @@ async function registerCronPlugin(fastify) {
         ]
     });
 
-    fastify.log.info('[Cron] fastify-cron plugin registered with 6 jobs');
+    fastify.log.info('[Cron] fastify-cron plugin registered with 5 jobs');
 }
 
 module.exports = fp(registerCronPlugin, {

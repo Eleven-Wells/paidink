@@ -1,7 +1,6 @@
 const { loadConfig, getContentSources } = require('../config');
 const { isFeatureEnabled } = require('../config/features');
 const { updateSEOFiles } = require('../seo/seoManager');
-const { fetchLatestBlog } = require('../tools/fetchTools');
 const { addContentJob } = require('../queue/contentQueue');
 const JobLog = require('../models/JobLog');
 const { dailyFeedRevenueSweep } = require('../services/ads/ReaderRewardService');
@@ -11,20 +10,6 @@ const logger = {
     warn: (msg, data) => console.warn(`[Cron] ${msg}`, data || ''),
     error: (msg, data) => console.error(`[Cron] ${msg}`, data || '')
 };
-
-async function toolsUpdate() {
-    if (!isFeatureEnabled('content', 'aiGeneration')) {
-        logger.info('AI generation disabled, skipping tools update');
-        return;
-    }
-    logger.info('Starting tools update');
-    try {
-        const result = await fetchLatestBlog();
-        logger.info('Tools update completed', result);
-    } catch (error) {
-        logger.error('Tools update failed: ' + error.message);
-    }
-}
 
 async function contentIngestion() {
     if (!isFeatureEnabled('content', 'aiGeneration')) {
@@ -114,7 +99,6 @@ async function readerPoolSweep() {
 }
 
 module.exports = {
-    toolsUpdate,
     contentIngestion,
     feedUpdate,
     seoUpdate,

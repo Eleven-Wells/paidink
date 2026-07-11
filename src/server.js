@@ -57,17 +57,7 @@ async function initializeDatabase() {
             fastify.log.warn({ component: 'ads', error: err.message }, 'Default ad data seeding failed');
         }
 
-        try {
-            if (!isFeatureEnabled('content', 'aiGeneration')) {
-                fastify.log.info({ component: 'init' }, 'AI generation disabled, skipping initial fetch');
-            } else {
-                const fetchLatestBlog = require('./tools/fetchTools');
-                await fetchLatestBlog();
-                fastify.log.info({ component: 'init' }, 'Sample data initialized');
-            }
-        } catch (err) {
-            fastify.log.warn({ component: 'init', error: err.message }, 'Failed to fetch latest blog');
-        }
+        fastify.log.info({ component: 'init' }, 'Deprecated blog fetch removed');
     } catch (err) {
         fastify.log.error({ component: 'database', error: err.message }, 'Database connection failed');
         dbConnected = false;
