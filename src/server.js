@@ -122,9 +122,12 @@ async function start() {
 
         if (process.env.NODE_ENV === 'production') {
             fastify.addHook('onRequest', async (request, reply) => {
-                if (request.url === '/healthz' || request.url === '/readyz') return;
                 const proto = request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http');
-                if (proto !== 'https') {
+                if (
+                    request.url !== '/healthz' &&
+                    request.url !== '/readyz' &&
+                    proto !== 'https'
+                ) {
                     reply.code(301).redirect(`https://${request.headers.host}${request.url}`);
                 }
             });
@@ -143,14 +146,14 @@ async function start() {
             });
         });
 
-        const port = parseInt(process.env.PORT, 10) || 5050;
+        const PORT = Number(process.env.PORT || 5050);
 
         await fastify.listen({
-            port,
+            port: PORT,
             host: '0.0.0.0'
         });
 
-        fastify.log.info({ component: 'server', port, environment: process.env.NODE_ENV }, 'Paidink HTTP server ready');
+        fastify.log.info({ component: 'server', port: PORT, environment: process.env.NODE_ENV }, `Server running on port ${PORT}`);
 
         if (fastify.cron && fastify.cron.startAllJobs) {
             fastify.cron.startAllJobs();
