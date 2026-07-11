@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 mongoose.set('bufferTimeoutMS', 60000);
 
 const fastify = require('fastify')({
+    trustProxy: true,
     logger: {
         level: process.env.LOG_LEVEL || 'info',
         transport: !process.env.VERCEL && process.env.NODE_ENV !== 'production' ? {

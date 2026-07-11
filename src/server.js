@@ -135,11 +135,16 @@ async function start() {
             });
         }
 
-        await fastify.register(cronPlugin);
-
         fastify.get('/healthz', async (req, reply) => {
-            return reply.code(200).send({ status: 'ok' });
+            return reply.code(200).send({
+                status: 'ok',
+                uptime: process.uptime(),
+                timestamp: new Date().toISOString(),
+                environment: process.env.NODE_ENV
+            });
         });
+
+        await fastify.register(cronPlugin);
 
         fastify.get('/readyz', async (req, reply) => {
             return reply.code(200).send({
@@ -156,11 +161,6 @@ async function start() {
         });
 
         fastify.log.info({ component: 'server', port: PORT, environment: process.env.NODE_ENV }, `Server running on port ${PORT}`);
-
-        if (fastify.cron && fastify.cron.startAllJobs) {
-            fastify.cron.startAllJobs();
-            fastify.log.info({ component: 'cron' }, 'All cron jobs started');
-        }
 
         (async () => {
             try {
@@ -179,6 +179,11 @@ async function start() {
                 }
 
                 registerProviders();
+
+                if (fastify.cron && fastify.cron.startAllJobs) {
+                    fastify.cron.startAllJobs();
+                    fastify.log.info({ component: 'cron' }, 'All cron jobs started');
+                }
 
                 if (redisOk && dbOk) {
                     await startWorkers();
@@ -200,6 +205,11 @@ async function start() {
 
 async function gracefulShutdown(signal) {
     fastify.log.info({ component: 'server', signal }, 'Shutting down gracefully');
+
+    const forceExit = setTimeout(() => {
+        fastify.log.error({ component: 'shutdown' }, 'Forced exit after shutdown timeout');
+        process.exit(1);
+    }, 25000);
 
     try {
         if (fastify.cron && fastify.cron.stopAllJobs) {
@@ -228,7 +238,7 @@ async function gracefulShutdown(signal) {
         await disconnectRedis();
         fastify.log.info({ component: 'redis' }, 'Redis connection closed');
 
-        process.exit(0);
+        clearTimeout(forceExit);
     } catch (err) {
         fastify.log.error({ component: 'shutdown', error: err.message }, 'Shutdown error');
         process.exit(1);
