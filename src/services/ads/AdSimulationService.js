@@ -535,7 +535,15 @@ function subscribeToEventBus(eventBus) {
     eventBus.on(AD_EVENTS.IMPRESSION, async (data) => {
         if (process.env.ADS_TRACK_IMPRESSIONS === 'false') return;
         try {
-            await simulateImpression(data.adConfigId, data.userId, data.placement, data.sessionId);
+            const AdConfig = require('../../models/ads/AdConfig');
+            const AdPlacement = require('../../models/ads/AdPlacement');
+            const [config, placement] = await Promise.all([
+                AdConfig.findById(data.adConfigId).lean(),
+                AdPlacement.findOne({ slot: data.placement, active: true }).lean()
+            ]);
+            if (config && placement) {
+                await simulateImpression(data.userId, config, placement, data.sessionId);
+            }
         } catch (err) {
             console.error('AdSimulationService: EventBus impression handler error:', err);
         }
@@ -544,7 +552,17 @@ function subscribeToEventBus(eventBus) {
     eventBus.on(AD_EVENTS.CLICKED, async (data) => {
         if (process.env.ADS_TRACK_CLICKS === 'false') return;
         try {
-            await simulateClick(data.impressionId);
+            const event = await AdEvent.findById(data.impressionId).lean();
+            if (!event) return;
+            const AdConfig = require('../../models/ads/AdConfig');
+            const AdPlacement = require('../../models/ads/AdPlacement');
+            const [config, placement] = await Promise.all([
+                AdConfig.findById(event.adConfig).lean(),
+                AdPlacement.findById(event.placement).lean()
+            ]);
+            if (config && placement) {
+                await simulateClick(data.userId, config, placement, event.session, data);
+            }
         } catch (err) {
             console.error('AdSimulationService: EventBus click handler error:', err);
         }

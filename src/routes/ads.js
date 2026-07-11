@@ -14,7 +14,7 @@ async function adsRoutes(fastify) {
             return reply.status(400).send({ error: 'placement query parameter is required' });
         }
         const context = buildContext(req, placement, parseInt(count, 10) || 1);
-        const ads = await ProviderService.getAds(context, eventBus);
+        const ads = await ProviderService.getAds(context);
         return { success: true, ads };
     });
 
@@ -22,7 +22,7 @@ async function adsRoutes(fastify) {
         const { placement } = req.params;
         const count = parseInt(req.query.count || '1', 10);
         const context = buildContext(req, placement, count);
-        const ads = await ProviderService.getAds(context, eventBus);
+        const ads = await ProviderService.getAds(context);
         return { success: true, ads };
     });
 

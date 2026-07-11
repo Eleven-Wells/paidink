@@ -271,6 +271,14 @@ async function buildApp() {
     fastify.register(adsRoutes, { prefix: '/api/ads' });
     adsRoutes.setEventBus(eventBus);
 
+    const ProviderService = require('./services/ads/ProviderService');
+    ProviderService.setEventBus(eventBus);
+
+    const AdSimulationService = require('./services/ads/AdSimulationService');
+    const AnalyticsService = require('./services/ads/AnalyticsService');
+    AdSimulationService.subscribeToEventBus(eventBus);
+    AnalyticsService.subscribeToEventBus(eventBus);
+
     await fastify.after();
 }
 

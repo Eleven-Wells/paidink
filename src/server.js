@@ -120,15 +120,6 @@ async function start() {
         }
         ProviderFactory.register('direct', DirectProvider);
 
-        // EventBus and Analytics wiring
-        const EventBus = require('./services/ads/EventBus');
-        const AnalyticsService = require('./services/ads/AnalyticsService');
-        const AdSimulationService = require('./services/ads/AdSimulationService');
-
-        const adsEventBus = new EventBus();
-        AdSimulationService.subscribeToEventBus(adsEventBus);
-        AnalyticsService.subscribeToEventBus(adsEventBus);
-
         if (dbConnected) {
             await ensureVapidKeys().catch((err) => {
                 fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);

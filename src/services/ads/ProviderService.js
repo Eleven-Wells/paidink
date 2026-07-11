@@ -7,6 +7,12 @@ const cacheManager = new CacheManager();
 const healthCache = new Map();
 const FrequencyRule = require('../../models/ads/FrequencyRule');
 
+let eventBus = null;
+
+function setEventBus(bus) {
+    eventBus = bus;
+}
+
 function isRoleAllowed(user, config) {
     if (!user || !user.role) return true;
     return !config.disableForRoles.includes(user.role);
@@ -31,7 +37,7 @@ async function isFrequencyCapped(context) {
     }
 }
 
-async function getAds(context, eventBus) {
+async function getAds(context) {
     const config = loadAdConfig();
 
     if (!config.enabled) return [];
@@ -40,17 +46,13 @@ async function getAds(context, eventBus) {
 
     if (await isFrequencyCapped(context)) return [];
 
+    const providerName = pickProvider(config);
+
+    const cacheContext = { ...context, provider: providerName };
     if (config.cacheEnabled) {
-        const cached = cacheManager.get(context);
+        const cached = cacheManager.get(cacheContext);
         if (cached) return cached;
     }
-
-    const providerName = RotationStrategy.pick(
-        config.rotation,
-        config.providers,
-        null,
-        config.providerWeights
-    );
 
     const provider = ProviderFactory.create(providerName);
 
@@ -58,14 +60,27 @@ async function getAds(context, eventBus) {
     if (!healthy) {
         console.error(`ProviderService: provider "${providerName}" unhealthy, falling back to mock`);
         const fallback = ProviderFactory.create('mock');
-        const ads = await callProvider(fallback, context, eventBus);
-        if (config.cacheEnabled) cacheManager.set(context, ads);
+        const ads = await callProvider(fallback, cacheContext);
+        if (config.cacheEnabled) cacheManager.set(cacheContext, ads);
         return ads;
     }
 
-    const ads = await callProvider(provider, context, eventBus);
-    if (config.cacheEnabled) cacheManager.set(context, ads);
+    const ads = await callProvider(provider, cacheContext);
+    if (config.cacheEnabled) cacheManager.set(cacheContext, ads);
     return ads;
+}
+
+function pickProvider(config) {
+    const name = RotationStrategy.pick(
+        config.rotation,
+        config.providers,
+        null,
+        config.providerWeights
+    );
+    if (eventBus) {
+        eventBus.emit(AD_EVENTS.PROVIDER_SELECTED, { provider: name, strategy: config.rotation });
+    }
+    return name;
 }
 
 async function checkHealth(provider, config, providerName) {
@@ -84,7 +99,7 @@ async function checkHealth(provider, config, providerName) {
     }
 }
 
-async function callProvider(provider, context, eventBus) {
+async function callProvider(provider, context) {
     try {
         const ads = await provider.getAds(context);
         if (eventBus) {
@@ -99,10 +114,10 @@ async function callProvider(provider, context, eventBus) {
         if (provider.name !== 'mock') {
             console.error('ProviderService: falling back to mock');
             const fallback = ProviderFactory.create('mock');
-            return callProvider(fallback, context, eventBus);
+            return callProvider(fallback, context);
         }
         return [];
     }
 }
 
-module.exports = { getAds };
+module.exports = { getAds, setEventBus };

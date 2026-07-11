@@ -56,6 +56,7 @@ describe('ProviderService', () => {
             disableForRoles: ['premium', 'administrator']
         });
         eventBus = new EventBusMock();
+        ProviderService.setEventBus(eventBus);
         CacheManager.mockClear();
         RotationStrategy.pick = jest.fn().mockReturnValue('mock');
         FrequencyRule.findOne = jest.fn().mockResolvedValue(null);
@@ -68,7 +69,7 @@ describe('ProviderService', () => {
 
     it('should return empty array when ads are disabled', async () => {
         loadAdConfig.mockReturnValue({ enabled: false });
-        const result = await ProviderService.getAds({ placement: 'sidebar' }, eventBus);
+        const result = await ProviderService.getAds({ placement: 'sidebar' });
         expect(result).toEqual([]);
     });
 
@@ -76,7 +77,7 @@ describe('ProviderService', () => {
         const result = await ProviderService.getAds({
             placement: 'sidebar',
             user: { role: 'premium' }
-        }, eventBus);
+        });
         expect(result).toEqual([]);
     });
 
@@ -84,7 +85,7 @@ describe('ProviderService', () => {
         const result = await ProviderService.getAds({
             placement: 'sidebar',
             user: { role: 'user' }
-        }, eventBus);
+        });
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBeGreaterThan(0);
     });
@@ -93,7 +94,7 @@ describe('ProviderService', () => {
         await ProviderService.getAds({
             placement: 'sidebar',
             user: { role: 'user' }
-        }, eventBus);
+        });
         expect(eventBus.emit).toHaveBeenCalledWith('ad.served', expect.any(Object));
     });
 
@@ -109,9 +110,20 @@ describe('ProviderService', () => {
         const result = await ProviderService.getAds({
             placement: 'sidebar',
             user: { role: 'user' }
-        }, eventBus);
+        });
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBeGreaterThan(0);
         expect(result[0].provider).toBe('mock');
+    });
+
+    it('should emit provider.selected event after picking a provider', async () => {
+        await ProviderService.getAds({
+            placement: 'sidebar',
+            user: { role: 'user' }
+        });
+        expect(eventBus.emit).toHaveBeenCalledWith('provider.selected', expect.objectContaining({
+            provider: 'mock',
+            strategy: 'none'
+        }));
     });
 });
