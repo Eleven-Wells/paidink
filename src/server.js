@@ -39,6 +39,8 @@ async function initializeDatabase() {
         } catch (err) {
             fastify.log.warn({ component: 'ads', error: err.message }, 'Default ad data seeding failed');
         }
+
+        return true;
     } catch (err) {
         fastify.log.error({ component: 'database', error: err.message }, 'MongoDB connection failed');
         dbConnected = false;
@@ -121,6 +123,7 @@ async function start() {
 
         if (process.env.NODE_ENV === 'production') {
             fastify.addHook('onRequest', async (request, reply) => {
+                if (request.url === '/healthz' || request.url === '/readyz') return;
                 const proto = request.headers['x-forwarded-proto'] || (request.socket.encrypted ? 'https' : 'http');
                 if (proto !== 'https') {
                     reply.code(301).redirect(`https://${request.headers.host}${request.url}`);
