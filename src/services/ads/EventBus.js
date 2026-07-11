@@ -14,6 +14,13 @@ class EventBus {
         const handlers = this._handlers[event];
         if (!handlers) return;
         this._handlers[event] = handlers.filter(h => h !== handler);
+        if (this._handlers[event].length === 0) {
+            delete this._handlers[event];
+        }
+    }
+
+    clear() {
+        this._handlers = {};
     }
 
     emit(event, payload) {
