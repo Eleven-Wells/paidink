@@ -105,6 +105,21 @@ async function start() {
 
         await initializeDatabase();
 
+        // Provider registration
+        const ProviderFactory = require('./services/ads/providers/ProviderFactory');
+        const MockProvider = require('./services/ads/providers/MockProvider');
+        ProviderFactory.register('mock', MockProvider);
+
+        const AdProviderInterface = require('./services/ads/providers/AdProviderInterface');
+        class DirectProvider extends AdProviderInterface {
+            get name() { return 'direct'; }
+            async getAds() { return []; }
+            async recordImpression() {}
+            async recordClick() {}
+            async healthCheck() { return true; }
+        }
+        ProviderFactory.register('direct', DirectProvider);
+
         if (dbConnected) {
             await ensureVapidKeys().catch((err) => {
                 fastify.log.warn({ component: 'push' }, 'VAPID key initialization failed: ' + err.message);

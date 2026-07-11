@@ -6,6 +6,7 @@ const ABTest = require('../../models/ads/ABTest');
 const User = require('../../models/User');
 const ReadSession = require('../../models/ReadSession');
 const { distributeAdRevenue } = require('./AdRevenueService');
+const { AD_EVENTS } = require('../../config/ads');
 
 const AD_TYPE_REVENUE = {
     banner: { baseCpm: 2, baseCpc: 0.1 },
@@ -530,7 +531,46 @@ async function seedDefaultData() {
     return { banner, interstitial, native, rewarded };
 }
 
+function subscribeToEventBus(eventBus) {
+    eventBus.on(AD_EVENTS.IMPRESSION, async (data) => {
+        if (process.env.ADS_TRACK_IMPRESSIONS === 'false') return;
+        try {
+            const AdConfig = require('../../models/ads/AdConfig');
+            const AdPlacement = require('../../models/ads/AdPlacement');
+            const [config, placement] = await Promise.all([
+                AdConfig.findById(data.adConfigId).lean(),
+                AdPlacement.findOne({ slot: data.placement, active: true }).lean()
+            ]);
+            if (config && placement) {
+                await simulateImpression(data.userId, config, placement, data.sessionId);
+            }
+        } catch (err) {
+            console.error('AdSimulationService: EventBus impression handler error:', err);
+        }
+    });
+
+    eventBus.on(AD_EVENTS.CLICKED, async (data) => {
+        if (process.env.ADS_TRACK_CLICKS === 'false') return;
+        try {
+            const event = await AdEvent.findById(data.impressionId).lean();
+            if (!event) return;
+            const AdConfig = require('../../models/ads/AdConfig');
+            const AdPlacement = require('../../models/ads/AdPlacement');
+            const [config, placement] = await Promise.all([
+                AdConfig.findById(event.adConfig).lean(),
+                AdPlacement.findById(event.placement).lean()
+            ]);
+            if (config && placement) {
+                await simulateClick(data.userId, config, placement, event.session, data);
+            }
+        } catch (err) {
+            console.error('AdSimulationService: EventBus click handler error:', err);
+        }
+    });
+}
+
 module.exports = {
+    subscribeToEventBus,
     triggerAdForUser,
     triggerRewardedAd,
     simulateImpression,
