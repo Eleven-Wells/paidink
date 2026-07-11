@@ -29,6 +29,7 @@
         rel="stylesheet">
     <script>
         var CLERK_ENABLED = <%= process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY ? 'true' : 'false' %>;
+        var ERROR = <%= error ? JSON.stringify(error) : 'null' %>;
         function handleSocialLogin(btn, url) {
             btn.classList.add('loading');
             var loader = btn.querySelector('.dot-loader');
@@ -225,7 +226,7 @@
                     <span id="errorMessage"></span>
                 </div>
 
-                <div class="social-auth-section">
+                <div id="socialAuthSection" class="social-auth-section">
                     <p style="text-align: center; margin-bottom: 16px; font-size: 18px; color: rgba(0,0,0,0.6);">
                         Continue with</p>
                     <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 24px;">
@@ -272,6 +273,11 @@
                         <hr style="flex: 1; border: none; border-top: 1px solid rgba(0,0,0,0.1);">
                     </div>
                 </div>
+                <script>
+                    if (!CLERK_ENABLED) {
+                        document.getElementById('socialAuthSection').style.display = 'none';
+                    }
+                </script>
 
                 <form id="loginForm" style="display: flex; flex-direction: column; gap: 24px;">
                     <div>
@@ -401,6 +407,10 @@
                 setLoading(false);
             }
         });
+
+        if (ERROR) {
+            showError(ERROR);
+        }
     </script>
 </body>
 

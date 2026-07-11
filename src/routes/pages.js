@@ -153,6 +153,7 @@ async function pagesRoutes(fastify) {
         const referralCode = req.query.ref || '';
         return reply.view('pages/register-light.ejs', {
             referralCode,
+            error: req.query.error || null,
             isLightTheme: true
         });
     });
@@ -180,6 +181,7 @@ async function pagesRoutes(fastify) {
 
         return reply.view('pages/login-light.ejs', {
             redirectUrl,
+            error: req.query.error || null,
             isLightTheme: true
         });
     });
