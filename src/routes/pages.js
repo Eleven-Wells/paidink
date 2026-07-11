@@ -277,8 +277,9 @@ async function pagesRoutes(fastify) {
 
         let rewardedAd = null;
         try {
-            const { getAdForSlot } = require('../services/ads/AdPlacementService');
-            rewardedAd = await getAdForSlot(userId, 'reward_wall', null);
+            const { getAds: getAd } = require('../services/ads/ProviderService');
+            const rewardedAds = await getAd({ placement: 'reward_wall', user: { id: userId }, session: null }, null);
+            rewardedAd = rewardedAds.length > 0 ? rewardedAds[0] : null;
         } catch (e) {
             // Ads not available
         }
@@ -1033,9 +1034,10 @@ async function pagesRoutes(fastify) {
             let feedAds = [];
             let sidebarAd = null;
             try {
-                const { getFeedAds, getAdForSlot } = require('../services/ads/AdPlacementService');
-                feedAds = await getFeedAds(currentUserId, null);
-                sidebarAd = await getAdForSlot(currentUserId, 'sidebar', null);
+                const { getAds: getAd } = require('../services/ads/ProviderService');
+                feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 }, null);
+                const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }, null);
+                sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
                 try {
                     req.log.debug({ feedAds }, 'Fetched feedAds');
                     req.log.debug({ sidebarAd }, 'Fetched sidebarAd');
@@ -1198,9 +1200,10 @@ async function pagesRoutes(fastify) {
         let feedAds = [];
         let sidebarAd = null;
         try {
-            const { getFeedAds, getAdForSlot } = require('../services/ads/AdPlacementService');
-            feedAds = await getFeedAds(currentUserId, null);
-            sidebarAd = await getAdForSlot(currentUserId, 'sidebar', null);
+            const { getAds: getAd } = require('../services/ads/ProviderService');
+            feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 }, null);
+            const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }, null);
+            sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
             try {
                 req.log.debug({ feedAds }, 'Fetched feedAds for explore');
                 req.log.debug({ sidebarAd }, 'Fetched sidebarAd for explore');
@@ -1460,9 +1463,11 @@ async function pagesRoutes(fastify) {
         let adInline = null;
         let adBanner = null;
         try {
-            const { getAdForSlot } = require('../services/ads/AdPlacementService');
-            adInline = await getAdForSlot(req.currentUser?.id || null, 'article_inline', null);
-            adBanner = await getAdForSlot(req.currentUser?.id || null, 'article_endcap', null);
+            const { getAds: getAd } = require('../services/ads/ProviderService');
+            const inlineAds = await getAd({ placement: 'article_inline', user: { id: req.currentUser?.id || null }, session: null }, null);
+            adInline = inlineAds.length > 0 ? inlineAds[0] : null;
+            const bannerAds = await getAd({ placement: 'article_endcap', user: { id: req.currentUser?.id || null }, session: null }, null);
+            adBanner = bannerAds.length > 0 ? bannerAds[0] : null;
             try {
                 req.log.debug({ adInline }, 'Fetched adInline for post');
                 req.log.debug({ adBanner }, 'Fetched adBanner for post');
