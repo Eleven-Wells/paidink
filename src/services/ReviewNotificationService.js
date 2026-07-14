@@ -31,9 +31,9 @@ async function sendReviewToDiscord(review, user) {
     const handle = user?.username ? `@${user.username}` : user?.email || '';
 
     const payload = {
-        username: 'Nook Reviews',
+        username: 'PaidInk Reviews',
         embeds: [{
-            title: 'New Nook beta review',
+            title: 'New PaidInk beta review',
             color: review.rating >= 4 ? 0x22c55e : review.rating === 3 ? 0xf59e0b : 0xef4444,
             fields: [
                 {

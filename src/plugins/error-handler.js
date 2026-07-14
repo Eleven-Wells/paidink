@@ -107,7 +107,7 @@ function createErrorHandler(fastify) {
                 activeCategory: null,
                 lang,
                 theme: request.cookies?.theme || 'light',
-                title: '500 - Server Error | Nook',
+                title: '500 - Server Error | PaidInk',
                 description: 'An unexpected error occurred',
                 ogImage: null,
                 canonical: `${process.env.BASE_URL || ''}/500`
@@ -136,7 +136,7 @@ function createNotFoundHandler(fastify) {
             activeCategory: null,
             lang,
             theme: 'light',
-            title: '404 - Page Not Found | Nook',
+            title: '404 - Page Not Found | PaidInk',
             description: 'The requested page could not be found',
             ogImage: null,
             canonical: `${process.env.BASE_URL || ''}/404`
