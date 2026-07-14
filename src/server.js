@@ -154,7 +154,7 @@ async function start() {
             });
         });
 
-        const PORT = Number(process.env.PORT || 5050);
+        const PORT = Number(process.env.PORT || 3000);
 
         const dbReady = await initializeDatabase();
 
