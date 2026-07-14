@@ -3,12 +3,12 @@ const fp = require('fastify-plugin');
 const apiDocumentation = {
     openapi: '3.0.0',
     info: {
-        title: 'Nook API',
+        title: 'PaidInk API',
         description: 'A community reading and writing platform for discovering and sharing stories across all topics',
         version: '1.0.0',
         contact: {
             name: 'API Support',
-            email: 'support@nook.example.com'
+            email: 'support@paidink.example.com'
         },
         license: {
             name: 'ISC'

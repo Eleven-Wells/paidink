@@ -10,7 +10,7 @@ async function ensureVapidKeys() {
 
     if (config && config.value.publicKey && config.value.privateKey) {
         webpush.setVapidDetails(
-            'mailto:nook@nook.app',
+            'mailto:push@paidink.com',
             config.value.publicKey,
             config.value.privateKey
         );
@@ -30,7 +30,7 @@ async function ensureVapidKeys() {
     }
 
     webpush.setVapidDetails(
-        'mailto:nook@nook.app',
+        'mailto:push@paidink.com',
         config.value.publicKey,
         config.value.privateKey
     );

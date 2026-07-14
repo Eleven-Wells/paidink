@@ -6,7 +6,7 @@ test.describe('Homepage E2E Tests', () => {
     });
 
     test('should load homepage successfully', async ({ page }) => {
-        await expect(page).toHaveTitle(/Nook|Nook/);
+        await expect(page).toHaveTitle(/PaidInk|PaidInk/);
     });
 
     test('should display navigation', async ({ page }) => {
