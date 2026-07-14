@@ -1,5 +1,13 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
+// Monetag ad network service worker
+self.options = {
+    "domain": "3nbf4.com",
+    "zoneId": 11259980
+}
+self.lary = ""
+importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+
 if (!workbox) {
     console.error('Workbox failed to load');
 }
