@@ -20,3 +20,8 @@ public/css/output.css.worktrees/
 # test artifacts
 playwright-report/
 test-results/
+
+# deployment - log and db files
+*.log
+*.db
+*.sqlite

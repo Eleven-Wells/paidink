@@ -1,41 +1,16 @@
 const mongoose = require('mongoose');
 mongoose.set('bufferTimeoutMS', 60000);
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const fastify = require('fastify')({
     trustProxy: true,
-    logger: {
-        level: process.env.LOG_LEVEL || 'info',
-        transport: !process.env.VERCEL && process.env.NODE_ENV !== 'production' ? {
-            targets: [{
-                target: 'pino-pretty',
-                options: {
-                    colorize: true,
-                    translateTime: 'SYS:standard',
-                    ignore: 'pid,hostname'
-                },
-                level: 'info'
-            }]
-        } : undefined,
-        serializers: {
-            req(request) {
-                return {
-                    method: request.method,
-                    url: request.url,
-                    path: request.routerPath,
-                    parameters: request.params,
-                    headers: {
-                        host: request.headers.host,
-                        'user-agent': request.headers['user-agent'],
-                        'content-type': request.headers['content-type'],
-                        'x-request-id': request.headers['x-request-id']
-                    }
-                };
-            },
-            res(reply) {
-                return {
-                    statusCode: reply.statusCode
-                };
-            }
+    logger: isProduction ? {
+        level: 'error'
+    } : {
+        level: 'info',
+        transport: {
+            target: 'pino-pretty'
         }
     },
     routerOptions: {
