@@ -224,7 +224,7 @@ async function buildApp() {
     fastify.get('/sw.js', (req, reply) => {
         reply.header('Service-Worker-Allowed', '/');
         reply.header('Cache-Control', 'no-cache');
-        reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.googleapis.com; connect-src 'self' https: http:; worker-src 'self' blob:");
+        reply.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://storage.googleapis.com https://3nbf4.com; connect-src 'self' https: http:; worker-src 'self' blob: https://3nbf4.com;");
         return reply.sendFile('sw.js');
     });
 
