@@ -1054,7 +1054,7 @@ async function apiRoutes(fastify) {
                 const transferRes = await PaystackService.initiateTransfer(
                     recipientCode,
                     amountInKobo,
-                    `Nook withdrawal - ${user._id}`,
+                    `PaidInk withdrawal - ${user._id}`,
                     idempotencyKey
                 );
 

@@ -715,7 +715,7 @@
     themeToggle.addEventListener('change', function() {
       var dark = themeToggle.checked;
       document.cookie = 'theme=' + (dark ? 'dark' : 'light') + ';path=/;max-age=31536000';
-      try { localStorage.setItem('nook-theme', dark ? 'dark' : 'light'); } catch(e) {}
+      try { localStorage.setItem('paidink-theme', dark ? 'dark' : 'light'); } catch(e) {}
       applyTheme(dark);
     });
   }

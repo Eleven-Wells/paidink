@@ -9,10 +9,10 @@ workbox.setConfig({
 });
 
 const CACHE_NAMES = {
-    static: 'nook-static-v1',
-    navigation: 'nook-navigation-v1',
-    api: 'nook-api-v1',
-    savedArticles: 'nook-saved-articles'
+    static: 'paidink-static-v1',
+    navigation: 'paidink-navigation-v1',
+    api: 'paidink-api-v1',
+    savedArticles: 'paidink-saved-articles'
 };
 
 self.addEventListener('install', (event) => {
@@ -35,7 +35,7 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((keys) => {
             return Promise.all(
                 keys
-                    .filter((key) => key.startsWith('nook-') && !Object.values(CACHE_NAMES).includes(key))
+                    .filter((key) => key.startsWith('paidink-') && !Object.values(CACHE_NAMES).includes(key))
                     .map((key) => caches.delete(key))
             );
         }).then(() => self.clients.claim())
@@ -149,7 +149,7 @@ async function handleDeleteSavedArticle(event) {
 }
 
 self.addEventListener('push', (event) => {
-    const data = event.data ? event.data.json() : { title: 'New update on NOOK' };
+    const data = event.data ? event.data.json() : { title: 'New update on PaidInk' };
 
     event.waitUntil(
         self.registration.showNotification(data.title, {

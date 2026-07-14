@@ -304,7 +304,7 @@ Worker: ${report.deployment.worker}`, inline: true
     if (report.deployment.vercelUrl) links.push(`[Vercel deployment](${report.deployment.vercelUrl})`);
 
     const embed = {
-        title: `Nook Observability Report — ${summary.emoji} ${summary.severity}`,
+        title: `PaidInk Observability Report — ${summary.emoji} ${summary.severity}`,
         description: `${summary.message}`,
         color: summary.color,
         fields: [

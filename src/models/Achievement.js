@@ -73,7 +73,7 @@ achievementSchema.statics.getDefinitions = function() {
         },
         {
             slug: 'sage',
-            name: 'Sage of Nook',
+            name: 'Sage of PaidInk',
             description: 'Read 100 articles',
             icon: 'star',
             category: 'reading',
