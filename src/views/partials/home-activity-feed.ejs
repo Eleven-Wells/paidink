@@ -1,84 +1,83 @@
 <section class="home-activity-feed" aria-label="Activity feed">
-    <% if (typeof posts !=='undefined' && posts && posts.length> 0) { %>
+    <% if (typeof posts !== 'undefined' && posts && posts.length > 0) { %>
         <% posts.forEach(function(post, index) { %>
             <article class="feed-post">
                 <div class="feed-post-header">
                     <%- include('../partials/avatar', { user: post.author, size: '44px' }) %>
 
-                        <div class="feed-post-body">
-                            <div class="feed-post-meta">
-                                <div class="feed-author-copy">
-                                    <h3>
-                                        <%= post.author ? post.author.displayName : 'Anonymous' %>
-                                    </h3>
-                                    <p>
-                                        <%= post.readTime || '< 1 min read' %>
-                                    </p>
-                                </div>
-                                <button type="button" class="feed-follow-btn"
-                                    data-user-id="<%= post.author ? post.author._id : '' %>">
-                                    Follow
-                                </button>
-                            </div>
-
-                            <a href="/post/<%= post.slug %>" class="feed-post-link">
-                                <% if (post.title) { %>
-                                <h4>
-                                    <%= post.title %>
-                                </h4>
-                                <% } %>
+                    <div class="feed-post-body">
+                        <div class="feed-post-meta">
+                            <div class="feed-author-copy">
+                                <h3>
+                                    <%= post.author ? post.author.displayName : 'Anonymous' %>
+                                </h3>
                                 <p>
-                                    <%= post.title ? post.summary : (function() { var p = String(post.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); return p.length > 300 ? p.substring(0, 300) + '...' : p; })() %>
+                                    <%= post.readTime || '< 1 min read' %>
                                 </p>
-                            </a>
-
-                            <% if (post.image) { %>
-                                <div class="feed-post-image" style="background-image: url('<%= post.image %>');"
-                                    role="img" aria-label="Post attachment"></div>
-                                <% } %>
+                            </div>
+                            <button type="button" class="feed-follow-btn"
+                                data-user-id="<%= post.author ? post.author._id : '' %>">
+                                Follow
+                            </button>
                         </div>
+
+                        <a href="/post/<%= post.slug %>" class="feed-post-link">
+                            <% if (post.title) { %>
+                                <h4><%= post.title %></h4>
+                            <% } %>
+                            <p>
+                                <%= post.title ? post.summary : (function() { var p = String(post.content || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim(); return p.length > 300 ? p.substring(0, 300) + '...' : p; })() %>
+                            </p>
+                        </a>
+
+                        <% if (post.image) { %>
+                            <div class="feed-post-image"
+                                style="background-image: url('<%= post.image %>');"
+                                role="img"
+                                aria-label="Post attachment">
+                            </div>
+                        <% } %>
+                    </div>
                 </div>
 
                 <div class="feed-post-actions">
                     <div class="feed-post-interactions">
                         <button type="button" aria-label="Like" class="like-btn" data-post-id="<%= post._id %>">
-                            <% var liked=user && user._id && post.likes && post.likes.some(function(id) { return
-                                String(id)===String(user._id); }); %>
-                                <svg width="35" height="35" viewBox="0 0 24 24"
-                                    fill="<%= liked ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <path
-                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                </svg>
-                                <span>
-                                    <%= post.likes ? post.likes.length : 0 %>
-                                </span>
+                            <% var liked = user && user._id && post.likes && post.likes.some(function(id) { return String(id) === String(user._id); }); %>
+                            <svg width="35" height="35" viewBox="0 0 24 24"
+                                fill="<%= liked ? 'currentColor' : 'none' %>"
+                                stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            <span><%= post.likes ? post.likes.length : 0 %></span>
                         </button>
+
                         <button type="button" aria-label="Comments" class="comment-btn" data-slug="<%= post.slug %>">
-                            <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="35" height="35" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                             </svg>
-                            <span>
-                                <%= post.comments ? post.comments.length : 0 %>
-                            </span>
+                            <span><%= post.comments ? post.comments.length : 0 %></span>
                         </button>
+
                         <button type="button" aria-label="Reposts" class="share-btn" data-post-id="<%= post._id %>">
-                            <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="35" height="35" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="17 1 21 5 17 9" />
                                 <path d="M3 11V9a4 4 0 0 1 4-4h14" />
                                 <polyline points="7 23 3 19 7 15" />
                                 <path d="M21 13v2a4 4 0 0 1-4 4H3" />
                             </svg>
-                            <span>
-                                <%= post.shares || 0 %>
-                            </span>
+                            <span><%= post.shares || 0 %></span>
                         </button>
                     </div>
 
                     <div class="feed-post-options">
-                        <a href="/post/<%= post.slug %>" class="feed-read-cta" aria-label="Read<%= post.title ? ' ' + post.title : '' %>">
+                        <a href="/post/<%= post.slug %>" class="feed-read-cta"
+                            aria-label="Read<%= post.title ? ' ' + post.title : '' %>">
                             Read post
                         </a>
                         <button type="button" aria-label="More options">
@@ -89,73 +88,70 @@
                             </svg>
                         </button>
                         <button type="button" aria-label="Save post" class="save-btn" data-post-id="<%= post._id %>">
-                            <% var saved=user && user.savedPosts && user.savedPosts.some(function(id) { return
-                                String(id)===String(post._id); }); %>
-                                <svg width="33" height="33" viewBox="0 0 24 24" fill="<%= saved ? '#6d0a0a' : 'none' %>"
-                                    stroke="<%= saved ? '#6d0a0a' : 'currentColor' %>" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                                </svg>
+                            <% var saved = user && user.savedPosts && user.savedPosts.some(function(id) { return String(id) === String(post._id); }); %>
+                            <svg width="33" height="33" viewBox="0 0 24 24"
+                                fill="<%= saved ? '#6d0a0a' : 'none' %>"
+                                stroke="<%= saved ? '#6d0a0a' : 'currentColor' %>"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                            </svg>
                         </button>
                     </div>
                 </div>
             </article>
 
-            <% if (index===1 && typeof feedAds !=='undefined' && feedAds && feedAds[0]) { %>
+            <% if (index === 1 && typeof feedAds !== 'undefined' && feedAds && feedAds[0]) { %>
                 <%- include('../partials/ad-feed', { ad: feedAds[0] }) %>
-                    <% } else if (index===4 && typeof feedAds !=='undefined' && feedAds && feedAds[1]) { %>
-                        <%- include('../partials/ad-feed', { ad: feedAds[1] }) %>
-                            <% } else if (index < posts.length - 1 && index !==1) { %>
-                                <hr class="feed-divider" />
-                                <% } %>
-                                    <% }); %>
-                                        <% } else { %>
-                                            <div class="feed-empty">
-                                                <%- include('../partials/empty-state-card', {
-                                                    title: 'Your feed is warming up' ,
-                                                    copy: 'Follow a few people or publish a quick update. Fresh posts will gather here as your PaidInk GROW.'
-                                                    , ctaText: 'Explore stories' , ctaHref: '/browse' }) %>
-                                            </div>
-                                            <% } %>
+            <% } else if (index === 4 && typeof feedAds !== 'undefined' && feedAds && feedAds[1]) { %>
+                <%- include('../partials/ad-feed', { ad: feedAds[1] }) %>
+            <% } else if (index < posts.length - 1 && index !== 1) { %>
+                <hr class="feed-divider" />
+            <% } %>
 
-                                                <% if (typeof feedSuggestions !=='undefined' && feedSuggestions &&
-                                                    feedSuggestions.length> 0) { %>
-                                                    <div class="feed-suggestions">
-                                                        <h2>Suggestion</h2>
-                                                        <div class="feed-suggestions-list">
-                                                            <% feedSuggestions.forEach(function(user) { %>
-                                                                <article class="suggestion-card">
-                                                                    <div class="suggestion-info">
-                                                                        <%- include('../partials/avatar', { user: user,
-                                                                            size: '100px' }) %>
-                                                                            <div>
-                                                                                <h3>
-                                                                                    <%= user.displayName %>
-                                                                                </h3>
-                                                                                <p>
-                                                                                    <%= user.role || 'Reader' %>
-                                                                                </p>
-                                                                            </div>
-                                                                    </div>
-                                                                    <button type="button"
-                                                                        aria-label="Follow <%= user.displayName %>"
-                                                                        class="suggestion-follow-btn"
-                                                                        data-user-id="<%= user._id %>">
-                                                                        <span>Follow</span>
-                                                                    </button>
-                                                                </article>
-                                                                <% }); %>
-                                                        </div>
-                                                    </div>
-                                                    <hr class="feed-divider" />
-                                                    <% } %>
+        <% }); %>
+    <% } else { %>
+        <div class="feed-empty">
+            <%- include('../partials/empty-state-card', {
+                title: 'Your feed is warming up',
+                copy: 'Follow a few people or publish a quick update. Fresh posts will gather here as your PaidInk GROW.',
+                ctaText: 'Explore stories',
+                ctaHref: '/browse'
+            }) %>
+        </div>
+    <% } %>
+
+    <% if (typeof feedSuggestions !== 'undefined' && feedSuggestions && feedSuggestions.length > 0) { %>
+        <div class="feed-suggestions">
+            <h2>Suggestions</h2>
+            <div class="feed-suggestions-list">
+                <% feedSuggestions.forEach(function(user) { %>
+                    <article class="suggestion-card">
+                        <div class="suggestion-info">
+                            <%- include('../partials/avatar', { user: user, size: '64px' }) %>
+                            <div>
+                                <h3><%= user.displayName %></h3>
+                                <p><%= user.role || 'Reader' %></p>
+                            </div>
+                        </div>
+                        <button type="button"
+                            aria-label="Follow <%= user.displayName %>"
+                            class="suggestion-follow-btn"
+                            data-user-id="<%= user._id %>">
+                            <span>Follow</span>
+                        </button>
+                    </article>
+                <% }); %>
+            </div>
+        </div>
+        <hr class="feed-divider" />
+    <% } %>
 </section>
 
 <style>
     .home-activity-feed {
         display: flex;
         flex-direction: column;
-        gap: clamp(32px, 4vw, 48px);
+        gap: clamp(24px, 4vw, 48px);
         padding: 0;
         width: 100%;
         max-width: none;
@@ -165,7 +161,7 @@
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: clamp(28px, 4vw, 45px);
+        gap: clamp(16px, 3vw, 32px);
         width: 100%;
     }
 
@@ -201,7 +197,7 @@
         min-width: 0;
     }
 
-    .feed-author-copy>h3 {
+    .feed-author-copy > h3 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 800;
@@ -213,7 +209,7 @@
         min-width: 0;
     }
 
-    .feed-author-copy>p {
+    .feed-author-copy > p {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 500;
@@ -255,24 +251,31 @@
         color: inherit;
         display: block;
         width: 100%;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
-    .feed-post-link>h4 {
+    .feed-post-link > h4 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 600;
         font-size: 28px;
         color: #000;
         line-height: 1.3;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
-    .feed-post-link>p {
+    .feed-post-link > p {
         margin: 8px 0 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 500;
         font-size: 32px;
         color: #000;
         line-height: 1.4;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        white-space: normal;
     }
 
     .feed-post-image {
@@ -301,7 +304,7 @@
         min-width: 0;
     }
 
-    .feed-post-interactions>button {
+    .feed-post-interactions > button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -313,7 +316,7 @@
         min-width: 0;
     }
 
-    .feed-post-interactions>button>span {
+    .feed-post-interactions > button > span {
         font-family: 'Abhaya Libre', serif;
         font-weight: 400;
         font-size: 24px;
@@ -331,12 +334,12 @@
         min-width: 0;
     }
 
-    .feed-post-options>a,
-    .feed-post-options>button {
+    .feed-post-options > a,
+    .feed-post-options > button {
         min-width: 0;
     }
 
-    .feed-post-options>button {
+    .feed-post-options > button {
         background: none;
         border: none;
         cursor: pointer;
@@ -369,39 +372,6 @@
         box-shadow: 0 16px 30px rgba(109, 10, 10, 0.2);
     }
 
-    @media (max-width: 900px) {
-        .feed-post-actions {
-            justify-content: flex-start;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .feed-post-actions::-webkit-scrollbar {
-            display: none;
-        }
-
-        .feed-post-interactions,
-        .feed-post-options {
-            width: auto;
-            justify-content: flex-start;
-            gap: 12px;
-        }
-
-        .feed-post-options {
-            margin-top: 0;
-        }
-
-        .feed-post-options>.feed-read-cta {
-            display: none;
-        }
-
-        .feed-read-cta {
-            font-size: 20px;
-            min-width: fit-content;
-        }
-    }
-
     .feed-divider {
         width: 100%;
         height: 1px;
@@ -419,11 +389,11 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 47px;
+        gap: 24px;
         width: 100%;
     }
 
-    .feed-suggestions>h2 {
+    .feed-suggestions > h2 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 400;
@@ -434,21 +404,27 @@
     .feed-suggestions-list {
         display: flex;
         align-items: center;
-        gap: 53px;
+        gap: 16px;
         width: 100%;
         overflow-x: auto;
         padding-bottom: 8px;
+        scrollbar-width: none;
+    }
+
+    .feed-suggestions-list::-webkit-scrollbar {
+        display: none;
     }
 
     .suggestion-card {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 100px;
-        padding: 30px 20px;
-        border-radius: 52px;
+        gap: 20px;
+        padding: 20px 16px;
+        border-radius: 24px;
         border: 1px solid #6d0a0a;
-        min-width: 280px;
+        min-width: 180px;
+        max-width: 200px;
         flex-shrink: 0;
     }
 
@@ -456,234 +432,232 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 32px;
-        width: 149px;
-    }
-
-    .suggestion-info>div {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
+        gap: 14px;
         width: 100%;
     }
 
-    .suggestion-info>div>h3 {
+    .suggestion-info > div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .suggestion-info > div > h3 {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 800;
-        font-size: 32px;
+        font-size: 16px;
         color: #000;
         text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
     }
 
-    .suggestion-info>div>p {
+    .suggestion-info > div > p {
         margin: 0;
         font-family: 'Abhaya Libre', serif;
         font-weight: 400;
-        font-size: 32px;
+        font-size: 13px;
         color: rgba(0, 0, 0, 0.62);
         text-align: center;
     }
 
     .suggestion-follow-btn {
         display: flex;
-        height: 80px;
+        height: 40px;
         align-items: center;
         justify-content: center;
         gap: 10px;
         padding: 10px;
         width: 100%;
         background: #6d0a0a;
-        border-radius: 45px;
+        border-radius: 20px;
         border: none;
         cursor: pointer;
     }
 
-    .suggestion-follow-btn>span {
+    .suggestion-follow-btn > span {
         font-family: 'Abhaya Libre', serif;
         font-weight: 500;
-        font-size: 32px;
+        font-size: 15px;
         color: #fff;
         white-space: nowrap;
     }
 
+    /* ── 1400px ── */
     @media (max-width: 1400px) {
-        .feed-author-copy>h3 {
-            font-size: 28px;
-        }
-
-        .feed-author-copy>p {
-            font-size: 16px;
-        }
-
-        .feed-follow-btn {
-            font-size: 18px;
-        }
-
-        .feed-post-link>h4 {
-            font-size: 24px;
-        }
-
-        .feed-post-link>p {
-            font-size: 26px;
-        }
+        .feed-author-copy > h3 { font-size: 28px; }
+        .feed-author-copy > p { font-size: 16px; }
+        .feed-follow-btn { font-size: 18px; }
+        .feed-post-link > h4 { font-size: 24px; }
+        .feed-post-link > p { font-size: 26px; }
     }
 
+    /* ── 1024px ── */
     @media (max-width: 1024px) {
-        .feed-post-header {
-            gap: 20px;
-        }
-
-        .feed-author-copy>h3 {
-            font-size: 24px;
-        }
-
-        .feed-follow-btn {
-            font-size: 17px;
-        }
-
-        .feed-post-link>h4 {
-            font-size: 20px;
-        }
-
-        .feed-post-link>p {
-            font-size: 22px;
-        }
+        .feed-post-header { gap: 20px; }
+        .feed-author-copy > h3 { font-size: 24px; }
+        .feed-follow-btn { font-size: 17px; }
+        .feed-post-link > h4 { font-size: 20px; }
+        .feed-post-link > p { font-size: 22px; }
     }
 
-    @media (max-width: 768px) {
-        .feed-post {
-            gap: 32px;
-            max-width: 100%;
-            width: 100%;
-            overflow-x: hidden;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-        .feed-post-header,
-        .feed-post-meta,
-        .feed-author-copy,
-        .feed-follow-btn{
-            max-width: 100%;
-            flex-wrap: wrap;
-        }
-
-        .feed-post-header {
-            gap: 16px;
-        }
-
-        .feed-post-meta {
-            align-items: center;
-        }
-
-        .feed-author-copy>h3 {
-            font-size: 16px;
-        }
-
-        .feed-author-copy>p {
-            font-size: 13px;
-        }
-        .feed-author-copy>h4 {
-            font-size: 15px;
-        }
-
-        .feed-follow-btn {
-            min-height: 34px;
-            padding-inline: 14px;
-            font-size: 15px;
-        }
-        
-        .feed-post-link>h4 {
-            font-size: 15px;
-        }
-
-        .feed-post-link>p {
-            font-size: 15px;
-            line-height: 1.5;
-        }
-        .feed-post-link>p,
-        .feed-post-link>h4,
-        .feed-author-copy>h3{
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 100%;
-        }
-        .feed-post-image {
-            height: 140px;
-        }
-
-        .feed-post-interactions>button>span,
-        .feed-post-options {
-            font-size: 13px;
-        }
-
+    /* ── 900px ── */
+    @media (max-width: 900px) {
         .feed-post-actions {
-            align-items: center;
             justify-content: space-between;
-            gap: 0;
-            display: flex;
-            flex-direction: row;
             flex-wrap: nowrap;
             overflow-x: visible;
-            width: 100%;
-            min-width: 0;
-        }
-
-        .feed-post-actions::-webkit-scrollbar {
-            display: none;
         }
 
         .feed-post-interactions,
         .feed-post-options {
             width: auto;
             justify-content: flex-start;
-            flex-wrap: nowrap;
-            gap: 12px;
-            min-width: 0;
-            flex: 0 0 auto;
+            gap: 10px;
         }
 
-        .feed-post-options {
-            margin-top: 0;
-            margin-left: auto;
-        }
-
-        .feed-post-options>.feed-read-cta {
-            display: none;
+        .feed-post-options > .feed-read-cta {
+            display: inline-flex;
         }
 
         .feed-read-cta {
-            min-height: 40px;
-            padding-inline: 18px;
-            font-size: 18px;
+            font-size: 14px;
+            min-height: 36px;
+            padding: 6px 16px;
+        }
+    }
+
+    /* ── 768px ── */
+    @media (max-width: 768px) {
+        .home-activity-feed {
+            gap: 20px;
         }
 
-        .suggestion-card {
-            min-width: 240px;
-            gap: 60px;
-            padding: 20px 16px;
-        }
-
-        .suggestion-follow-btn {
-            height: 60px;
-        }
-
-        .suggestion-follow-btn>span {
-            font-size: 24px;
-        }
-
-        .feed-suggestions-list {
-            gap: 24px;
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x:auto ;
+        .feed-post {
+            gap: 14px;
             max-width: 100%;
-            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
-        .feed-suggestions-list::-webkit-scrollbar{
-            display:none;
+
+        .feed-post-header {
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .feed-post-meta {
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .feed-author-copy > h3 {
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 160px;
+        }
+
+        .feed-author-copy > p {
+            font-size: 12px;
+        }
+
+        .feed-follow-btn {
+            min-height: 30px;
+            padding: 4px 12px;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .feed-post-link > h4 {
+            font-size: 15px;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .feed-post-link > p {
+            font-size: 14px;
+            line-height: 1.55;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            color: rgba(0, 0, 0, 0.75);
+        }
+
+        .feed-post-image {
+            height: 160px;
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .feed-post-interactions {
+            gap: 12px;
+        }
+
+        .feed-post-interactions > button > svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .feed-post-interactions > button > span {
+            font-size: 13px;
+        }
+
+        .feed-post-options {
+            gap: 8px;
+        }
+
+        .feed-post-options > button > svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .feed-read-cta {
+            font-size: 13px;
+            min-height: 34px;
+            padding: 6px 14px;
+        }
+
+        .feed-suggestions {
+            gap: 16px;
+        }
+
+        .feed-suggestions > h2 {
+            font-size: 22px;
+        }
+    }
+
+    /* ── 480px ── */
+    @media (max-width: 480px) {
+        .feed-author-copy > h3 {
+            font-size: 14px;
+            max-width: 130px;
+        }
+
+        .feed-post-link > h4 { font-size: 14px; }
+        .feed-post-link > p { font-size: 13px; }
+
+        .feed-post-interactions > button > svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .feed-post-interactions > button > span {
+            font-size: 12px;
+        }
+
+        .feed-read-cta {
+            font-size: 12px;
+            padding: 5px 12px;
+            min-height: 30px;
         }
     }
 </style>

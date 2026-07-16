@@ -16,7 +16,7 @@
                             <p class="trending-label">Up next</p>
                             <p class="trending-author"><%= post.author ? post.author.displayName : 'Anonymous' %></p>
                             <p class="trending-title"><%= post.title %></p>
-                            <p class="trending-meta"><%= post.readTime || '< 1 min read' %> <%= post.likes ? post.likes.length : 0 %> likes</p>
+                            <p class="trending-meta"><%= post.readTime || '< 1 min read' %> · <%= post.likes ? post.likes.length : 0 %> likes</p>
                         </div>
                     </div>
                     <div class="trending-actions">
@@ -112,12 +112,35 @@
         flex-direction: column;
         gap: 4px;
         margin-left: 26px;
+        min-width: 0;
+        overflow: hidden;
     }
 
-    .trending-label { margin: 0; color: #6d0a0a; font-size: 16px; }
-    .trending-author { margin: 0; }
-    .trending-title { margin: 0; font-weight: 500; }
-    .trending-meta { margin: 0; color: rgba(0,0,0,0.6); font-size: 16px; }
+    .trending-label {
+        margin: 0;
+        color: #6d0a0a;
+        font-size: 16px;
+    }
+
+    .trending-author {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .trending-title {
+        margin: 0;
+        font-weight: 500;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .trending-meta {
+        margin: 0;
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 16px;
+    }
 
     .trending-actions {
         display: flex;
@@ -152,7 +175,7 @@
         width: 100%;
         height: 1px;
         border: none;
-        background: rgba(0,0,0,0.15);
+        background: rgba(0, 0, 0, 0.15);
         margin: 0;
     }
 
@@ -183,15 +206,31 @@
         font-size: 12px;
     }
 
+    /* ── 1400px ── */
     @media (max-width: 1400px) {
         .home-trending-inner h2 {
             font-size: 28px;
         }
+
         .trending-post-info > div {
             font-size: 18px;
+            margin-left: 16px;
         }
+
+        .trending-list {
+            gap: 20px;
+        }
+
+        .trending-post {
+            gap: 14px;
+            padding-bottom: 20px;
+        }
+
+        .trending-label { font-size: 13px; }
+        .trending-meta { font-size: 13px; }
     }
 
+    /* ── hidden below 1024px — desktop sidebar only ── */
     @media (max-width: 1024px) {
         .home-trending {
             display: none;
