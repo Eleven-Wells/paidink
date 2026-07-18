@@ -1,0 +1,233 @@
+<div class="glass-card p-6 mb-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h3 class="font-heading text-lg font-semibold">Ad Settings</h3>
+            <p class="text-sm text-muted mt-1">Manage provider configuration and runtime settings</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-muted" id="statusText">Loading...</span>
+            <div class="relative inline-block w-12 h-6" id="masterToggle">
+                <input type="checkbox" id="adsEnabled" class="sr-only" onchange="toggleAdsEnabled()">
+                <label for="adsEnabled" class="block w-12 h-6 rounded-full bg-white/10 cursor-pointer transition-colors"></label>
+                <span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-all duration-200 shadow-sm" id="toggleKnob"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+            <label class="block text-sm font-medium mb-2">Active Provider</label>
+            <select id="activeProvider" class="input-dark w-full" onchange="updateActiveProvider()">
+                <option value="">Select a provider...</option>
+            </select>
+            <p class="text-xs text-muted mt-2">The provider currently serving ads. Changes apply immediately.</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium mb-2">Rotation Strategy</label>
+            <select id="rotationStrategy" class="input-dark w-full" onchange="updateRotation()">
+                <option value="none">None (single provider)</option>
+                <option value="random">Random</option>
+                <option value="round-robin">Round Robin</option>
+                <option value="weighted">Weighted</option>
+            </select>
+            <p class="text-xs text-muted mt-2">How providers are selected when multiple are enabled.</p>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-6 mb-6">
+    <h3 class="font-heading text-lg font-semibold mb-6">Provider Registry</h3>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-white/10">
+                    <th class="text-left py-3 px-4 text-muted font-medium">Provider</th>
+                    <th class="text-left py-3 px-4 text-muted font-medium">Status</th>
+                    <th class="text-right py-3 px-4 text-muted font-medium">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="providerTableBody">
+                <tr>
+                    <td colspan="3" class="py-8 text-center text-muted">Loading providers...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="glass-card p-6">
+    <h3 class="font-heading text-lg font-semibold mb-4">Settings Preview</h3>
+    <pre id="settingsPreview" class="font-mono text-xs text-muted bg-black/20 rounded-xl p-4 overflow-x-auto max-h-64"></pre>
+</div>
+
+<style>
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .status-badge.active {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    .status-badge.inactive {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .status-badge.current {
+        background: rgba(59, 130, 246, 0.12);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+</style>
+
+<script>
+var state = {};
+
+async function loadSettings() {
+    try {
+        const [settingsRes, providersRes] = await Promise.all([
+            fetch('/admin/api/ads/settings'),
+            fetch('/admin/api/ads/providers')
+        ]);
+        const settings = await settingsRes.json();
+        const providers = await providersRes.json();
+
+        state = { settings, providers: providers.providers || {} };
+
+        renderToggle(settings.adsEnabled);
+        renderProviders(providers.providers, settings.activeProvider);
+        renderPreview(settings);
+
+        document.getElementById('activeProvider').value = settings.activeProvider || '';
+        document.getElementById('rotationStrategy').value = settings.rotationStrategy || 'none';
+        document.getElementById('statusText').textContent = settings.adsEnabled ? 'Ads Enabled' : 'Ads Disabled';
+        document.getElementById('statusText').style.color = settings.adsEnabled ? '#22c55e' : 'rgba(255,255,255,0.4)';
+    } catch (err) {
+        document.getElementById('statusText').textContent = 'Failed to load settings';
+        document.getElementById('statusText').style.color = '#ef4444';
+    }
+}
+
+function renderToggle(enabled) {
+    var toggle = document.getElementById('adsEnabled');
+    var knob = document.getElementById('toggleKnob');
+    var label = toggle.nextElementSibling;
+    toggle.checked = enabled;
+    if (enabled) {
+        label.style.background = '#22c55e';
+        knob.style.transform = 'translateX(24px)';
+        knob.style.background = '#ffffff';
+    } else {
+        label.style.background = 'rgba(255,255,255,0.1)';
+        knob.style.transform = 'translateX(0)';
+        knob.style.background = '#ffffff';
+    }
+}
+
+function renderProviders(providers, activeProvider) {
+    var tbody = document.getElementById('providerTableBody');
+    var select = document.getElementById('activeProvider');
+    var names = Object.keys(providers);
+
+    if (names.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="py-8 text-center text-muted">No providers registered</td></tr>';
+        return;
+    }
+
+    select.innerHTML = '<option value="">Select a provider...</option>';
+
+    tbody.innerHTML = names.map(function(name) {
+        var cfg = providers[name] || { enabled: false };
+        var isActive = name === activeProvider;
+        var isEnabled = cfg.enabled;
+
+        var badgeClass = isActive ? 'current' : (isEnabled ? 'active' : 'inactive');
+        var badgeText = isActive ? 'Active' : (isEnabled ? 'Enabled' : 'Disabled');
+
+        select.innerHTML += '<option value="' + name + '">' + name + '</option>';
+
+        return '<tr class="border-b border-white/5">' +
+            '<td class="py-3 px-4"><span class="font-medium">' + name + '</span></td>' +
+            '<td class="py-3 px-4"><span class="status-badge ' + badgeClass + '">' + badgeText + '</span></td>' +
+            '<td class="py-3 px-4 text-right">' +
+                (isActive
+                    ? '<span class="text-xs text-muted">Current provider</span>'
+                    : '<button onclick="toggleProvider(\'' + name + '\', ' + (!isEnabled) + ')" class="text-xs font-medium ' + (isEnabled ? 'text-red-400 hover:text-red-300' : 'text-emerald-400 hover:text-emerald-300') + ' transition-colors">' + (isEnabled ? 'Disable' : 'Enable') + '</button>'
+                ) +
+            '</td></tr>';
+    }());
+}
+
+function renderPreview(settings) {
+    document.getElementById('settingsPreview').textContent = JSON.stringify(settings, null, 2);
+}
+
+async function toggleAdsEnabled() {
+    var enabled = document.getElementById('adsEnabled').checked;
+    try {
+        var res = await fetch('/admin/api/ads/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adsEnabled: enabled })
+        });
+        var data = await res.json();
+        renderToggle(data.adsEnabled);
+        document.getElementById('statusText').textContent = data.adsEnabled ? 'Ads Enabled' : 'Ads Disabled';
+        document.getElementById('statusText').style.color = data.adsEnabled ? '#22c55e' : 'rgba(255,255,255,0.4)';
+        renderPreview(data);
+    } catch (err) {
+        renderToggle(!enabled);
+    }
+}
+
+async function updateActiveProvider() {
+    var provider = document.getElementById('activeProvider').value;
+    if (!provider) return;
+    try {
+        var res = await fetch('/admin/api/ads/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activeProvider: provider })
+        });
+        var data = await res.json();
+        renderProviders(state.providers, data.activeProvider);
+        renderPreview(data);
+    } catch (err) {}
+}
+
+async function updateRotation() {
+    var strategy = document.getElementById('rotationStrategy').value;
+    try {
+        var res = await fetch('/admin/api/ads/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rotationStrategy: strategy })
+        });
+        var data = await res.json();
+        renderPreview(data);
+    } catch (err) {}
+}
+
+async function toggleProvider(name, enable) {
+    try {
+        var res = await fetch('/admin/api/ads/provider/' + encodeURIComponent(name) + '/' + (enable ? 'enable' : 'disable'), {
+            method: 'POST'
+        });
+        var data = await res.json();
+        state.providers[name] = { enabled: enable };
+        renderProviders(state.providers, data.activeProvider);
+        renderPreview(data);
+    } catch (err) {}
+}
+
+document.addEventListener('DOMContentLoaded', loadSettings);
+</script>
