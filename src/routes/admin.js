@@ -1091,4 +1091,48 @@ fastify.get('/admin/analytics', async (req, reply) => {
     fastify.get('/admin/api/health', async (req, reply) => {
         return reply.send({ status: 'ok', timestamp: new Date() });
     });
+
+    const AdsSettingsService = require('../services/ads/AdsSettingsService');
+    const ProviderRegistry = require('../services/ads/providers/ProviderRegistry');
+
+    fastify.get('/admin/api/ads/settings', async (req, reply) => {
+        const settings = await AdsSettingsService.getSettings();
+        return reply.send(settings);
+    });
+
+    fastify.put('/admin/api/ads/settings', async (req, reply) => {
+        const settings = await AdsSettingsService.updateSettings(req.body || {});
+        return reply.send(settings);
+    });
+
+    fastify.get('/admin/api/ads/providers', async (req, reply) => {
+        const registered = ProviderRegistry.list();
+        const settings = await AdsSettingsService.getSettings();
+        const providers = {};
+        for (const name of registered) {
+            providers[name] = settings.providers?.[name] || { enabled: false, settings: {} };
+        }
+        return reply.send({ providers });
+    });
+
+    fastify.put('/admin/api/ads/provider', async (req, reply) => {
+        const { provider, config } = req.body || {};
+        if (!provider) return reply.code(400).send({ error: 'Provider name is required' });
+        const result = await AdsSettingsService.updateProviderConfig(provider, config);
+        return reply.send(result);
+    });
+
+    fastify.post('/admin/api/ads/provider/:provider/enable', async (req, reply) => {
+        const { provider } = req.params;
+        if (!ProviderRegistry.exists(provider)) return reply.code(400).send({ error: `Unknown provider: ${provider}` });
+        const result = await AdsSettingsService.enableProvider(provider);
+        return reply.send(result);
+    });
+
+    fastify.post('/admin/api/ads/provider/:provider/disable', async (req, reply) => {
+        const { provider } = req.params;
+        if (!ProviderRegistry.exists(provider)) return reply.code(400).send({ error: `Unknown provider: ${provider}` });
+        const result = await AdsSettingsService.disableProvider(provider);
+        return reply.send(result);
+    });
 };

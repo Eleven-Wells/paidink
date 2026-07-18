@@ -1,7 +1,8 @@
 const { loadAdConfig, AD_EVENTS } = require('../../config/ads');
-const ProviderFactory = require('./providers/ProviderFactory');
+const ProviderRegistry = require('./providers/ProviderRegistry');
 const RotationStrategy = require('./providers/RotationStrategy');
 const CacheManager = require('./providers/CacheManager');
+const AdsSettingsService = require('./AdsSettingsService');
 
 const cacheManager = new CacheManager();
 const healthCache = new Map();
@@ -42,11 +43,14 @@ async function getAds(context) {
 
     if (!config.enabled) return [];
 
+    const adsSettings = await AdsSettingsService.getSettings();
+    if (!adsSettings.adsEnabled) return [];
+
     if (!isRoleAllowed(context.user, config)) return [];
 
     if (await isFrequencyCapped(context)) return [];
 
-    const providerName = pickProvider(config);
+    const providerName = await pickProvider(config, adsSettings);
 
     const cacheContext = { ...context, provider: providerName };
     if (config.cacheEnabled) {
@@ -54,12 +58,12 @@ async function getAds(context) {
         if (cached) return cached;
     }
 
-    const provider = ProviderFactory.create(providerName);
+    const provider = ProviderRegistry.create(providerName);
 
     const healthy = await checkHealth(provider, config, providerName);
     if (!healthy) {
         console.error(`ProviderService: provider "${providerName}" unhealthy, falling back to mock`);
-        const fallback = ProviderFactory.create('mock');
+        const fallback = ProviderRegistry.create('mock');
         const ads = await callProvider(fallback, cacheContext);
         if (config.cacheEnabled) cacheManager.set(cacheContext, ads);
         return ads;
@@ -70,15 +74,15 @@ async function getAds(context) {
     return ads;
 }
 
-function pickProvider(config) {
+async function pickProvider(config, adsSettings) {
     const name = RotationStrategy.pick(
-        config.rotation,
-        config.providers,
+        adsSettings.rotationStrategy || config.rotation,
+        [adsSettings.activeProvider || 'mock'],
         null,
         config.providerWeights
     );
     if (eventBus) {
-        eventBus.emit(AD_EVENTS.PROVIDER_SELECTED, { provider: name, strategy: config.rotation });
+        eventBus.emit(AD_EVENTS.PROVIDER_SELECTED, { provider: name, strategy: adsSettings.rotationStrategy || config.rotation });
     }
     return name;
 }
@@ -113,7 +117,7 @@ async function callProvider(provider, context) {
         }
         if (provider.name !== 'mock') {
             console.error('ProviderService: falling back to mock');
-            const fallback = ProviderFactory.create('mock');
+            const fallback = ProviderRegistry.create('mock');
             return callProvider(fallback, context);
         }
         return [];
