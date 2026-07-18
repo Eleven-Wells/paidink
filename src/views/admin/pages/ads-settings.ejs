@@ -269,10 +269,11 @@ function renderProvidersTable() {
         html += `<td class="p-4 text-sm font-medium">${escHtml(p.name)}${isActive ? ' <span class="badge badge-info ml-2">Active</span>' : ''}</td>`;
         html += `<td class="p-4 text-sm text-muted"><code class="text-xs">${escHtml(p.type)}</code></td>`;
         html += `<td class="p-4"><span class="badge ${statusBadge}" id="status-${p._id}">${p.status || 'unknown'}</span></td>`;
-        html += `<td class="p-4"><label class="relative inline-flex items-center cursor-pointer">`;
-        html += `<input type="checkbox" class="sr-only peer" ${p.enabled ? 'checked' : ''} onchange="toggleEnabled('${p._id}', ${!p.enabled}, this)">`;
-        html += `<div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-white peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-black after:rounded-full after:h-4 after:w-4 after:transition-all"></div>`;
-        html += `</label></td>`;
+        const isOn = p.enabled;
+        html += `<td class="p-4"><button onclick="toggleEnabled('${p._id}', ${!isOn}, this)" class="relative inline-flex items-center cursor-pointer focus:outline-none" style="background:none;border:none;padding:0">`;
+        html += `<span class="block w-9 h-5 rounded-full transition-colors duration-200 ${isOn ? 'bg-white' : 'bg-white/20'}"></span>`;
+        html += `<span class="absolute top-0.5 left-0.5 w-4 h-4 bg-black rounded-full transition-transform duration-200 ${isOn ? 'translate-x-4' : 'translate-x-0'}"></span>`;
+        html += `</button></td>`;
         html += `<td class="p-4 text-right"><div class="flex items-center justify-end gap-2">`;
         html += `<button onclick="editProvider('${p._id}')" class="action-btn" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>`;
         html += `<button onclick="deleteProvider('${p._id}', '${escHtml(p.name)}')" class="action-btn" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>`;
