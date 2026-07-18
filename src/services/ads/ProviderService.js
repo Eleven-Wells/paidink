@@ -3,6 +3,7 @@ const ProviderRegistry = require('./providers/ProviderRegistry');
 const RotationStrategy = require('./providers/RotationStrategy');
 const CacheManager = require('./providers/CacheManager');
 const AdsSettingsService = require('./AdsSettingsService');
+const ProviderManagementService = require('./ProviderManagementService');
 
 const cacheManager = new CacheManager();
 const healthCache = new Map();
@@ -50,7 +51,8 @@ async function getAds(context) {
 
     if (await isFrequencyCapped(context)) return [];
 
-    const providerName = await pickProvider(config, adsSettings);
+    const providerInfo = await resolveProvider(adsSettings);
+    const providerName = providerInfo.type || 'mock';
 
     const cacheContext = { ...context, provider: providerName };
     if (config.cacheEnabled) {
@@ -58,7 +60,7 @@ async function getAds(context) {
         if (cached) return cached;
     }
 
-    const provider = ProviderRegistry.create(providerName);
+    const provider = ProviderRegistry.create(providerName, providerInfo.config || {});
 
     const healthy = await checkHealth(provider, config, providerName);
     if (!healthy) {
@@ -74,17 +76,43 @@ async function getAds(context) {
     return ads;
 }
 
-async function pickProvider(config, adsSettings) {
-    const name = RotationStrategy.pick(
-        adsSettings.rotationStrategy || config.rotation,
-        [adsSettings.activeProvider || 'mock'],
-        null,
-        config.providerWeights
-    );
-    if (eventBus) {
-        eventBus.emit(AD_EVENTS.PROVIDER_SELECTED, { provider: name, strategy: adsSettings.rotationStrategy || config.rotation });
+async function resolveProvider(adsSettings) {
+    const id = adsSettings.activeProviderId;
+    let candidates = ['mock'];
+    const configs = {};
+
+    if (id) {
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+        if (isObjectId) {
+            try {
+                const p = await ProviderManagementService.getProvider(id);
+                if (p && p.enabled) {
+                    candidates = [p.type];
+                    configs[p.type] = p.config || {};
+                }
+            } catch {
+                candidates = ['mock'];
+            }
+        } else {
+            candidates = [id];
+        }
     }
-    return name;
+
+    const providerName = RotationStrategy.pick(
+        adsSettings.rotationStrategy || 'none',
+        candidates,
+        null,
+        {}
+    );
+
+    if (eventBus) {
+        eventBus.emit(AD_EVENTS.PROVIDER_SELECTED, {
+            provider: providerName,
+            strategy: adsSettings.rotationStrategy || 'none'
+        });
+    }
+
+    return { type: providerName, config: configs[providerName] || {} };
 }
 
 async function checkHealth(provider, config, providerName) {
