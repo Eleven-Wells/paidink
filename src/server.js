@@ -59,9 +59,9 @@ function addDecorators() {
 }
 
 function registerProviders() {
-    const ProviderFactory = require('./services/ads/providers/ProviderFactory');
+    const ProviderRegistry = require('./services/ads/providers/ProviderRegistry');
     const MockProvider = require('./services/ads/providers/MockProvider');
-    ProviderFactory.register('mock', MockProvider);
+    ProviderRegistry.register('mock', MockProvider);
 
     const AdProviderInterface = require('./services/ads/providers/AdProviderInterface');
     class DirectProvider extends AdProviderInterface {
@@ -71,7 +71,7 @@ function registerProviders() {
         async recordClick() {}
         async healthCheck() { return true; }
     }
-    ProviderFactory.register('direct', DirectProvider);
+    ProviderRegistry.register('direct', DirectProvider);
 }
 
 async function startWorkers() {
