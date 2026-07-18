@@ -3,19 +3,37 @@ const AdsSettings = require('../../models/ads/AdsSettings');
 
 function parseImportSnippet(type, raw) {
     const config = {};
-    const scriptMatch = raw.match(/<script[^>]*src=["']([^"']+)["'][^>]*>/i);
-    if (scriptMatch) config.scriptSrc = scriptMatch[1];
-    const zoneMatch = raw.match(/data-zone["']?\s*[:=]\s*["']?(\d+)/i);
-    if (zoneMatch) config.zoneId = zoneMatch[1];
+
+    const scriptTagMatch = raw.match(/<script[^>]*src=["']([^"']+)["'][^>]*>/i);
+    if (scriptTagMatch) config.scriptSrc = scriptTagMatch[1];
+
+    const jsSrcMatch = raw.match(/\.src\s*=\s*["']([^"']+)["']/);
+    if (jsSrcMatch && !config.scriptSrc) config.scriptSrc = jsSrcMatch[1];
+
+    const zoneAttrMatch = raw.match(/data-zone=["'](\d+)["']/i);
+    if (zoneAttrMatch) config.zoneId = zoneAttrMatch[1];
+
+    const jsZoneMatch = raw.match(/\.dataset\.zone\s*=\s*["'](\d+)["']/i);
+    if (jsZoneMatch && !config.zoneId) config.zoneId = jsZoneMatch[1];
+
+    const jsBracketZoneMatch = raw.match(/\[\s*["']data-zone["']\s*\]\s*=\s*["'](\d+)["']/i);
+    if (jsBracketZoneMatch && !config.zoneId) config.zoneId = jsBracketZoneMatch[1];
+
     const dataAttrs = {};
-    const attrRegex = /data-(\w+)=["']([^"']+)["']/g;
+    const htmlAttrRegex = /data-(\w+)=["']([^"']+)["']/g;
     let m;
-    while ((m = attrRegex.exec(raw)) !== null) {
+    while ((m = htmlAttrRegex.exec(raw)) !== null) {
         dataAttrs[m[1]] = m[2];
     }
+    const jsAttrRegex = /\.dataset\.(\w+)\s*=\s*["']([^"']+)["']/g;
+    while ((m = jsAttrRegex.exec(raw)) !== null) {
+        if (!dataAttrs[m[1]]) dataAttrs[m[1]] = m[2];
+    }
     if (Object.keys(dataAttrs).length) config.dataAttributes = dataAttrs;
+
     const swMatch = raw.match(/data-sw["']?\s*[:=]\s*["']([^"']+)/i);
     if (swMatch) config.serviceWorker = swMatch[1];
+
     return config;
 }
 
@@ -114,14 +132,22 @@ function validateProviderConfig(type, config) {
 async function performHealthCheck(id) {
     const provider = await AdProvider.findById(id);
     if (!provider) throw new Error('Provider not found');
-    const ProviderRegistry = require('./providers/ProviderRegistry');
+    const ProviderFactory = require('./providers/ProviderFactory');
+
+    if (!ProviderFactory.getRegistered().includes(provider.type)) {
+        const status = 'unknown';
+        await AdProvider.findByIdAndUpdate(id, {
+            $set: { status, lastHealthCheck: new Date() }
+        });
+        return { healthy: false, status, checkedAt: new Date(), message: `Provider type "${provider.type}" not registered` };
+    }
+
     let healthy = false;
     try {
+        const ProviderRegistry = require('./providers/ProviderRegistry');
         const instance = ProviderRegistry.create(provider.type, provider.config);
         if (instance && typeof instance.healthCheck === 'function') {
             healthy = await instance.healthCheck();
-        } else {
-            healthy = true;
         }
     } catch {
         healthy = false;
