@@ -30,6 +30,9 @@ jest.mock('../../src/models/ads/FrequencyRule', () => ({
 
 jest.mock('../../src/services/ads/providers/CacheManager');
 jest.mock('../../src/services/ads/providers/RotationStrategy');
+jest.mock('../../src/services/ads/AdsSettingsService', () => ({
+    getSettings: jest.fn()
+}));
 jest.mock('../../src/services/ads/AdRevenueService', () => ({
     distributeAdRevenue: jest.fn().mockResolvedValue()
 }));
@@ -210,6 +213,13 @@ describe('EventBus Integration — component wiring', () => {
                 disableForRoles: ['premium', 'administrator']
             });
 
+            const AdsSettingsService = require('../../src/services/ads/AdsSettingsService');
+            AdsSettingsService.getSettings.mockResolvedValue({
+                adsEnabled: true,
+                activeProvider: 'mock',
+                rotationStrategy: 'none',
+                providers: { mock: { enabled: true } }
+            });
             const RotationStrategy = require('../../src/services/ads/providers/RotationStrategy');
             RotationStrategy.pick = jest.fn().mockReturnValue('mock');
             const FrequencyRule = require('../../src/models/ads/FrequencyRule');
