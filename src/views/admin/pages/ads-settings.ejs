@@ -5,6 +5,7 @@
             <h2 class="font-heading text-2xl font-semibold">Ad Providers</h2>
             <p class="text-muted text-sm mt-1">Configure ad providers and runtime settings</p>
         </div>
+        <span id="syncStatus" class="text-xs text-muted flex items-center gap-1"></span>
     </div>
 
     <!-- Runtime Settings -->
@@ -14,20 +15,20 @@
             <div>
                 <label class="block text-sm font-medium text-muted mb-2">Ads Enabled</label>
                 <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="adsEnabled" class="sr-only peer">
+                    <input type="checkbox" id="adsEnabled" class="sr-only peer" onchange="onAdsToggle(this.checked)">
                     <div class="w-11 h-6 bg-white/10 rounded-full peer peer-checked:bg-white peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-black after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                     <span class="ml-3 text-sm" id="adsEnabledLabel">Off</span>
                 </label>
             </div>
             <div>
                 <label class="block text-sm font-medium text-muted mb-2">Active Provider</label>
-                <select id="activeProvider" class="input-dark w-full">
+                <select id="activeProvider" class="input-dark w-full" onchange="onActiveProviderChange(this.value)">
                     <option value="">None (mock fallback)</option>
                 </select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-muted mb-2">Rotation Strategy</label>
-                <select id="rotationStrategy" class="input-dark w-full">
+                <select id="rotationStrategy" class="input-dark w-full" onchange="onRotationChange(this.value)">
                     <option value="none">None</option>
                     <option value="random">Random</option>
                     <option value="round-robin">Round Robin</option>
@@ -35,8 +36,9 @@
                 </select>
             </div>
         </div>
-        <div class="mt-4 flex justify-end">
-            <button onclick="saveRuntimeSettings()" class="btn-primary text-sm">Save Settings</button>
+        <div class="mt-2 flex items-center justify-end gap-3">
+            <span id="settingsSaveStatus" class="text-xs text-emerald-400 hidden">Saved</span>
+            <span id="settingsErrorStatus" class="text-xs text-red-400 hidden">Save failed</span>
         </div>
     </div>
 
@@ -58,6 +60,9 @@
     </div>
 </div>
 
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-[300] flex flex-col gap-2 pointer-events-none"></div>
+
 <!-- Add/Edit Provider Modal -->
 <div class="modal-overlay" id="providerModal">
     <div class="modal-content p-6 max-w-3xl">
@@ -74,7 +79,6 @@
             <button id="modeAdvanced" onclick="setMode('advanced')" class="px-4 py-2 text-sm rounded-lg font-medium transition-colors text-muted hover:text-white">Advanced</button>
         </div>
 
-        <!-- Basic Fields -->
         <input type="hidden" id="editId" value="">
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
@@ -95,12 +99,11 @@
             </div>
         </div>
 
-        <!-- Basic Mode: Snippet Import -->
         <div id="basicModeContent">
             <label class="block text-sm font-medium text-muted mb-2">Paste Provider Script / Snippet</label>
             <textarea id="importSnippet" class="input-dark w-full font-mono text-xs" rows="6" placeholder='<script src="https://example.com/ad.js" data-zone="12345"></script>'></textarea>
             <div class="flex gap-2 mt-3">
-                <button onclick="parseAndReview()" class="btn-secondary text-sm">Parse & Review</button>
+                <button id="parseBtn" onclick="parseAndReview()" class="btn-secondary text-sm">Parse & Review</button>
             </div>
             <div id="parsedConfig" class="mt-4 hidden">
                 <label class="block text-sm font-medium text-muted mb-2">Detected Config (review before saving)</label>
@@ -108,7 +111,6 @@
             </div>
         </div>
 
-        <!-- Advanced Mode: Raw Config -->
         <div id="advancedModeContent" class="hidden">
             <label class="block text-sm font-medium text-muted mb-2">Configuration (JSON)</label>
             <textarea id="rawConfig" class="input-dark w-full font-mono text-xs" rows="8" placeholder='{
@@ -117,9 +119,12 @@
 }'></textarea>
         </div>
 
-        <div class="flex gap-3 mt-6 justify-end">
+        <div class="flex gap-3 mt-6 justify-end items-center">
+            <span id="modalSaveStatus" class="text-xs text-muted hidden"></span>
             <button onclick="closeModal()" class="btn-secondary text-sm">Cancel</button>
-            <button onclick="saveProvider()" class="btn-primary text-sm">Save Provider</button>
+            <button id="saveProviderBtn" onclick="saveProvider()" class="btn-primary text-sm flex items-center gap-2">
+                <span>Save Provider</span>
+            </button>
         </div>
     </div>
 </div>
@@ -130,17 +135,85 @@
         <h3 class="font-heading text-xl font-semibold mb-2">Delete Provider</h3>
         <p class="text-muted text-sm mb-6">Are you sure you want to delete <strong id="deleteName" class="text-white"></strong>? This action cannot be undone.</p>
         <input type="hidden" id="deleteId" value="">
-        <div class="flex gap-3 justify-end">
+        <div class="flex gap-3 justify-end items-center">
+            <span id="deleteStatus" class="text-xs text-muted hidden"></span>
             <button onclick="closeDeleteModal()" class="btn-secondary text-sm">Cancel</button>
-            <button onclick="confirmDelete()" class="px-4 py-2 text-sm font-medium rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors">Delete</button>
+            <button id="confirmDeleteBtn" onclick="confirmDelete()" class="px-4 py-2 text-sm font-medium rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors flex items-center gap-2">
+                <span>Delete</span>
+            </button>
         </div>
     </div>
 </div>
 
 <script>
+const state = { providers: [], settings: {} };
 let editingId = null;
 let parsedConfig = null;
 let currentMode = 'basic';
+let toastIdCounter = 0;
+let settingsDebounceTimer = null;
+
+function Toast(type, message) {
+    const id = ++toastIdCounter;
+    const colors = {
+        success: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
+        error: 'bg-red-500/15 border-red-500/30 text-red-300',
+        info: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
+        warning: 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+    };
+    const icons = {
+        success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+        warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    };
+    const el = document.createElement('div');
+    el.id = 'toast-' + id;
+    el.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-lg ${colors[type]} shadow-xl transition-all duration-300 translate-x-[120%] opacity-0`;
+    el.style.maxWidth = '400px';
+    el.innerHTML = `<span class="flex-shrink-0">${icons[type]}</span><span class="text-sm flex-1">${message}</span><button onclick="dismissToast(${id})" class="flex-shrink-0 opacity-50 hover:opacity-100"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+    document.getElementById('toastContainer').appendChild(el);
+    requestAnimationFrame(() => {
+        el.classList.remove('translate-x-[120%]', 'opacity-0');
+    });
+    setTimeout(() => dismissToast(id), 4000);
+}
+
+function dismissToast(id) {
+    const el = document.getElementById('toast-' + id);
+    if (!el) return;
+    el.classList.add('translate-x-[120%]', 'opacity-0');
+    setTimeout(() => el.remove(), 300);
+}
+
+function setLoading(btnId, loading, label) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    if (loading) {
+        btn.dataset.label = label || btn.querySelector('span')?.textContent || 'Save';
+        btn.querySelector('span').innerHTML = '<svg class="animate-spin -ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Saving...';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+    } else {
+        btn.querySelector('span').textContent = btn.dataset.label || 'Save';
+        btn.style.pointerEvents = '';
+        btn.style.opacity = '';
+    }
+}
+
+function showStatus(elId, type, message) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (!message) {
+        el.classList.add('hidden');
+        return;
+    }
+    el.textContent = message;
+    el.className = 'text-xs ' + (type === 'success' ? 'text-emerald-400' : 'text-red-400');
+    el.classList.remove('hidden');
+    clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+}
 
 async function loadProviders() {
     try {
@@ -148,24 +221,35 @@ async function loadProviders() {
             fetch('/admin/api/ads/settings'),
             fetch('/admin/api/ads/providers')
         ]);
-        const settings = await settingsRes.json();
+        state.settings = await settingsRes.json();
         const providersData = await providersRes.json();
-        renderProviders(providersData.providers, settings);
+        state.providers = providersData.providers || [];
+        render();
     } catch (err) {
         document.getElementById('providersList').innerHTML = '<div class="p-8 text-center text-red-400">Failed to load providers</div>';
+        Toast('error', 'Failed to load providers');
     }
 }
 
-function renderProviders(providers, settings) {
+function render() {
+    renderProvidersTable();
+    renderSettingsControls();
+}
+
+function renderSettingsControls() {
+    const s = state.settings;
+    document.getElementById('adsEnabled').checked = s.adsEnabled;
+    document.getElementById('adsEnabledLabel').textContent = s.adsEnabled ? 'On' : 'Off';
+    document.getElementById('rotationStrategy').value = s.rotationStrategy || 'none';
+}
+
+function renderProvidersTable() {
     const container = document.getElementById('providersList');
     const activeSelect = document.getElementById('activeProvider');
+    const currentVal = activeSelect.value;
     activeSelect.innerHTML = '<option value="">None (mock fallback)</option>';
 
-    document.getElementById('adsEnabled').checked = settings.adsEnabled;
-    document.getElementById('adsEnabledLabel').textContent = settings.adsEnabled ? 'On' : 'Off';
-    document.getElementById('rotationStrategy').value = settings.rotationStrategy;
-
-    if (!providers || providers.length === 0) {
+    if (!state.providers.length) {
         container.innerHTML = '<div class="p-8 text-center text-muted"><p class="text-lg mb-2">No providers configured</p><p class="text-sm">Click "Add Provider" to get started.</p></div>';
         return;
     }
@@ -178,35 +262,34 @@ function renderProviders(providers, settings) {
     html += '<th class="text-right p-4 font-medium">Actions</th>';
     html += '</tr></thead><tbody>';
 
-    for (const p of providers) {
-        const isActive = settings.activeProviderId === p._id;
+    for (const p of state.providers) {
+        const isActive = state.settings.activeProviderId === p._id;
         const statusBadge = p.status === 'healthy' ? 'badge-success' : p.status === 'failed' ? 'badge-error' : 'badge-warning';
-        html += `<tr class="table-row ${isActive ? 'bg-white/5' : ''}">`;
+        html += `<tr class="table-row ${isActive ? 'bg-white/5' : ''}" id="row-${p._id}">`;
         html += `<td class="p-4 text-sm font-medium">${escHtml(p.name)}${isActive ? ' <span class="badge badge-info ml-2">Active</span>' : ''}</td>`;
-        html += `<td class="p-4 text-sm text-muted">${escHtml(p.type)}</td>`;
-        html += `<td class="p-4"><span class="badge ${statusBadge}">${p.status || 'unknown'}</span></td>`;
-        html += `<td class="p-4">`;
-        html += `<label class="relative inline-flex items-center cursor-pointer">`;
-        html += `<input type="checkbox" class="sr-only peer" ${p.enabled ? 'checked' : ''} onchange="toggleEnabled('${p._id}', ${!p.enabled})">`;
+        html += `<td class="p-4 text-sm text-muted"><code class="text-xs">${escHtml(p.type)}</code></td>`;
+        html += `<td class="p-4"><span class="badge ${statusBadge}" id="status-${p._id}">${p.status || 'unknown'}</span></td>`;
+        html += `<td class="p-4"><label class="relative inline-flex items-center cursor-pointer">`;
+        html += `<input type="checkbox" class="sr-only peer" ${p.enabled ? 'checked' : ''} onchange="toggleEnabled('${p._id}', ${!p.enabled}, this)">`;
         html += `<div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-white peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-black after:rounded-full after:h-4 after:w-4 after:transition-all"></div>`;
         html += `</label></td>`;
         html += `<td class="p-4 text-right"><div class="flex items-center justify-end gap-2">`;
         html += `<button onclick="editProvider('${p._id}')" class="action-btn" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>`;
         html += `<button onclick="deleteProvider('${p._id}', '${escHtml(p.name)}')" class="action-btn" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>`;
         html += `<button onclick="duplicateProvider('${p._id}')" class="action-btn" title="Duplicate"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>`;
-        html += `<button onclick="runHealthCheck('${p._id}')" class="action-btn" title="Health Check"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></button>`;
-        html += `</div></td>`;
-        html += `</tr>`;
+        html += `<button onclick="runHealthCheck('${p._id}', this)" class="action-btn" title="Health Check"><svg id="hc-icon-${p._id}" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></button>`;
+        html += `</div></td></tr>`;
 
         const option = document.createElement('option');
         option.value = p._id;
         option.textContent = p.name;
-        if (p._id === settings.activeProviderId) option.selected = true;
+        if (p._id === state.settings.activeProviderId) option.selected = true;
         activeSelect.appendChild(option);
     }
 
     html += '</tbody></table>';
     container.innerHTML = html;
+    activeSelect.value = currentVal || state.settings.activeProviderId || '';
 }
 
 function openAddModal() {
@@ -220,15 +303,19 @@ function openAddModal() {
     document.getElementById('parsedConfig').classList.add('hidden');
     parsedConfig = null;
     setMode('basic');
+    showStatus('modalSaveStatus');
     document.getElementById('providerModal').classList.add('active');
+    setTimeout(() => document.getElementById('providerType').focus(), 100);
 }
 
 function closeModal() {
     document.getElementById('providerModal').classList.remove('active');
+    setLoading('saveProviderBtn', false);
 }
 
 function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('active');
+    setLoading('confirmDeleteBtn', false);
 }
 
 function setMode(mode) {
@@ -255,11 +342,15 @@ async function parseAndReview() {
     const snippet = document.getElementById('importSnippet').value.trim();
     const type = document.getElementById('providerType').value.trim() || 'custom';
     const name = document.getElementById('providerName').value.trim() || `Provider (${type})`;
+    const btn = document.getElementById('parseBtn');
 
     if (!snippet) {
-        alert('Please paste a snippet first');
+        btn.textContent = 'Parse & Review';
+        Toast('warning', 'Please paste a snippet first');
         return;
     }
+
+    btn.innerHTML = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Parsing...';
 
     try {
         const res = await fetch('/admin/api/ads/providers/import', {
@@ -271,8 +362,13 @@ async function parseAndReview() {
         document.getElementById('parsedConfig').classList.remove('hidden');
         document.getElementById('parsedConfigContent').textContent = JSON.stringify(data.detected || data.config || {}, null, 2);
         parsedConfig = data.config || data.detected || {};
-    } catch (err) {
-        alert('Failed to parse snippet');
+        btn.innerHTML = 'Parse & Review <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+        if (data.success === false && data.errors?.length) {
+            Toast('warning', 'Some fields may be missing: ' + data.errors.join(', '));
+        }
+    } catch {
+        btn.textContent = 'Parse & Review';
+        Toast('error', 'Failed to parse snippet');
     }
 }
 
@@ -280,41 +376,91 @@ async function saveProvider() {
     const type = document.getElementById('providerType').value.trim();
     const name = document.getElementById('providerName').value.trim();
     if (!type || !name) {
-        alert('Provider type and name are required');
+        Toast('warning', 'Provider type and name are required');
         return;
     }
 
     let config = {};
     if (currentMode === 'basic') {
+        if (!parsedConfig || Object.keys(parsedConfig).length === 0 && !document.getElementById('rawConfig').value.trim()) {
+            Toast('warning', 'Parse your snippet or switch to Advanced mode to enter config');
+            return;
+        }
         config = parsedConfig || {};
     } else {
         try {
             config = JSON.parse(document.getElementById('rawConfig').value.trim() || '{}');
         } catch {
-            alert('Invalid JSON in config');
+            Toast('error', 'Invalid JSON in config');
             return;
         }
     }
 
     const editId = document.getElementById('editId').value;
-    const url = editId ? `/admin/api/ads/providers/${editId}` : '/admin/api/ads/providers';
-    const method = editId ? 'PUT' : 'POST';
+    const isEdit = !!editId;
+    setLoading('saveProviderBtn', true);
+
+    let savedProvider;
+    if (isEdit) {
+        savedProvider = { ...state.providers.find(p => p._id === editId) };
+        const oldName = savedProvider.name;
+        Object.assign(savedProvider, { type, name, config, enabled: true });
+        const idx = state.providers.findIndex(p => p._id === editId);
+        if (idx !== -1) state.providers[idx] = savedProvider;
+        render();
+        closeModal();
+        Toast('success', `Provider "${name}" updated`);
+
+        try {
+            const res = await fetch(`/admin/api/ads/providers/${editId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, name, config })
+            });
+            if (!res.ok) {
+                state.providers[idx] = { ...savedProvider, name: oldName };
+                render();
+                Toast('error', 'Failed to save: ' + ((await res.json()).error || 'unknown error'));
+            }
+        } catch {
+            state.providers[idx] = { ...savedProvider, name: oldName };
+            render();
+            Toast('error', 'Network error, changes reverted');
+        }
+        setLoading('saveProviderBtn', false);
+        return;
+    }
+
+    savedProvider = { _id: '__temp_' + Date.now(), type, name, config, enabled: true, status: 'unknown' };
+    state.providers.unshift(savedProvider);
+    render();
+    closeModal();
+    Toast('info', `Adding provider "${name}"...`);
+    setLoading('saveProviderBtn', false);
 
     try {
-        const res = await fetch(url, {
-            method,
+        const res = await fetch('/admin/api/ads/providers', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, name, config, enabled: true })
         });
-        if (!res.ok) {
+        if (res.ok) {
+            const created = await res.json();
+            const tidx = state.providers.findIndex(p => p._id === savedProvider._id);
+            if (tidx !== -1) state.providers[tidx] = created;
+            render();
+            Toast('success', `Provider "${name}" created`);
+            showStatus('modalSaveStatus', 'success', 'Provider created');
+        } else {
+            state.providers = state.providers.filter(p => p._id !== savedProvider._id);
+            render();
             const err = await res.json();
-            alert(err.error || 'Failed to save provider');
-            return;
+            Toast('error', err.error || 'Failed to create provider');
         }
-        closeModal();
-        loadProviders();
     } catch {
-        alert('Failed to save provider');
+        state.providers = state.providers.filter(p => p._id !== savedProvider._id);
+        render();
+        Toast('error', 'Network error, provider not created');
     }
 }
 
@@ -331,91 +477,175 @@ async function editProvider(id) {
         document.getElementById('importSnippet').value = '';
         document.getElementById('parsedConfig').classList.add('hidden');
         setMode('advanced');
+        showStatus('modalSaveStatus');
         document.getElementById('providerModal').classList.add('active');
     } catch {
-        alert('Failed to load provider');
+        Toast('error', 'Failed to load provider');
     }
 }
 
 function deleteProvider(id, name) {
     document.getElementById('deleteId').value = id;
     document.getElementById('deleteName').textContent = name;
+    showStatus('deleteStatus');
     document.getElementById('deleteModal').classList.add('active');
 }
 
 async function confirmDelete() {
     const id = document.getElementById('deleteId').value;
+    const provider = state.providers.find(p => p._id === id);
+    const name = provider ? provider.name : 'Provider';
+    state.providers = state.providers.filter(p => p._id !== id);
+    render();
+    closeDeleteModal();
+    Toast('info', `Deleting "${name}"...`);
+
     try {
         const res = await fetch(`/admin/api/ads/providers/${id}`, { method: 'DELETE' });
-        if (!res.ok) {
-            const err = await res.json();
-            alert(err.error || 'Failed to delete');
-            return;
+        if (res.ok) {
+            Toast('success', `"${name}" deleted`);
+        } else {
+            state.providers.push(provider);
+            render();
+            Toast('error', 'Failed to delete: ' + ((await res.json()).error || 'unknown error'));
         }
-        closeDeleteModal();
-        loadProviders();
     } catch {
-        alert('Failed to delete provider');
+        state.providers.push(provider);
+        render();
+        Toast('error', 'Network error, deletion reverted');
     }
 }
 
 async function duplicateProvider(id) {
+    const provider = state.providers.find(p => p._id === id);
+    if (!provider) return;
+    const tempId = '__dup_' + Date.now();
+    const copy = { ...provider, _id: tempId, name: provider.name + ' (copy)', enabled: false, status: 'unknown' };
+    state.providers.unshift(copy);
+    render();
+    Toast('info', `Duplicating "${provider.name}"...`);
+
     try {
         const res = await fetch(`/admin/api/ads/providers/${id}/duplicate`, { method: 'POST' });
-        if (!res.ok) {
-            const err = await res.json();
-            alert(err.error || 'Failed to duplicate');
-            return;
+        if (res.ok) {
+            const created = await res.json();
+            const idx = state.providers.findIndex(p => p._id === tempId);
+            if (idx !== -1) state.providers[idx] = created;
+            render();
+            Toast('success', `"${provider.name}" duplicated`);
+        } else {
+            state.providers = state.providers.filter(p => p._id !== tempId);
+            render();
+            Toast('error', 'Failed to duplicate');
         }
-        loadProviders();
     } catch {
-        alert('Failed to duplicate provider');
+        state.providers = state.providers.filter(p => p._id !== tempId);
+        render();
+        Toast('error', 'Network error, duplicate failed');
     }
 }
 
-async function toggleEnabled(id, enabled) {
-    const endpoint = enabled ? 'enable' : 'disable';
+async function toggleEnabled(id, enabled, checkbox) {
+    const oldEnabled = !enabled;
+    const provider = state.providers.find(p => p._id === id);
+    if (!provider) return;
+
+    provider.enabled = enabled;
+    render();
+    Toast('info', `${provider.name} ${enabled ? 'enabled' : 'disabled'}`);
+
     try {
+        const endpoint = enabled ? 'enable' : 'disable';
         const res = await fetch(`/admin/api/ads/providers/${id}/${endpoint}`, { method: 'POST' });
         if (!res.ok) {
-            loadProviders();
-            return;
+            provider.enabled = oldEnabled;
+            render();
+            Toast('error', `Failed to ${enabled ? 'enable' : 'disable'} ${provider.name}`);
         }
-        loadProviders();
     } catch {
-        loadProviders();
+        provider.enabled = oldEnabled;
+        render();
+        Toast('error', 'Network error, change reverted');
     }
 }
 
-async function runHealthCheck(id) {
+async function runHealthCheck(id, btn) {
+    const icon = document.getElementById('hc-icon-' + id);
+    if (icon) {
+        icon.innerHTML = '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>';
+        icon.parentElement.style.opacity = '0.5';
+        icon.parentElement.style.pointerEvents = 'none';
+    }
+    const statusEl = document.getElementById('status-' + id);
+
     try {
         const res = await fetch(`/admin/api/ads/providers/${id}/health`, { method: 'POST' });
         const data = await res.json();
-        loadProviders();
+        const provider = state.providers.find(p => p._id === id);
+        if (provider) {
+            provider.status = data.status || (data.healthy ? 'healthy' : 'failed');
+            render();
+        }
+        if (data.healthy) Toast('success', 'Health check passed');
+        else Toast('error', 'Health check failed');
     } catch {
-        alert('Health check failed');
+        Toast('error', 'Health check request failed');
+        if (statusEl) {
+            statusEl.textContent = 'error';
+            statusEl.className = 'badge badge-error';
+        }
+    }
+
+    if (icon) {
+        icon.innerHTML = '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>';
+        icon.parentElement.style.opacity = '';
+        icon.parentElement.style.pointerEvents = '';
     }
 }
 
-async function saveRuntimeSettings() {
-    const adsEnabled = document.getElementById('adsEnabled').checked;
-    const activeProviderId = document.getElementById('activeProvider').value || null;
-    const rotationStrategy = document.getElementById('rotationStrategy').value;
+function scheduleSettingsSave() {
+    clearTimeout(settingsDebounceTimer);
+    showStatus('settingsSaveStatus', 'success', 'Saving...');
+    settingsDebounceTimer = setTimeout(saveRuntimeSettings, 600);
+}
 
+function onAdsToggle(checked) {
+    state.settings.adsEnabled = checked;
+    renderSettingsControls();
+    scheduleSettingsSave();
+}
+
+function onActiveProviderChange(value) {
+    state.settings.activeProviderId = value || null;
+    scheduleSettingsSave();
+}
+
+function onRotationChange(value) {
+    state.settings.rotationStrategy = value;
+    scheduleSettingsSave();
+}
+
+async function saveRuntimeSettings() {
+    const s = state.settings;
     try {
         const res = await fetch('/admin/api/ads/settings', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adsEnabled, activeProviderId, rotationStrategy })
+            body: JSON.stringify({
+                adsEnabled: s.adsEnabled,
+                activeProviderId: s.activeProviderId,
+                rotationStrategy: s.rotationStrategy
+            })
         });
-        if (!res.ok) {
-            const err = await res.json();
-            alert(err.error || 'Failed to save settings');
-            return;
+        if (res.ok) {
+            showStatus('settingsSaveStatus', 'success', 'Saved');
+        } else {
+            showStatus('settingsErrorStatus', 'error', 'Save failed');
+            Toast('error', 'Failed to save settings');
         }
-        loadProviders();
     } catch {
-        alert('Failed to save settings');
+        showStatus('settingsErrorStatus', 'error', 'Network error');
+        Toast('error', 'Network error saving settings');
     }
 }
 
