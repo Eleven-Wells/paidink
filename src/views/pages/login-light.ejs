@@ -29,7 +29,7 @@
         rel="stylesheet">
     <script>
         var CLERK_ENABLED = <%= !!(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY) %>;
-        var ERROR = <%= error ? JSON.stringify(String(error)) : 'null' %>;
+        var ERROR = <%- error ? JSON.stringify(String(error)) : 'null' %>;
         function handleSocialLogin(btn, url) {
             btn.classList.add('loading');
             var loader = btn.querySelector('.dot-loader');
