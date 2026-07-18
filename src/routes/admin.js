@@ -951,6 +951,17 @@ fastify.get('/admin/analytics', async (req, reply) => {
         return reply.type('text/html').send(html);
     });
 
+    fastify.get('/admin/ads-settings', async (req, reply) => {
+        const html = renderAdminPage('ads-settings', {
+            currentPage: 'ads-settings',
+            pageTitle: 'Ad Settings',
+            pageSubtitle: 'Configure ad providers and runtime settings',
+            title: 'Ad Settings | PaidInk Admin'
+        });
+        
+        return reply.type('text/html').send(html);
+    });
+
     fastify.get('/admin/earnings', async (req, reply) => {
         const Credit = require('../models/Credit');
         const User = require('../models/User');

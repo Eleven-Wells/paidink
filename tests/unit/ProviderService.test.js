@@ -9,12 +9,17 @@ jest.mock('../../src/config/ads', () => ({
     })
 }));
 
+jest.mock('../../src/services/ads/AdsSettingsService', () => ({
+    getSettings: jest.fn()
+}));
+
 jest.mock('../../src/services/ads/providers/CacheManager');
 jest.mock('../../src/services/ads/providers/RotationStrategy');
 jest.mock('../../src/models/ads/FrequencyRule');
 jest.mock('../../src/models/ads/AdEvent');
 
 const { loadAdConfig } = require('../../src/config/ads');
+const AdsSettingsService = require('../../src/services/ads/AdsSettingsService');
 const CacheManager = require('../../src/services/ads/providers/CacheManager');
 const RotationStrategy = require('../../src/services/ads/providers/RotationStrategy');
 const FrequencyRule = require('../../src/models/ads/FrequencyRule');
@@ -55,6 +60,12 @@ describe('ProviderService', () => {
             trackClicks: true,
             disableForRoles: ['premium', 'administrator']
         });
+        AdsSettingsService.getSettings.mockResolvedValue({
+            adsEnabled: true,
+            activeProvider: 'mock',
+            rotationStrategy: 'none',
+            providers: { mock: { enabled: true } }
+        });
         eventBus = new EventBusMock();
         ProviderService.setEventBus(eventBus);
         CacheManager.mockClear();
@@ -69,6 +80,17 @@ describe('ProviderService', () => {
 
     it('should return empty array when ads are disabled', async () => {
         loadAdConfig.mockReturnValue({ enabled: false });
+        const result = await ProviderService.getAds({ placement: 'sidebar' });
+        expect(result).toEqual([]);
+    });
+
+    it('should return empty array when ads settings disable ads', async () => {
+        AdsSettingsService.getSettings.mockResolvedValue({
+            adsEnabled: false,
+            activeProvider: 'mock',
+            rotationStrategy: 'none',
+            providers: {}
+        });
         const result = await ProviderService.getAds({ placement: 'sidebar' });
         expect(result).toEqual([]);
     });
