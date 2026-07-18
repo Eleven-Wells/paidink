@@ -1,6 +1,5 @@
-const CLERK_API = 'https://api.clerk.com/v1';
-
 let clerkInitialized = false;
+let frontendApiUrl = '';
 
 function initClerk() {
     const secretKey = process.env.CLERK_SECRET_KEY;
@@ -12,6 +11,19 @@ function initClerk() {
     }
 
     clerkInitialized = true;
+    frontendApiUrl = deriveFrontendApiUrl(publishableKey);
+}
+
+function deriveFrontendApiUrl(publishableKey) {
+    try {
+        const parts = publishableKey.split('_');
+        const encoded = parts[parts.length - 1];
+        const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
+        const parsed = JSON.parse(decoded);
+        return `https://${parsed.instance}`;
+    } catch {
+        return process.env.CLERK_FRONTEND_API_URL || 'https://api.clerk.com';
+    }
 }
 
 function isConfigured() {
@@ -30,7 +42,9 @@ async function getOAuthUrl(provider, redirectUri) {
         throw new Error(`Unknown OAuth provider: ${provider}`);
     }
 
-    const res = await fetch(`${CLERK_API}/sign_ins`, {
+    const url = `${frontendApiUrl}/v1/client/sign_ins`;
+
+    const res = await fetch(url, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${process.env.CLERK_SECRET_KEY}`,
@@ -44,7 +58,7 @@ async function getOAuthUrl(provider, redirectUri) {
 
     if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`Clerk sign-in creation failed: ${errText}`);
+        throw new Error(`Clerk sign-in creation failed (${res.status}): ${errText}`);
     }
 
     const data = await res.json();
