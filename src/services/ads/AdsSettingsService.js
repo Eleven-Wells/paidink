@@ -19,12 +19,8 @@ async function ensureDefaults() {
     if (!doc) {
         doc = await AdsSettings.create({
             adsEnabled: true,
-            activeProvider: 'mock',
-            rotationStrategy: 'none',
-            providers: new Map(Object.entries({
-                mock: { enabled: true },
-                direct: { enabled: false, settings: {} }
-            }))
+            activeProviderId: null,
+            rotationStrategy: 'none'
         });
     }
     return doc;
@@ -42,16 +38,15 @@ async function getSettings() {
     const doc = await loadSettings();
     return {
         adsEnabled: doc.adsEnabled,
-        activeProvider: doc.activeProvider,
-        rotationStrategy: doc.rotationStrategy,
-        providers: Object.fromEntries(doc.providers || new Map())
+        activeProviderId: doc.activeProviderId ? doc.activeProviderId.toString() : null,
+        rotationStrategy: doc.rotationStrategy
     };
 }
 
 async function updateSettings(updates) {
     let doc = await ensureDefaults();
     if (updates.adsEnabled !== undefined) doc.adsEnabled = updates.adsEnabled;
-    if (updates.activeProvider !== undefined) doc.activeProvider = updates.activeProvider;
+    if (updates.activeProviderId !== undefined) doc.activeProviderId = updates.activeProviderId || null;
     if (updates.rotationStrategy !== undefined) doc.rotationStrategy = updates.rotationStrategy;
     await doc.save();
     invalidateCache();
@@ -60,12 +55,12 @@ async function updateSettings(updates) {
 
 async function getActiveProvider() {
     const settings = await getSettings();
-    if (!settings.adsEnabled) return null;
-    return settings.activeProvider;
+    if (!settings.adsEnabled || !settings.activeProviderId) return null;
+    return settings.activeProviderId;
 }
 
-async function setActiveProvider(name) {
-    return updateSettings({ activeProvider: name });
+async function setActiveProvider(id) {
+    return updateSettings({ activeProviderId: id });
 }
 
 async function getRotationStrategy() {
@@ -78,24 +73,34 @@ async function updateRotationStrategy(strategy) {
 }
 
 async function getProviderConfig(provider) {
-    const settings = await getSettings();
-    return settings.providers?.[provider] || { enabled: false, settings: {} };
+    const ProviderManagementService = require('./ProviderManagementService');
+    try {
+        const p = await ProviderManagementService.getProvider(provider);
+        return p ? { enabled: p.enabled, settings: p.config } : { enabled: false, settings: {} };
+    } catch {
+        return { enabled: false, settings: {} };
+    }
 }
 
 async function updateProviderConfig(provider, config) {
-    let doc = await ensureDefaults();
-    doc.providers.set(provider, config);
-    await doc.save();
+    const ProviderManagementService = require('./ProviderManagementService');
+    await ProviderManagementService.updateProvider(provider, { config });
     invalidateCache();
     return getSettings();
 }
 
 async function enableProvider(provider) {
-    return updateProviderConfig(provider, { enabled: true, settings: {} });
+    const ProviderManagementService = require('./ProviderManagementService');
+    await ProviderManagementService.enableProvider(provider);
+    invalidateCache();
+    return getSettings();
 }
 
 async function disableProvider(provider) {
-    return updateProviderConfig(provider, { enabled: false, settings: {} });
+    const ProviderManagementService = require('./ProviderManagementService');
+    await ProviderManagementService.disableProvider(provider);
+    invalidateCache();
+    return getSettings();
 }
 
 module.exports = {

@@ -8,6 +8,8 @@ const { CATEGORY_ENUM, CATEGORY_NAMES } = require('../config');
 const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
+const AdsSettingsService = require('../services/ads/AdsSettingsService');
+const ProviderManagementService = require('../services/ads/ProviderManagementService');
 
 const adminViewsPath = path.join(__dirname, '..', 'views', 'admin');
 const adminLayoutPath = path.join(adminViewsPath, 'layouts', 'default.ejs');
@@ -1103,9 +1105,6 @@ fastify.get('/admin/analytics', async (req, reply) => {
         return reply.send({ status: 'ok', timestamp: new Date() });
     });
 
-    const AdsSettingsService = require('../services/ads/AdsSettingsService');
-    const ProviderRegistry = require('../services/ads/providers/ProviderRegistry');
-
     fastify.get('/admin/api/ads/settings', async (req, reply) => {
         const settings = await AdsSettingsService.getSettings();
         return reply.send(settings);
@@ -1117,33 +1116,86 @@ fastify.get('/admin/analytics', async (req, reply) => {
     });
 
     fastify.get('/admin/api/ads/providers', async (req, reply) => {
-        const registered = ProviderRegistry.list();
-        const settings = await AdsSettingsService.getSettings();
-        const providers = {};
-        for (const name of registered) {
-            providers[name] = settings.providers?.[name] || { enabled: false, settings: {} };
-        }
+        const providers = await ProviderManagementService.listProviders();
         return reply.send({ providers });
     });
 
-    fastify.put('/admin/api/ads/provider', async (req, reply) => {
-        const { provider, config } = req.body || {};
-        if (!provider) return reply.code(400).send({ error: 'Provider name is required' });
-        const result = await AdsSettingsService.updateProviderConfig(provider, config);
-        return reply.send(result);
+    fastify.post('/admin/api/ads/providers', async (req, reply) => {
+        try {
+            const provider = await ProviderManagementService.createProvider(req.body);
+            return reply.code(201).send(provider);
+        } catch (err) {
+            return reply.code(400).send({ error: err.message });
+        }
     });
 
-    fastify.post('/admin/api/ads/provider/:provider/enable', async (req, reply) => {
-        const { provider } = req.params;
-        if (!ProviderRegistry.exists(provider)) return reply.code(400).send({ error: `Unknown provider: ${provider}` });
-        const result = await AdsSettingsService.enableProvider(provider);
-        return reply.send(result);
+    fastify.get('/admin/api/ads/providers/:id', async (req, reply) => {
+        try {
+            const provider = await ProviderManagementService.getProvider(req.params.id);
+            return reply.send(provider);
+        } catch (err) {
+            return reply.code(404).send({ error: err.message });
+        }
     });
 
-    fastify.post('/admin/api/ads/provider/:provider/disable', async (req, reply) => {
-        const { provider } = req.params;
-        if (!ProviderRegistry.exists(provider)) return reply.code(400).send({ error: `Unknown provider: ${provider}` });
-        const result = await AdsSettingsService.disableProvider(provider);
+    fastify.put('/admin/api/ads/providers/:id', async (req, reply) => {
+        try {
+            const provider = await ProviderManagementService.updateProvider(req.params.id, req.body);
+            return reply.send(provider);
+        } catch (err) {
+            return reply.code(400).send({ error: err.message });
+        }
+    });
+
+    fastify.delete('/admin/api/ads/providers/:id', async (req, reply) => {
+        try {
+            await ProviderManagementService.deleteProvider(req.params.id);
+            return reply.send({ success: true });
+        } catch (err) {
+            return reply.code(404).send({ error: err.message });
+        }
+    });
+
+    fastify.post('/admin/api/ads/providers/:id/enable', async (req, reply) => {
+        try {
+            const provider = await ProviderManagementService.enableProvider(req.params.id);
+            return reply.send(provider);
+        } catch (err) {
+            return reply.code(404).send({ error: err.message });
+        }
+    });
+
+    fastify.post('/admin/api/ads/providers/:id/disable', async (req, reply) => {
+        try {
+            const provider = await ProviderManagementService.disableProvider(req.params.id);
+            return reply.send(provider);
+        } catch (err) {
+            return reply.code(404).send({ error: err.message });
+        }
+    });
+
+    fastify.post('/admin/api/ads/providers/:id/duplicate', async (req, reply) => {
+        try {
+            const provider = await ProviderManagementService.duplicateProvider(req.params.id);
+            return reply.send(provider);
+        } catch (err) {
+            return reply.code(404).send({ error: err.message });
+        }
+    });
+
+    fastify.post('/admin/api/ads/providers/:id/health', async (req, reply) => {
+        try {
+            const result = await ProviderManagementService.performHealthCheck(req.params.id);
+            return reply.send(result);
+        } catch (err) {
+            return reply.code(404).send({ error: err.message });
+        }
+    });
+
+    fastify.post('/admin/api/ads/providers/import', async (req, reply) => {
+        const { type, name, snippet } = req.body || {};
+        if (!snippet) return reply.code(400).send({ error: 'Snippet is required' });
+        const result = await ProviderManagementService.importFromSnippet(type || 'custom', name || `Provider (${type || 'custom'})`, snippet);
         return reply.send(result);
     });
 };

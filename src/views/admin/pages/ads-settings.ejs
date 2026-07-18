@@ -1,233 +1,436 @@
-<div class="glass-card p-6 mb-6">
-    <div class="flex items-center justify-between mb-6">
+<div class="max-w-5xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
         <div>
-            <h3 class="font-heading text-lg font-semibold">Ad Settings</h3>
-            <p class="text-sm text-muted mt-1">Manage provider configuration and runtime settings</p>
+            <h2 class="font-heading text-2xl font-semibold">Ad Providers</h2>
+            <p class="text-muted text-sm mt-1">Configure ad providers and runtime settings</p>
         </div>
-        <div class="flex items-center gap-3">
-            <span class="text-sm text-muted" id="statusText">Loading...</span>
-            <div class="relative inline-block w-12 h-6" id="masterToggle">
-                <input type="checkbox" id="adsEnabled" class="sr-only" onchange="toggleAdsEnabled()">
-                <label for="adsEnabled" class="block w-12 h-6 rounded-full bg-white/10 cursor-pointer transition-colors"></label>
-                <span class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-all duration-200 shadow-sm" id="toggleKnob"></span>
+    </div>
+
+    <!-- Runtime Settings -->
+    <div class="glass-card rounded-2xl p-6">
+        <h3 class="font-heading text-lg font-semibold mb-4">Runtime Settings</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-muted mb-2">Ads Enabled</label>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="adsEnabled" class="sr-only peer">
+                    <div class="w-11 h-6 bg-white/10 rounded-full peer peer-checked:bg-white peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-black after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    <span class="ml-3 text-sm" id="adsEnabledLabel">Off</span>
+                </label>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-muted mb-2">Active Provider</label>
+                <select id="activeProvider" class="input-dark w-full">
+                    <option value="">None (mock fallback)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-muted mb-2">Rotation Strategy</label>
+                <select id="rotationStrategy" class="input-dark w-full">
+                    <option value="none">None</option>
+                    <option value="random">Random</option>
+                    <option value="round-robin">Round Robin</option>
+                    <option value="weighted">Weighted</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end">
+            <button onclick="saveRuntimeSettings()" class="btn-primary text-sm">Save Settings</button>
+        </div>
+    </div>
+
+    <!-- Providers List -->
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-heading text-lg font-semibold">Providers</h3>
+            <button onclick="openAddModal()" class="btn-primary text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Provider
+            </button>
+        </div>
+        <div class="table-container" id="providersList">
+            <div class="flex items-center justify-center py-12 text-muted">
+                <svg class="animate-spin h-6 w-6 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Loading providers...
             </div>
         </div>
     </div>
+</div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-            <label class="block text-sm font-medium mb-2">Active Provider</label>
-            <select id="activeProvider" class="input-dark w-full" onchange="updateActiveProvider()">
-                <option value="">Select a provider...</option>
-            </select>
-            <p class="text-xs text-muted mt-2">The provider currently serving ads. Changes apply immediately.</p>
+<!-- Add/Edit Provider Modal -->
+<div class="modal-overlay" id="providerModal">
+    <div class="modal-content p-6 max-w-3xl">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-heading text-xl font-semibold" id="modalTitle">Add Provider</h3>
+            <button onclick="closeModal()" class="action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
         </div>
-        <div>
-            <label class="block text-sm font-medium mb-2">Rotation Strategy</label>
-            <select id="rotationStrategy" class="input-dark w-full" onchange="updateRotation()">
-                <option value="none">None (single provider)</option>
-                <option value="random">Random</option>
-                <option value="round-robin">Round Robin</option>
-                <option value="weighted">Weighted</option>
-            </select>
-            <p class="text-xs text-muted mt-2">How providers are selected when multiple are enabled.</p>
+
+        <!-- Mode Toggle -->
+        <div class="flex gap-2 mb-6 bg-white/5 rounded-xl p-1 w-fit">
+            <button id="modeBasic" onclick="setMode('basic')" class="px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-white text-black">Basic (Import)</button>
+            <button id="modeAdvanced" onclick="setMode('advanced')" class="px-4 py-2 text-sm rounded-lg font-medium transition-colors text-muted hover:text-white">Advanced</button>
+        </div>
+
+        <!-- Basic Fields -->
+        <input type="hidden" id="editId" value="">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-muted mb-2">Provider Type</label>
+                <input type="text" id="providerType" class="input-dark w-full" placeholder="e.g. monetag, adsterra, admob, direct" list="typeSuggestions">
+                <datalist id="typeSuggestions">
+                    <option value="monetag">
+                    <option value="adsterra">
+                    <option value="admob">
+                    <option value="direct">
+                    <option value="mock">
+                    <option value="custom">
+                </datalist>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-muted mb-2">Provider Name</label>
+                <input type="text" id="providerName" class="input-dark w-full" placeholder="My Provider">
+            </div>
+        </div>
+
+        <!-- Basic Mode: Snippet Import -->
+        <div id="basicModeContent">
+            <label class="block text-sm font-medium text-muted mb-2">Paste Provider Script / Snippet</label>
+            <textarea id="importSnippet" class="input-dark w-full font-mono text-xs" rows="6" placeholder='<script src="https://example.com/ad.js" data-zone="12345"></script>'></textarea>
+            <div class="flex gap-2 mt-3">
+                <button onclick="parseAndReview()" class="btn-secondary text-sm">Parse & Review</button>
+            </div>
+            <div id="parsedConfig" class="mt-4 hidden">
+                <label class="block text-sm font-medium text-muted mb-2">Detected Config (review before saving)</label>
+                <pre id="parsedConfigContent" class="input-dark w-full font-mono text-xs p-4 whitespace-pre-wrap overflow-x-auto"></pre>
+            </div>
+        </div>
+
+        <!-- Advanced Mode: Raw Config -->
+        <div id="advancedModeContent" class="hidden">
+            <label class="block text-sm font-medium text-muted mb-2">Configuration (JSON)</label>
+            <textarea id="rawConfig" class="input-dark w-full font-mono text-xs" rows="8" placeholder='{
+  "scriptSrc": "https://example.com/ad.js",
+  "zoneId": "12345"
+}'></textarea>
+        </div>
+
+        <div class="flex gap-3 mt-6 justify-end">
+            <button onclick="closeModal()" class="btn-secondary text-sm">Cancel</button>
+            <button onclick="saveProvider()" class="btn-primary text-sm">Save Provider</button>
         </div>
     </div>
 </div>
 
-<div class="glass-card p-6 mb-6">
-    <h3 class="font-heading text-lg font-semibold mb-6">Provider Registry</h3>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="border-b border-white/10">
-                    <th class="text-left py-3 px-4 text-muted font-medium">Provider</th>
-                    <th class="text-left py-3 px-4 text-muted font-medium">Status</th>
-                    <th class="text-right py-3 px-4 text-muted font-medium">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="providerTableBody">
-                <tr>
-                    <td colspan="3" class="py-8 text-center text-muted">Loading providers...</td>
-                </tr>
-            </tbody>
-        </table>
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content p-6 max-w-md">
+        <h3 class="font-heading text-xl font-semibold mb-2">Delete Provider</h3>
+        <p class="text-muted text-sm mb-6">Are you sure you want to delete <strong id="deleteName" class="text-white"></strong>? This action cannot be undone.</p>
+        <input type="hidden" id="deleteId" value="">
+        <div class="flex gap-3 justify-end">
+            <button onclick="closeDeleteModal()" class="btn-secondary text-sm">Cancel</button>
+            <button onclick="confirmDelete()" class="px-4 py-2 text-sm font-medium rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors">Delete</button>
+        </div>
     </div>
 </div>
-
-<div class="glass-card p-6">
-    <h3 class="font-heading text-lg font-semibold mb-4">Settings Preview</h3>
-    <pre id="settingsPreview" class="font-mono text-xs text-muted bg-black/20 rounded-xl p-4 overflow-x-auto max-h-64"></pre>
-</div>
-
-<style>
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .status-badge.active {
-        background: rgba(34, 197, 94, 0.12);
-        color: #22c55e;
-        border: 1px solid rgba(34, 197, 94, 0.2);
-    }
-    .status-badge.inactive {
-        background: rgba(255, 255, 255, 0.05);
-        color: rgba(255, 255, 255, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .status-badge.current {
-        background: rgba(59, 130, 246, 0.12);
-        color: #3b82f6;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-    }
-</style>
 
 <script>
-var state = {};
+let editingId = null;
+let parsedConfig = null;
+let currentMode = 'basic';
 
-async function loadSettings() {
+async function loadProviders() {
     try {
         const [settingsRes, providersRes] = await Promise.all([
             fetch('/admin/api/ads/settings'),
             fetch('/admin/api/ads/providers')
         ]);
         const settings = await settingsRes.json();
-        const providers = await providersRes.json();
-
-        state = { settings, providers: providers.providers || {} };
-
-        renderToggle(settings.adsEnabled);
-        renderProviders(providers.providers, settings.activeProvider);
-        renderPreview(settings);
-
-        document.getElementById('activeProvider').value = settings.activeProvider || '';
-        document.getElementById('rotationStrategy').value = settings.rotationStrategy || 'none';
-        document.getElementById('statusText').textContent = settings.adsEnabled ? 'Ads Enabled' : 'Ads Disabled';
-        document.getElementById('statusText').style.color = settings.adsEnabled ? '#22c55e' : 'rgba(255,255,255,0.4)';
+        const providersData = await providersRes.json();
+        renderProviders(providersData.providers, settings);
     } catch (err) {
-        document.getElementById('statusText').textContent = 'Failed to load settings';
-        document.getElementById('statusText').style.color = '#ef4444';
+        document.getElementById('providersList').innerHTML = '<div class="p-8 text-center text-red-400">Failed to load providers</div>';
     }
 }
 
-function renderToggle(enabled) {
-    var toggle = document.getElementById('adsEnabled');
-    var knob = document.getElementById('toggleKnob');
-    var label = toggle.nextElementSibling;
-    toggle.checked = enabled;
-    if (enabled) {
-        label.style.background = '#22c55e';
-        knob.style.transform = 'translateX(24px)';
-        knob.style.background = '#ffffff';
-    } else {
-        label.style.background = 'rgba(255,255,255,0.1)';
-        knob.style.transform = 'translateX(0)';
-        knob.style.background = '#ffffff';
-    }
-}
+function renderProviders(providers, settings) {
+    const container = document.getElementById('providersList');
+    const activeSelect = document.getElementById('activeProvider');
+    activeSelect.innerHTML = '<option value="">None (mock fallback)</option>';
 
-function renderProviders(providers, activeProvider) {
-    var tbody = document.getElementById('providerTableBody');
-    var select = document.getElementById('activeProvider');
-    var names = Object.keys(providers);
+    document.getElementById('adsEnabled').checked = settings.adsEnabled;
+    document.getElementById('adsEnabledLabel').textContent = settings.adsEnabled ? 'On' : 'Off';
+    document.getElementById('rotationStrategy').value = settings.rotationStrategy;
 
-    if (names.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="py-8 text-center text-muted">No providers registered</td></tr>';
+    if (!providers || providers.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-muted"><p class="text-lg mb-2">No providers configured</p><p class="text-sm">Click "Add Provider" to get started.</p></div>';
         return;
     }
 
-    select.innerHTML = '<option value="">Select a provider...</option>';
+    let html = '<table class="w-full"><thead><tr class="text-xs text-muted uppercase tracking-wider border-b border-muted">';
+    html += '<th class="text-left p-4 font-medium">Name</th>';
+    html += '<th class="text-left p-4 font-medium">Type</th>';
+    html += '<th class="text-left p-4 font-medium">Status</th>';
+    html += '<th class="text-left p-4 font-medium">Enabled</th>';
+    html += '<th class="text-right p-4 font-medium">Actions</th>';
+    html += '</tr></thead><tbody>';
 
-    tbody.innerHTML = names.map(function(name) {
-        var cfg = providers[name] || { enabled: false };
-        var isActive = name === activeProvider;
-        var isEnabled = cfg.enabled;
+    for (const p of providers) {
+        const isActive = settings.activeProviderId === p._id;
+        const statusBadge = p.status === 'healthy' ? 'badge-success' : p.status === 'failed' ? 'badge-error' : 'badge-warning';
+        html += `<tr class="table-row ${isActive ? 'bg-white/5' : ''}">`;
+        html += `<td class="p-4 text-sm font-medium">${escHtml(p.name)}${isActive ? ' <span class="badge badge-info ml-2">Active</span>' : ''}</td>`;
+        html += `<td class="p-4 text-sm text-muted">${escHtml(p.type)}</td>`;
+        html += `<td class="p-4"><span class="badge ${statusBadge}">${p.status || 'unknown'}</span></td>`;
+        html += `<td class="p-4">`;
+        html += `<label class="relative inline-flex items-center cursor-pointer">`;
+        html += `<input type="checkbox" class="sr-only peer" ${p.enabled ? 'checked' : ''} onchange="toggleEnabled('${p._id}', ${!p.enabled})">`;
+        html += `<div class="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-white peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-black after:rounded-full after:h-4 after:w-4 after:transition-all"></div>`;
+        html += `</label></td>`;
+        html += `<td class="p-4 text-right"><div class="flex items-center justify-end gap-2">`;
+        html += `<button onclick="editProvider('${p._id}')" class="action-btn" title="Edit"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>`;
+        html += `<button onclick="deleteProvider('${p._id}', '${escHtml(p.name)}')" class="action-btn" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>`;
+        html += `<button onclick="duplicateProvider('${p._id}')" class="action-btn" title="Duplicate"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>`;
+        html += `<button onclick="runHealthCheck('${p._id}')" class="action-btn" title="Health Check"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></button>`;
+        html += `</div></td>`;
+        html += `</tr>`;
 
-        var badgeClass = isActive ? 'current' : (isEnabled ? 'active' : 'inactive');
-        var badgeText = isActive ? 'Active' : (isEnabled ? 'Enabled' : 'Disabled');
+        const option = document.createElement('option');
+        option.value = p._id;
+        option.textContent = p.name;
+        if (p._id === settings.activeProviderId) option.selected = true;
+        activeSelect.appendChild(option);
+    }
 
-        select.innerHTML += '<option value="' + name + '">' + name + '</option>';
-
-        return '<tr class="border-b border-white/5">' +
-            '<td class="py-3 px-4"><span class="font-medium">' + name + '</span></td>' +
-            '<td class="py-3 px-4"><span class="status-badge ' + badgeClass + '">' + badgeText + '</span></td>' +
-            '<td class="py-3 px-4 text-right">' +
-                (isActive
-                    ? '<span class="text-xs text-muted">Current provider</span>'
-                    : '<button onclick="toggleProvider(\'' + name + '\', ' + (!isEnabled) + ')" class="text-xs font-medium ' + (isEnabled ? 'text-red-400 hover:text-red-300' : 'text-emerald-400 hover:text-emerald-300') + ' transition-colors">' + (isEnabled ? 'Disable' : 'Enable') + '</button>'
-                ) +
-            '</td></tr>';
-    }());
+    html += '</tbody></table>';
+    container.innerHTML = html;
 }
 
-function renderPreview(settings) {
-    document.getElementById('settingsPreview').textContent = JSON.stringify(settings, null, 2);
+function openAddModal() {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = 'Add Provider';
+    document.getElementById('editId').value = '';
+    document.getElementById('providerType').value = '';
+    document.getElementById('providerName').value = '';
+    document.getElementById('importSnippet').value = '';
+    document.getElementById('rawConfig').value = '';
+    document.getElementById('parsedConfig').classList.add('hidden');
+    parsedConfig = null;
+    setMode('basic');
+    document.getElementById('providerModal').classList.add('active');
 }
 
-async function toggleAdsEnabled() {
-    var enabled = document.getElementById('adsEnabled').checked;
-    try {
-        var res = await fetch('/admin/api/ads/settings', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adsEnabled: enabled })
-        });
-        var data = await res.json();
-        renderToggle(data.adsEnabled);
-        document.getElementById('statusText').textContent = data.adsEnabled ? 'Ads Enabled' : 'Ads Disabled';
-        document.getElementById('statusText').style.color = data.adsEnabled ? '#22c55e' : 'rgba(255,255,255,0.4)';
-        renderPreview(data);
-    } catch (err) {
-        renderToggle(!enabled);
+function closeModal() {
+    document.getElementById('providerModal').classList.remove('active');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    const basic = document.getElementById('modeBasic');
+    const advanced = document.getElementById('modeAdvanced');
+    const basicContent = document.getElementById('basicModeContent');
+    const advancedContent = document.getElementById('advancedModeContent');
+
+    if (mode === 'basic') {
+        basic.className = 'px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-white text-black';
+        advanced.className = 'px-4 py-2 text-sm rounded-lg font-medium transition-colors text-muted hover:text-white';
+        basicContent.classList.remove('hidden');
+        advancedContent.classList.add('hidden');
+    } else {
+        advanced.className = 'px-4 py-2 text-sm rounded-lg font-medium transition-colors bg-white text-black';
+        basic.className = 'px-4 py-2 text-sm rounded-lg font-medium transition-colors text-muted hover:text-white';
+        advancedContent.classList.remove('hidden');
+        basicContent.classList.add('hidden');
     }
 }
 
-async function updateActiveProvider() {
-    var provider = document.getElementById('activeProvider').value;
-    if (!provider) return;
+async function parseAndReview() {
+    const snippet = document.getElementById('importSnippet').value.trim();
+    const type = document.getElementById('providerType').value.trim() || 'custom';
+    const name = document.getElementById('providerName').value.trim() || `Provider (${type})`;
+
+    if (!snippet) {
+        alert('Please paste a snippet first');
+        return;
+    }
+
     try {
-        var res = await fetch('/admin/api/ads/settings', {
+        const res = await fetch('/admin/api/ads/providers/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, name, snippet })
+        });
+        const data = await res.json();
+        document.getElementById('parsedConfig').classList.remove('hidden');
+        document.getElementById('parsedConfigContent').textContent = JSON.stringify(data.detected || data.config || {}, null, 2);
+        parsedConfig = data.config || data.detected || {};
+    } catch (err) {
+        alert('Failed to parse snippet');
+    }
+}
+
+async function saveProvider() {
+    const type = document.getElementById('providerType').value.trim();
+    const name = document.getElementById('providerName').value.trim();
+    if (!type || !name) {
+        alert('Provider type and name are required');
+        return;
+    }
+
+    let config = {};
+    if (currentMode === 'basic') {
+        config = parsedConfig || {};
+    } else {
+        try {
+            config = JSON.parse(document.getElementById('rawConfig').value.trim() || '{}');
+        } catch {
+            alert('Invalid JSON in config');
+            return;
+        }
+    }
+
+    const editId = document.getElementById('editId').value;
+    const url = editId ? `/admin/api/ads/providers/${editId}` : '/admin/api/ads/providers';
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, name, config, enabled: true })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Failed to save provider');
+            return;
+        }
+        closeModal();
+        loadProviders();
+    } catch {
+        alert('Failed to save provider');
+    }
+}
+
+async function editProvider(id) {
+    try {
+        const res = await fetch(`/admin/api/ads/providers/${id}`);
+        const p = await res.json();
+        editingId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Provider';
+        document.getElementById('editId').value = id;
+        document.getElementById('providerType').value = p.type || '';
+        document.getElementById('providerName').value = p.name || '';
+        document.getElementById('rawConfig').value = JSON.stringify(p.config || {}, null, 2);
+        document.getElementById('importSnippet').value = '';
+        document.getElementById('parsedConfig').classList.add('hidden');
+        setMode('advanced');
+        document.getElementById('providerModal').classList.add('active');
+    } catch {
+        alert('Failed to load provider');
+    }
+}
+
+function deleteProvider(id, name) {
+    document.getElementById('deleteId').value = id;
+    document.getElementById('deleteName').textContent = name;
+    document.getElementById('deleteModal').classList.add('active');
+}
+
+async function confirmDelete() {
+    const id = document.getElementById('deleteId').value;
+    try {
+        const res = await fetch(`/admin/api/ads/providers/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Failed to delete');
+            return;
+        }
+        closeDeleteModal();
+        loadProviders();
+    } catch {
+        alert('Failed to delete provider');
+    }
+}
+
+async function duplicateProvider(id) {
+    try {
+        const res = await fetch(`/admin/api/ads/providers/${id}/duplicate`, { method: 'POST' });
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Failed to duplicate');
+            return;
+        }
+        loadProviders();
+    } catch {
+        alert('Failed to duplicate provider');
+    }
+}
+
+async function toggleEnabled(id, enabled) {
+    const endpoint = enabled ? 'enable' : 'disable';
+    try {
+        const res = await fetch(`/admin/api/ads/providers/${id}/${endpoint}`, { method: 'POST' });
+        if (!res.ok) {
+            loadProviders();
+            return;
+        }
+        loadProviders();
+    } catch {
+        loadProviders();
+    }
+}
+
+async function runHealthCheck(id) {
+    try {
+        const res = await fetch(`/admin/api/ads/providers/${id}/health`, { method: 'POST' });
+        const data = await res.json();
+        loadProviders();
+    } catch {
+        alert('Health check failed');
+    }
+}
+
+async function saveRuntimeSettings() {
+    const adsEnabled = document.getElementById('adsEnabled').checked;
+    const activeProviderId = document.getElementById('activeProvider').value || null;
+    const rotationStrategy = document.getElementById('rotationStrategy').value;
+
+    try {
+        const res = await fetch('/admin/api/ads/settings', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ activeProvider: provider })
+            body: JSON.stringify({ adsEnabled, activeProviderId, rotationStrategy })
         });
-        var data = await res.json();
-        renderProviders(state.providers, data.activeProvider);
-        renderPreview(data);
-    } catch (err) {}
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Failed to save settings');
+            return;
+        }
+        loadProviders();
+    } catch {
+        alert('Failed to save settings');
+    }
 }
 
-async function updateRotation() {
-    var strategy = document.getElementById('rotationStrategy').value;
-    try {
-        var res = await fetch('/admin/api/ads/settings', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rotationStrategy: strategy })
-        });
-        var data = await res.json();
-        renderPreview(data);
-    } catch (err) {}
-}
+document.addEventListener('DOMContentLoaded', loadProviders);
 
-async function toggleProvider(name, enable) {
-    try {
-        var res = await fetch('/admin/api/ads/provider/' + encodeURIComponent(name) + '/' + (enable ? 'enable' : 'disable'), {
-            method: 'POST'
-        });
-        var data = await res.json();
-        state.providers[name] = { enabled: enable };
-        renderProviders(state.providers, data.activeProvider);
-        renderPreview(data);
-    } catch (err) {}
-}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeModal();
+        closeDeleteModal();
+    }
+});
 
-document.addEventListener('DOMContentLoaded', loadSettings);
+function escHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 </script>
