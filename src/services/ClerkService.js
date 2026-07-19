@@ -15,14 +15,18 @@ function initClerk() {
 }
 
 function deriveFrontendApiUrl(publishableKey) {
+    const configuredUrl = process.env.CLERK_FRONTEND_API_URL;
+    if (configuredUrl) {
+        return configuredUrl.replace(/\/$/, '');
+    }
+
     try {
-        const parts = publishableKey.split('_');
-        const encoded = parts[parts.length - 1];
-        const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
-        const parsed = JSON.parse(decoded);
-        return `https://${parsed.instance}`;
+        const encoded = publishableKey.slice(publishableKey.lastIndexOf('_') + 1);
+        const decoded = Buffer.from(encoded, 'base64').toString('utf-8').replace(/\$$/, '');
+        const url = decoded.startsWith('http') ? decoded : `https://${decoded}`;
+        return new URL(url).origin;
     } catch {
-        return process.env.CLERK_FRONTEND_API_URL || 'https://api.clerk.com';
+        return '';
     }
 }
 
@@ -42,18 +46,23 @@ async function getOAuthUrl(provider, redirectUri) {
         throw new Error(`Unknown OAuth provider: ${provider}`);
     }
 
+    if (!frontendApiUrl) {
+        throw new Error('Clerk Frontend API URL could not be determined from CLERK_PUBLISHABLE_KEY');
+    }
+
     const url = `${frontendApiUrl}/v1/client/sign_ins`;
+    const body = new URLSearchParams({
+        strategy,
+        redirect_url: redirectUri,
+    });
 
     const res = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${process.env.CLERK_SECRET_KEY}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': new URL(redirectUri).origin,
         },
-        body: JSON.stringify({
-            strategy,
-            redirect_url: redirectUri,
-        }),
+        body,
     });
 
     if (!res.ok) {
@@ -97,4 +106,5 @@ module.exports = {
     getOAuthUrl,
     verifySessionToken,
     getUserInfo,
+    deriveFrontendApiUrl,
 };
