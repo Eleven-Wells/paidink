@@ -268,7 +268,8 @@ module.exports = async function authRoutes(fastify) {
             }
 
             const provider = req.query.provider;
-            const redirectUri = `${process.env.BASE_URL || 'http://localhost:5050'}/api/auth/clerk/callback`;
+            const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.hostname}`;
+            const redirectUri = `${baseUrl.replace(/\/$/, '')}/api/auth/clerk/callback`;
             const authorizationUrl = await ClerkService.getOAuthUrl(provider, redirectUri);
 
             return reply.redirect(authorizationUrl);
