@@ -482,6 +482,8 @@
                     max-width: 100vw;
                     overflow-x: hidden;
                 }
+                        .home-who-to-follow-section {
+                    display: none;
 
                 .home-search {
                     width: 100%;
@@ -656,8 +658,11 @@
                                 <% if (typeof sidebarAd !=='undefined' && sidebarAd) { %>
                                     <%- include('../partials/ad-sidebar', { ad: sidebarAd }) %>
                                         <% } %>
-                                            <%- include('../partials/home-who-to-follow', { suggestedUsers:
-                                                suggestedUsers }) %>
+   <div class="home-who-to-follow-section">
+                                                <%- include('../partials/home-who-to-follow', { suggestedUsers:
+                                                    suggestedUsers }) %>
+                                            </div>
+                                            
                         </aside>
                 </main>
             </div>
