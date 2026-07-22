@@ -29,16 +29,18 @@
         content="<%= typeof ogImage !== 'undefined' && ogImage ? ogImage : '/public/images/og-default.png' %>">
     <%- include('../partials/dashboard-css') %>
         <style>
-            .profile-sidebar-column {
-                position: fixed;
-                top: var(--util-bar-height, 48px);
-                left: 0;
-                width: clamp(220px, 22vw, 300px);
-                height: calc(100vh - var(--util-bar-height, 48px));
-                overflow-y: auto;
-                background: #fff;
-                z-index: 40;
-            }
+.profile-sidebar-column::-webkit-scrollbar { display: none; }
+        .profile-sidebar-column {
+            position: fixed;
+            top: var(--util-bar-height, 48px);
+            left: 0;
+            width: clamp(220px, 22vw, 300px);
+            height: calc(100vh - var(--util-bar-height, 48px));
+            overflow-y: auto;
+            scrollbar-width: none;
+            background: #fff;
+            z-index: 40;
+        }
 
             .profile-page {
                 margin-left: clamp(220px, 22vw, 300px);
