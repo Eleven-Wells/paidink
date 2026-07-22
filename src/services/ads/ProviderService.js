@@ -4,6 +4,7 @@ const RotationStrategy = require('./providers/RotationStrategy');
 const CacheManager = require('./providers/CacheManager');
 const AdsSettingsService = require('./AdsSettingsService');
 const ProviderManagementService = require('./ProviderManagementService');
+const AdEvent = require('../../models/ads/AdEvent');
 
 const cacheManager = new CacheManager();
 const healthCache = new Map();
@@ -25,7 +26,6 @@ async function isFrequencyCapped(context) {
     try {
         const rule = await FrequencyRule.findOne({ slot: context.placement, active: true });
         if (!rule) return false;
-        const AdEvent = require('../../models/ads/AdEvent');
         const since = new Date(Date.now() - (rule.minIntervalSeconds || 30) * 1000);
         const recent = await AdEvent.countDocuments({
             user: context.user.id,
