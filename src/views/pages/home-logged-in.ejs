@@ -160,7 +160,7 @@
             gap: 24px;
             min-width: 0;
             position: fixed;
-            top: clamp(16px, 2vw, 24px);
+            top: calc(var(--util-bar-height, 48px) + clamp(12px, 1.5vw, 18px));
             right: var(--home-content-padding);
             width: var(--home-sidebar-width);
             height: calc(100dvh - var(--util-bar-height, 48px) - 32px);
