@@ -25,7 +25,7 @@ async function isFrequencyCapped(context) {
     try {
         const rule = await FrequencyRule.findOne({ slot: context.placement, active: true });
         if (!rule) return false;
-        const { AdEvent } = require('../../models/ads/AdEvent');
+        const AdEvent = require('../../models/ads/AdEvent');
         const since = new Date(Date.now() - (rule.minIntervalSeconds || 30) * 1000);
         const recent = await AdEvent.countDocuments({
             user: context.user.id,
