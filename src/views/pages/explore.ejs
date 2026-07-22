@@ -95,6 +95,7 @@
         }
 
         /* ========== LEFT COLUMN - SIDE NAV (fixed, outside grid) ========== */
+        .explore-left-column::-webkit-scrollbar { display: none; }
         .explore-left-column {
             position: fixed;
             top: var(--util-bar-height, 48px);
@@ -102,6 +103,7 @@
             width: var(--explore-nav-width);
             height: calc(100vh - var(--util-bar-height, 48px));
             overflow-y: auto;
+            scrollbar-width: none;
             padding: 0;
             background: #fff;
             z-index: 100;
