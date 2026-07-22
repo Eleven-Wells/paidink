@@ -15,6 +15,17 @@ const path = require('path');
 const ejs = require('ejs');
 const markdownIt = require('markdown-it');
 const md = markdownIt({ html: true, breaks: true, linkify: true });
+const Post = require('../models/Post');
+const ReadSession = require('../models/ReadSession');
+const RewardRateService = require('../services/RewardRateService');
+const Notification = require('../models/Notification');
+const Credit = require('../models/Credit');
+const AchievementService = require('../services/AchievementService');
+const Achievement = require('../models/Achievement');
+const AuditLog = require('../models/AuditLog');
+const { getAds: getAd } = require('../services/ads/ProviderService');
+
+const { addInternalLinks } = require('../seo/internalLinking');
 
 const viewsPath = path.join(__dirname, '..', 'views');
 const publisherViewsPath = path.join(viewsPath, 'publisher', 'pages');
@@ -38,7 +49,6 @@ function renderPublisherPage(pageName, data) {
     if (!fs.existsSync(pagePath)) {
         return '';
     }
-    const ejs = require('ejs');
     const pageContent = fs.readFileSync(pagePath, 'utf8');
     return ejs.render(pageContent, data, {
         async: false,
@@ -59,7 +69,6 @@ function renderPage(pageName, data) {
     if (!fs.existsSync(pagePath)) {
         return '';
     }
-    const ejs = require('ejs');
     const pageContent = fs.readFileSync(pagePath, 'utf8');
     return ejs.render(pageContent, { ...data, getReadTime }, {
         async: false,
@@ -72,7 +81,6 @@ function renderErrorPage(errorName, req) {
     if (!fs.existsSync(errorPath)) {
         return '<div class="p-8 text-center"><h1>Error</h1><p>Something went wrong.</p></div>';
     }
-    const ejs = require('ejs');
     const errorContent = fs.readFileSync(errorPath, 'utf8');
     return ejs.render(errorContent, {
         lang: getLanguage(req),
@@ -103,12 +111,10 @@ async function pagesRoutes(fastify) {
         if (token) {
             try {
                 const decoded = fastify.jwt.verify(token);
-                const User = require('../models/User');
                 const user = await User.findById(decoded.id);
                 if (user && user.isActive) {
                     req.isLoggedIn = true;
                     req.currentUser = user;
-                    const Notification = require('../models/Notification');
                     req.unreadCount = await Notification.countDocuments({ user: user._id, read: false });
                 }
             } catch (e) { }
@@ -140,7 +146,6 @@ async function pagesRoutes(fastify) {
         if (token) {
             try {
                 const decoded = fastify.jwt.verify(token);
-                const User = require('../models/User');
                 const user = await User.findById(decoded.id);
                 if (user && user.isActive) {
                     return reply.redirect('/dashboard');
@@ -163,7 +168,6 @@ async function pagesRoutes(fastify) {
         if (token) {
             try {
                 const decoded = fastify.jwt.verify(token);
-                const User = require('../models/User');
                 const user = await User.findById(decoded.id);
                 if (user && user.isActive) {
                     return reply.redirect('/dashboard');
@@ -253,12 +257,10 @@ async function pagesRoutes(fastify) {
     fastify.get('/dashboard', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const ReadSession = require('../models/ReadSession');
 
         const userId = req.user.id;
         const user = await User.findById(userId);
 
-        const RewardRateService = require('../services/RewardRateService');
 
         const [summary, recentReads, referredCount, currentRate] = await Promise.all([
             DashboardService.getDashboardSummary(userId),
@@ -279,7 +281,6 @@ async function pagesRoutes(fastify) {
 
         let rewardedAd = null;
         try {
-            const { getAds: getAd } = require('../services/ads/ProviderService');
             const rewardedAds = await getAd({ placement: 'reward_wall', user: { id: userId }, session: null });
             rewardedAd = rewardedAds.length > 0 ? rewardedAds[0] : null;
         } catch (e) {
@@ -319,7 +320,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/profile', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const Post = require('../models/Post');
         const userId = req.user.id;
 
         const fullUser = await User.findById(userId)
@@ -392,10 +392,8 @@ async function pagesRoutes(fastify) {
     fastify.get('/reads', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const ReadSession = require('../models/ReadSession');
         const userId = req.user.id;
 
-        const RewardRateService = require('../services/RewardRateService');
 
         const [reads, totalReads, currentRate] = await Promise.all([
             ReadSession.find({ user: userId })
@@ -468,7 +466,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/switch-role', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const User = require('../models/User');
         const { role } = req.query;
         const user = await User.findById(req.user.id);
 
@@ -503,10 +500,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/achievements', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const AchievementService = require('../services/AchievementService');
-        const Achievement = require('../models/Achievement');
-        const User = require('../models/User');
-        const ReadSession = require('../models/ReadSession');
 
         await Achievement.initialize();
 
@@ -570,9 +563,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/publisher', {
         preHandler: [fastify.requirePublisher]
     }, async (req, reply) => {
-        const Post = require('../models/Post');
-        const ReadSession = require('../models/ReadSession');
-        const AuditLog = require('../models/AuditLog');
 
         const posts = await Post.find({ author: req.user.id }).sort({ createdAt: -1 }).lean();
         const totalPosts = posts.length;
@@ -682,7 +672,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/publisher/posts', {
         preHandler: [fastify.requirePublisher]
     }, async (req, reply) => {
-        const Post = require('../models/Post');
         const { page = 1, status } = req.query;
         const limit = 20;
         const skip = (page - 1) * limit;
@@ -763,8 +752,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/publisher/earnings', {
         preHandler: [fastify.requirePublisher]
     }, async (req, reply) => {
-        const Credit = require('../models/Credit');
-        const Post = require('../models/Post');
 
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -778,7 +765,6 @@ async function pagesRoutes(fastify) {
             { $match: { user: req.user._id, status: 'active' } },
             { $group: { _id: '$category', total: { $sum: '$points' } } }
         ]);
-        const { CREDIT_TYPES } = require('../models/Credit');
         const lifetimeBreakdown = { creation: 0, engagement: 0, reach: 0, source: 0, total: 0 };
         lifetimeCredits.forEach(r => {
             if (lifetimeBreakdown.hasOwnProperty(r._id)) {
@@ -831,7 +817,6 @@ async function pagesRoutes(fastify) {
     fastify.post('/publisher/create-post', {
         preHandler: [fastify.requirePublisher]
     }, async (req, reply) => {
-        const Post = require('../models/Post');
         const { title, summary, content, category, tags, image, metaDescription, status } = req.body;
 
         if (!title || !summary || !content || !category) {
@@ -891,7 +876,6 @@ async function pagesRoutes(fastify) {
 
         if (status === 'published') {
             try {
-                const Credit = require('../models/Credit');
                 await Credit.earnCredit(req.user.id, 'POST_PUBLISHED', { postId: post._id });
             } catch (err) {
                 console.error('Failed to award credit:', err.message);
@@ -904,7 +888,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/publisher/posts/:id', {
         preHandler: [fastify.requirePublisher]
     }, async (req, reply) => {
-        const Post = require('../models/Post');
         const { id } = req.params;
 
         const post = await Post.findOne({ _id: id, author: req.user.id });
@@ -942,7 +925,6 @@ async function pagesRoutes(fastify) {
     fastify.post('/publisher/posts/:id', {
         preHandler: [fastify.requirePublisher]
     }, async (req, reply) => {
-        const Post = require('../models/Post');
         const { id } = req.params;
         const { title, summary, content, category, tags, image, metaDescription, status } = req.body;
 
@@ -979,8 +961,6 @@ async function pagesRoutes(fastify) {
         const lang = getLanguage(req);
 
         if (req.isLoggedIn) {
-            const Post = require('../models/Post');
-            const User = require('../models/User');
 
             const currentUserId = req.currentUser.id;
 
@@ -1036,7 +1016,6 @@ async function pagesRoutes(fastify) {
             let feedAds = [];
             let sidebarAd = null;
             try {
-                const { getAds: getAd } = require('../services/ads/ProviderService');
                 feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 });
                 const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null });
                 sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
@@ -1116,8 +1095,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/browse', async (req, reply) => {
         const lang = getLanguage(req);
         const { tab } = req.query;
-        const Post = require('../models/Post');
-        const User = require('../models/User');
 
         let sortField = { publishedAt: -1 };
         let filterQuery = {};
@@ -1202,7 +1179,6 @@ async function pagesRoutes(fastify) {
         let feedAds = [];
         let sidebarAd = null;
         try {
-            const { getAds: getAd } = require('../services/ads/ProviderService');
             feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 });
             const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null });
             sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
@@ -1242,9 +1218,6 @@ async function pagesRoutes(fastify) {
     fastify.get('/activity', async (req, reply) => {
         const lang = getLanguage(req);
         const { filter } = req.query;
-        const Notification = require('../models/Notification');
-        const Post = require('../models/Post');
-        const User = require('../models/User');
 
         const activeFilter = filter || 'all';
         let query = {};
@@ -1428,13 +1401,11 @@ async function pagesRoutes(fastify) {
 
         post.readTime = getReadTime(post.content).display;
 
-        const Post = require('../models/Post');
         await Post.findByIdAndUpdate(post._id, { $inc: { 'stats.views': 1 } });
 
         const authorId = post.author && (post.author._id || post.author);
         if (authorId) {
             try {
-                const Credit = require('../models/Credit');
                 await Credit.earnCredit(authorId, 'UNIQUE_VIEW', { postId: post._id });
             } catch (err) {
                 console.error('Failed to award view credit:', err.message);
@@ -1446,7 +1417,6 @@ async function pagesRoutes(fastify) {
             authorId: authorId?.toString?.() || (authorId ? String(authorId) : null)
         });
 
-        const { generateRelatedPostsHtml, addInternalLinks } = require('../seo/internalLinking');
 
         const relatedPosts = await recommendationService.getRelated(post._id, 5);
 
@@ -1465,7 +1435,6 @@ async function pagesRoutes(fastify) {
         let adInline = null;
         let adBanner = null;
         try {
-            const { getAds: getAd } = require('../services/ads/ProviderService');
             const inlineAds = await getAd({ placement: 'article_inline', user: { id: req.currentUser?.id || null }, session: null });
             adInline = inlineAds.length > 0 ? inlineAds[0] : null;
             const bannerAds = await getAd({ placement: 'article_endcap', user: { id: req.currentUser?.id || null }, session: null });
