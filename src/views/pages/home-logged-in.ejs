@@ -185,51 +185,99 @@
 
         .home-composer-overlay, .home-composer-drawer, .home-composer-fab { display: none; }
 
-        .install-banner {
-            position: fixed;
-            bottom: 80px;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, #6d0a0a 0%, #4b0808 100%);
-            color: #fdf6f0;
-            padding: 16px;
-            z-index: 9999;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
-        }
+        /* Sleek Minimalist Install Banner */
+.install-banner {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(calc(100% - 32px), 440px);
+    background: rgba(109, 10, 10, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(109, 10, 10, 0.2);
+    z-index: 9999;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
 
-        .install-banner-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
+.install-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
 
-        .install-banner-actions {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
-        }
+.install-banner-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
 
-        .install-btn {
-            background: #fdf6f0;
-            color: #6d0a0a;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+.install-banner-info strong {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #fff;
+    line-height: 1.2;
+}
 
-        .dismiss-btn {
-            background: transparent;
-            border: 1px solid #fdf6f0;
-            color: #fdf6f0;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-        }
+.install-banner-info p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.install-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.install-btn {
+    background: #fff;
+    color: #6d0a0a;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.install-btn:active {
+    transform: scale(0.96);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.dismiss-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.dismiss-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
 
         @media (max-width: 1400px) {
             body { --home-nav-width: 260px; }
@@ -448,18 +496,18 @@
         </div>
     </div>
 
-    <div id="installPrompt" class="install-banner" style="display: none;">
-        <div class="install-banner-content">
-            <div>
-                <strong>Install PaidInk</strong>
-                <p>Add PaidInk to your home screen for quick access</p>
-            </div>
-            <div class="install-banner-actions">
-                <button id="installBtn" class="install-btn">Install</button>
-                <button id="dismissBtn" class="dismiss-btn">✕</button>
-            </div>
+   <div id="installPrompt" class="install-banner" style="display: none;">
+    <div class="install-banner-content">
+        <div class="install-banner-info">
+            <strong>Install PaidInk</strong>
+            <p>Add to your home screen</p>
+        </div>
+        <div class="install-banner-actions">
+            <button id="installBtn" class="install-btn">Install</button>
+            <button id="dismissBtn" class="dismiss-btn" aria-label="Dismiss">✕</button>
         </div>
     </div>
+</div>
 
     <button class="home-composer-fab" id="composerFab" aria-label="Create a post" type="button">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
