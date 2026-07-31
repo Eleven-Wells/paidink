@@ -1,0 +1,6 @@
+{
+  "name": "paidink",
+  "main": "./src/server.js",
+  "compatibility_date": "2026-07-30",
+  "compatibility_flags": ["nodejs_compat"]
+}
