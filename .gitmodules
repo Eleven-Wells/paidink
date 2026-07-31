@@ -1,0 +1,3 @@
+[submodule "paidink"]
+	path = paidink
+	url = https://github.com/Eleven-Wells/paidink.git
