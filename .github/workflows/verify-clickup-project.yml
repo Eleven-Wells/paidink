@@ -1,0 +1,80 @@
+name: Verify ClickUp Project Membership
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  validate-clickup-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Ticket via ClickUp API
+        env:
+          CLICKUP_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
+          EXPECTED_SPACE_ID: "901511649704"
+        run: |
+          # 1. Extract commit messages being checked
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            COMMITS=$(git log --no-merges --format="%s" origin/${{ github.base_ref }}..HEAD)
+          else
+            COMMITS=$(git log --no-merges --format="%s" -n 5)
+          fi
+
+          echo "Checking commits..."
+          FAILED=0
+
+          while IFS= read -r COMMIT_MSG; do
+            [ -z "$COMMIT_MSG" ] && continue
+
+            # Extract standard ClickUp Task ID (7 to 9 alphanumeric characters)
+            TASK_ID=$(echo "$COMMIT_MSG" | grep -oE '[a-zA-Z0-9]{7,9}' | head -n 1)
+
+            if [ -z "$TASK_ID" ]; then
+              echo "REJECTED: Commit '$COMMIT_MSG' does not contain a ClickUp Task ID."
+              FAILED=1
+              continue
+            fi
+
+            echo "Validating Task ID '$TASK_ID' against ClickUp..."
+
+            # 2. Query ClickUp API
+            RESPONSE=$(curl -s --request GET \
+              --url "https://api.clickup.com/api/v2/task/${TASK_ID}" \
+              --header "Authorization: ${CLICKUP_TOKEN}" \
+              --header "Content-Type: application/json")
+
+            # Check if task exists
+            ERR_CODE=$(echo "$RESPONSE" | jq -r '.ERR // empty')
+            if [ -n "$ERR_CODE" ]; then
+              echo "REJECTED: Task ID '$TASK_ID' was not found in ClickUp."
+              FAILED=1
+              continue
+            fi
+
+            # 3. Extract Space ID from API response
+            ACTUAL_SPACE_ID=$(echo "$RESPONSE" | jq -r '.space.id // empty')
+
+            if [ "$ACTUAL_SPACE_ID" != "$EXPECTED_SPACE_ID" ]; then
+              echo "REJECTED: Task ID '$TASK_ID' belongs to Space '$ACTUAL_SPACE_ID', but this repository only accepts tasks from Space '$EXPECTED_SPACE_ID'."
+              FAILED=1
+            else
+              echo "PASSED: Task ID '$TASK_ID' belongs to this project."
+            fi
+
+          done <<< "$COMMITS"
+
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "ERROR: One or more commits failed project verification."
+            echo "Ensure your commit messages contain valid Task IDs from this project's ClickUp board."
+            exit 1
+          fi
