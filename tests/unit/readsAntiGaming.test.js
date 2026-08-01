@@ -1,4 +1,4 @@
-const { enforceDailyCap, enforcePostCooldown, enforceSessionGap, enforceReadSpeed } = require('../../src/routes/reads');
+const { enforceDailyCap, enforcePostCooldown, enforceSessionGap, enforceReadSpeed } = require('../../src/services/readPolicies');
 const ReadSession = require('../../src/models/ReadSession');
 
 jest.mock('../../src/models/ReadSession');

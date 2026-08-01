@@ -10,7 +10,7 @@ const {
     enforcePostCooldown,
     enforceSessionGap,
     enforceReadSpeed
-} = require('../../src/routes/reads');
+} = require('../../src/services/readPolicies');
 
 describe('Dynamic Reward Rate — Integration', () => {
     let testUser;
