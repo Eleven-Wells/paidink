@@ -2,6 +2,7 @@ const LedgerEntry = require('../../models/LedgerEntry');
 const AdEvent = require('../../models/ads/AdEvent');
 const User = require('../../models/User');
 const RewardRateService = require('../RewardRateService');
+const WalletService = require('../WalletService');
 
 const MAX_REWARD = 500;
 
@@ -15,7 +16,7 @@ async function getReaderPoolBalance() {
 
 async function processReadCompletion(user, session) {
     const rate = await RewardRateService.getCurrentRate();
-    const balance = await user.addReward(rate, 'read_reward', 'Reward for reading');
+    const balance = await WalletService.addReward(user, rate, 'read_reward', 'Reward for reading');
 
     const poolBalance = await getReaderPoolBalance();
     await LedgerEntry.create({

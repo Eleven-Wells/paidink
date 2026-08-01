@@ -2,6 +2,7 @@ const { getBullMQConnection } = require('../config/redis');
 const PaystackService = require('../services/PaystackService');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
+const WalletService = require('../services/WalletService');
 const { captureError } = require('../plugins/sentry');
 
 async function processWebhookEvent(event, data) {
@@ -36,7 +37,7 @@ async function processWebhookEvent(event, data) {
             return;
         }
 
-        await user.completeWithdrawal(amount, transferCode);
+        await WalletService.completeWithdrawal(user, amount, transferCode);
         log.info('Withdrawal completed', { transferCode, amountKobo: amount });
         return;
     }
@@ -63,7 +64,7 @@ async function processWebhookEvent(event, data) {
             return;
         }
 
-        await user.failWithdrawal(amount, transferCode);
+        await WalletService.failWithdrawal(user, amount, transferCode);
         log.info('Withdrawal reversed', { transferCode, amountKobo: amount });
         return;
     }

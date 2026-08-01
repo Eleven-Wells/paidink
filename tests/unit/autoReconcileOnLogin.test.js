@@ -3,6 +3,7 @@ const User = require('../../src/models/User');
 const LedgerEntry = require('../../src/models/LedgerEntry');
 const ReadSession = require('../../src/models/ReadSession');
 const Post = require('../../src/models/Post');
+const WalletService = require('../../src/services/WalletService');
 
 describe('Auto-reconciliation on Login', () => {
     let testUser;
@@ -47,7 +48,7 @@ describe('Auto-reconciliation on Login', () => {
 
         expect(latestEntry.createdAt > testUser.wallet.balanceLastSynced).toBe(true);
 
-        await testUser.reconcileWallet();
+        await WalletService.reconcileWallet(testUser);
 
         const updated = await User.findById(testUser._id);
         expect(updated.wallet.balance).toBe(5);
@@ -59,7 +60,7 @@ describe('Auto-reconciliation on Login', () => {
         testUser.wallet.balance = 100;
         await testUser.save();
 
-        await testUser.reconcileWallet();
+        await WalletService.reconcileWallet(testUser);
 
         const updated = await User.findById(testUser._id);
         expect(updated.wallet.balance).toBe(0);
@@ -101,10 +102,10 @@ describe('Auto-reconciliation on Login', () => {
             status: 'completed'
         });
 
-        const result1 = await testUser.reconcileWallet();
+        const result1 = await WalletService.reconcileWallet(testUser);
         expect(result1.reconciled).toBe(10);
 
-        const result2 = await testUser.reconcileWallet();
+        const result2 = await WalletService.reconcileWallet(testUser);
         expect(result2.reconciled).toBe(10);
         expect(result2.drift).toBe(0);
 
@@ -130,7 +131,7 @@ describe('Auto-reconciliation on Login', () => {
             status: 'failed'
         });
 
-        const result = await testUser.reconcileWallet();
+        const result = await WalletService.reconcileWallet(testUser);
         expect(result.reconciled).toBe(5);
     });
 });
