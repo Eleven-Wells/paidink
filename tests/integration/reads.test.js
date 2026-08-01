@@ -152,7 +152,7 @@ describe('Reads Tracking System', () => {
                 expect(session.timeSpentSeconds).toBeGreaterThanOrEqual(59);
             });
 
-            test('increments post stats.reads', async () => {
+            test('records reward outcome on the session', async () => {
                 const session = await ReadSession.create({
                     user: testUser._id,
                     post: testPost._id,
@@ -160,10 +160,11 @@ describe('Reads Tracking System', () => {
                     scrollProgress: 95
                 });
 
-                await session.markCompleted();
+                await session.markCompleted({ rewardAwarded: true, rewardAmount: 250 });
 
-                const updatedPost = await Post.findById(testPost._id);
-                expect(updatedPost.stats.reads).toBe(1);
+                expect(session.completed).toBe(true);
+                expect(session.rewardAwarded).toBe(true);
+                expect(session.rewardAmount).toBe(250);
             });
         });
     });
