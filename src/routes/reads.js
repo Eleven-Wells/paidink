@@ -1,43 +1,18 @@
 const ReadSession = require('../models/ReadSession');
 const Post = require('../models/Post');
 const User = require('../models/User');
-const interestProfileService = require('../services/InterestProfileService');
 const RewardRateService = require('../services/RewardRateService');
-
-const DAILY_READ_CAP = 100;
-const POST_READ_COOLDOWN_HOURS = 24;
-const MIN_SESSION_GAP_SECONDS = 3;
-const MIN_READ_SPEED_FRACTION = 0.10;
-const WORDS_PER_MINUTE = 200;
-
-async function enforceDailyCap(userId, cap) {
-    const todayReads = await ReadSession.getTodayReads(userId);
-    return todayReads < cap;
-}
-
-async function enforcePostCooldown(userId, postId, cooldownHours) {
-    const existing = await ReadSession.findOne({
-        user: userId, post: postId, completed: true
-    }).sort({ createdAt: -1 });
-
-    if (!existing) return true;
-
-    const createdAt = existing.createdAt || existing._doc?.createdAt;
-    const hoursSince = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
-    return hoursSince >= cooldownHours;
-}
-
-function enforceSessionGap(lastSessionStart, minGapSeconds) {
-    if (!lastSessionStart) return true;
-    const secondsSince = (Date.now() - new Date(lastSessionStart).getTime()) / 1000;
-    return secondsSince >= minGapSeconds;
-}
-
-function enforceReadSpeed(timeSpentSeconds, wordCount, wpm, minFraction) {
-    const expectedSeconds = (wordCount / wpm) * 60;
-    const minimumSeconds = Math.max(expectedSeconds * minFraction, 1);
-    return timeSpentSeconds >= minimumSeconds;
-}
+const ReadService = require('../services/ReadService');
+const {
+    DAILY_READ_CAP,
+    POST_READ_COOLDOWN_HOURS,
+    MIN_SESSION_GAP_SECONDS,
+    MIN_READ_SPEED_FRACTION,
+    WORDS_PER_MINUTE,
+    enforceDailyCap,
+    enforcePostCooldown,
+    enforceSessionGap
+} = require('../services/readPolicies');
 
 async function readsAuthenticate(request, reply) {
     try {
@@ -239,82 +214,37 @@ module.exports = async function readsRoutes(fastify) {
             const { sessionId } = req.body;
             const userId = req.userId;
 
-            const session = await ReadSession.findOne({
-                _id: sessionId,
-                user: userId,
-                completed: false
-            });
+            const result = await ReadService.completeSession({ userId, sessionId, log: (msg) => req.log.error({ error: msg }, 'Complete read session') });
 
-            if (!session) {
+            if (!result) {
                 return reply.code(404).send({
                     success: false,
                     error: 'Session not found'
                 });
             }
 
-            if (session.completed) {
+            if (result.reason === 'speed_gate') {
                 return reply.send({
-                    success: false,
-                    error: 'Session already completed'
+                    success: true,
+                    data: {
+                        completed: true,
+                        timeSpent: result.timeSpent,
+                        rewardAwarded: false,
+                        rewardAmount: 0,
+                        message: 'Read recorded but reward not earned (read too quickly).'
+                    }
                 });
-            }
-
-            const endedAt = new Date();
-            const elapsedSeconds = session.startedAt
-                ? Math.floor((endedAt - session.startedAt) / 1000)
-                : 0;
-
-            session.endedAt = endedAt;
-            if (elapsedSeconds > 0) {
-                session.timeSpentSeconds = elapsedSeconds;
-            }
-
-            const postForSpeedCheck = await Post.findById(session.post).select('content').lean();
-            if (postForSpeedCheck) {
-                const wordCount = postForSpeedCheck.content ? postForSpeedCheck.content.split(/\s+/).length : 0;
-                if (!enforceReadSpeed(elapsedSeconds, wordCount, WORDS_PER_MINUTE, MIN_READ_SPEED_FRACTION)) {
-                    session.completed = true;
-                    session.rewardAwarded = false;
-                    session.rewardAmount = 0;
-                    await session.save();
-                    return reply.send({
-                        success: true,
-                        data: {
-                            completed: true,
-                            timeSpent: elapsedSeconds,
-                            rewardAwarded: false,
-                            rewardAmount: 0,
-                            message: 'Read recorded but reward not earned (read too quickly).'
-                        }
-                    });
-                }
-            }
-
-            await session.markCompleted();
-
-            try {
-                const readPost = await Post.findById(session.post).lean();
-                if (readPost) {
-                    await interestProfileService.updateOnReadCompletion(
-                        userId,
-                        readPost,
-                        session.timeSpentSeconds,
-                        session.completed
-                    );
-                }
-            } catch (err) {
-                req.log.error({ error: err.message }, 'Failed to update interest profile');
             }
 
             return reply.send({
                 success: true,
                 data: {
                     completed: true,
-                    timeSpent: session.timeSpentSeconds,
-                    rewardAwarded: session.rewardAwarded,
-                    rewardAmount: session.rewardAmount / 100,
-                    message: session.rewardAwarded
-                        ? `Congratulations! You earned ₦${session.rewardAmount / 100}`
+                    timeSpent: result.timeSpent,
+                    rewardAwarded: result.rewardAwarded,
+                    rewardAmount: result.rewardAmount / 100,
+                    message: result.rewardAwarded
+                        ? `Congratulations! You earned ₦${result.rewardAmount / 100}`
                         : 'Read completed but minimum time not met'
                 }
             });
@@ -434,8 +364,3 @@ module.exports = async function readsRoutes(fastify) {
         }
     });
 };
-
-module.exports.enforceDailyCap = enforceDailyCap;
-module.exports.enforcePostCooldown = enforcePostCooldown;
-module.exports.enforceSessionGap = enforceSessionGap;
-module.exports.enforceReadSpeed = enforceReadSpeed;
