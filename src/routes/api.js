@@ -24,6 +24,7 @@ const NotificationService = require('../services/NotificationService');
 const AppReview = require('../models/AppReview');
 const { sendReviewToDiscord } = require('../services/ReviewNotificationService');
 const PaystackService = require('../services/PaystackService');
+const WalletService = require('../services/WalletService');
 
 async function apiRoutes(fastify) {
     fastify.get('/health', async (req, reply) => {
@@ -73,7 +74,7 @@ async function apiRoutes(fastify) {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
         try {
-            const result = await req.user.reconcileWallet();
+            const result = await WalletService.reconcileWallet(req.user);
             return {
                 success: true,
                 data: result,
@@ -1067,7 +1068,7 @@ async function apiRoutes(fastify) {
 
                 const transferCode = transferRes.data.transfer_code;
 
-                const result = await user.requestWithdrawal(amountInKobo);
+                const result = await WalletService.requestWithdrawal(user, amountInKobo);
 
                 const Transaction = mongoose.model('Transaction');
                 let transactionRecord;
