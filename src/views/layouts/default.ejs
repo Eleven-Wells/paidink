@@ -590,7 +590,10 @@
             <% var activeCatNames=(typeof categoryNames !=='undefined' ) ? categoryNames : (globalCatNames.en || {}); %>
 
                 <%- include('../partials/header', { activeCategory: activeCategory, CATEGORY_ENUM: catEnum,
-                    CATEGORY_NAMES: globalCatNames, categoryNames: activeCatNames }) %>
+                    CATEGORY_NAMES: globalCatNames, categoryNames: activeCatNames,
+                    navVariant: (typeof navVariant !== 'undefined' ? navVariant : 'default'),
+                    articleNavTitle: (typeof articleNavTitle !== 'undefined' ? articleNavTitle : ''),
+                    articleNavMeta: (typeof articleNavMeta !== 'undefined' ? articleNavMeta : '') }) %>
 
                     <script>var isLoggedIn = <%= typeof isLoggedIn !== 'undefined' && isLoggedIn ? 'true' : 'false' %>; var hapticEnabled = <%= (typeof user !== 'undefined' && user && user.preferences?.hapticFeedback !== false) ? 'true' : 'false' %>;</script>
 
