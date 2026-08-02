@@ -232,10 +232,25 @@ async function reconcileWallet(user) {
     };
 }
 
+async function getSyncStatus(user) {
+    const LedgerEntry = mongoose.model('LedgerEntry');
+    const latestEntry = await LedgerEntry.findOne({ user: user._id }).sort({ createdAt: -1 });
+
+    return {
+        walletBalance: user.wallet.balance / 100,
+        walletLifetimeEarned: user.wallet.lifetimeEarned / 100,
+        balanceLastSynced: user.wallet.balanceLastSynced,
+        ledgerLastEntry: latestEntry ? latestEntry.createdAt : null,
+        needsSync: !user.wallet.balanceLastSynced ||
+            (latestEntry && latestEntry.createdAt > user.wallet.balanceLastSynced)
+    };
+}
+
 module.exports = {
     addReward,
     requestWithdrawal,
     completeWithdrawal,
     failWithdrawal,
-    reconcileWallet
+    reconcileWallet,
+    getSyncStatus
 };

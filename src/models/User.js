@@ -205,44 +205,10 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.methods.generateEmailVerificationToken = function() {
-    this.emailVerificationToken = crypto.randomBytes(32).toString('hex');
-    this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
-    return this.emailVerificationToken;
-};
-
 userSchema.methods.generatePasswordResetToken = function() {
     this.passwordResetToken = crypto.randomBytes(32).toString('hex');
     this.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     return this.passwordResetToken;
-};
-
-userSchema.methods.updateStreak = function() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (!this.stats.lastReadDate) {
-        this.stats.streak = 1;
-    } else {
-        const lastRead = new Date(this.stats.lastReadDate);
-        lastRead.setHours(0, 0, 0, 0);
-        
-        const diffDays = Math.floor((today - lastRead) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) {
-            // Same day, no change
-        } else if (diffDays === 1) {
-            this.stats.streak += 1;
-            if (this.stats.streak > this.stats.longestStreak) {
-                this.stats.longestStreak = this.stats.streak;
-            }
-        } else {
-            this.stats.streak = 1;
-        }
-    }
-    
-    this.stats.lastReadDate = new Date();
-    return this.stats.streak;
 };
 
 userSchema.methods.toPublicJSON = function() {
