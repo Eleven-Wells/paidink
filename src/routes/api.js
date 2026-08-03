@@ -16,14 +16,13 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Achievement = require('../models/Achievement');
 const ReadSession = require('../models/ReadSession');
-const PayoutDetail = require('../models/PayoutDetail');
 const RewardRateService = require('../services/RewardRateService');
 const Comment = require('../models/Comment');
 const Credit = require('../models/Credit');
-const NotificationService = require('../services/NotificationService');
 const AppReview = require('../models/AppReview');
 const { sendReviewToDiscord } = require('../services/ReviewNotificationService');
-const PaystackService = require('../services/PaystackService');
+const WalletService = require('../services/WalletService');
+const PayoutService = require('../services/PayoutService');
 
 async function apiRoutes(fastify) {
     fastify.get('/health', async (req, reply) => {
@@ -73,7 +72,7 @@ async function apiRoutes(fastify) {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
         try {
-            const result = await req.user.reconcileWallet();
+            const result = await WalletService.reconcileWallet(req.user);
             return {
                 success: true,
                 data: result,
@@ -91,19 +90,11 @@ async function apiRoutes(fastify) {
     fastify.get('/wallet/sync-status', {
         preHandler: [fastify.authenticate]
     }, async (req, reply) => {
-        const LedgerEntry = require('../models/LedgerEntry');
-        const latestEntry = await LedgerEntry.findOne({ user: req.user.id }).sort({ createdAt: -1 });
+        const data = await WalletService.getSyncStatus(req.user);
 
         return {
             success: true,
-            data: {
-                walletBalance: req.user.wallet.balance / 100,
-                walletLifetimeEarned: req.user.wallet.lifetimeEarned / 100,
-                balanceLastSynced: req.user.wallet.balanceLastSynced,
-                ledgerLastEntry: latestEntry ? latestEntry.createdAt : null,
-                needsSync: !req.user.wallet.balanceLastSynced ||
-                    (latestEntry && latestEntry.createdAt > req.user.wallet.balanceLastSynced)
-            },
+            data,
             requestId: req.requestId
         };
     });
@@ -1000,152 +991,29 @@ async function apiRoutes(fastify) {
             const { amount, method, bankName, bankCode, accountNumber, accountName, phoneNumber } = req.body;
             const user = req.user;
 
-            const encryptionKey = process.env.PAYOUT_ENCRYPTION_KEY;
+            const { success: payoutInitiated, error: payoutError, statusCode: payoutStatus, newBalance, pendingBalance, transferCode } =
+                await PayoutService.initiateWithdrawal(
+                    { user, amount, method, bankName, bankCode, accountNumber, accountName, phoneNumber },
+                    { log: req.log }
+                );
 
-            if (!encryptionKey || encryptionKey === 'generate_a_secure_random_string_here') {
-                return reply.code(500).send({
+            if (!payoutInitiated) {
+                return reply.code(payoutStatus || 500).send({
                     success: false,
-                    error: 'System not configured for withdrawals'
+                    error: payoutError || 'Withdrawal failed. Please try again.'
                 });
             }
 
-            const amountInKobo = Math.round(amount * 100);
-
-            if (method === 'bank') {
-                if (!accountNumber || !accountName || !bankCode) {
-                    return reply.code(400).send({
-                        success: false,
-                        error: 'Bank code, account number, and account name are required for bank withdrawals'
-                    });
+            return reply.send({
+                success: true,
+                message: 'Withdrawal initiated successfully. Funds will be sent to your bank account.',
+                data: {
+                    newBalance: newBalance / 100,
+                    pendingBalance: pendingBalance / 100,
+                    transferCode,
+                    reference: transferCode
                 }
-
-                await PayoutDetail.encryptAndSave(
-                    user._id,
-                    { bankName, bankCode, accountNumber, accountName },
-                    method,
-                    encryptionKey
-                );
-
-                const paystackKey = process.env.PAYSTACK_SECRET_KEY;
-                if (!paystackKey || paystackKey === 'your_paystack_secret_key_here') {
-                    return reply.code(500).send({
-                        success: false,
-                        error: 'Payment gateway not configured'
-                    });
-                }
-
-                const recipientRes = await PaystackService.createTransferRecipient({
-                    accountName,
-                    accountNumber,
-                    bankCode
-                });
-
-                if (!recipientRes.status) {
-                    return reply.code(400).send({
-                        success: false,
-                        error: recipientRes.message || 'Failed to create payment recipient'
-                    });
-                }
-
-                const recipientCode = recipientRes.data.recipient_code;
-
-                const idempotencyKey = `withdraw_${user._id}_${Date.now()}`;
-
-                const transferRes = await PaystackService.initiateTransfer(
-                    recipientCode,
-                    amountInKobo,
-                    `PaidInk withdrawal - ${user._id}`,
-                    idempotencyKey
-                );
-
-                if (!transferRes.status) {
-                    return reply.code(400).send({
-                        success: false,
-                        error: transferRes.message || 'Failed to initiate transfer'
-                    });
-                }
-
-                const transferCode = transferRes.data.transfer_code;
-
-                const result = await user.requestWithdrawal(amountInKobo);
-
-                const Transaction = mongoose.model('Transaction');
-                let transactionRecord;
-                try {
-                    transactionRecord = await Transaction.create({
-                        user: user._id,
-                        type: 'withdrawal',
-                        amount: -amountInKobo,
-                        balanceBefore: result.newBalance + amountInKobo,
-                        balanceAfter: result.newBalance,
-                        status: 'pending',
-                        reference: transferCode,
-                        description: `Bank withdrawal (****${accountNumber.slice(-4)})`,
-                        metadata: {
-                            paystackTransferCode: transferCode,
-                            paystackRecipientCode: recipientCode,
-                            method: 'bank',
-                            accountNumber: `****${accountNumber.slice(-4)}`,
-                            bankName
-                        }
-                    });
-                } catch (txError) {
-                    req.log.error({ error: txError.message, userId: user._id },
-                        'Failed to create transaction record, reversing balance deduction');
-                    await User.findOneAndUpdate(
-                        { _id: user._id },
-                        { $inc: { 'wallet.balance': amountInKobo, 'wallet.pendingBalance': -amountInKobo } }
-                    );
-                    throw txError;
-                }
-
-                try {
-                    await NotificationService.notifyWithdrawal(user._id, amount, method);
-                } catch (err) {
-                    req.log.error({ component: 'notification', error: err.message, userId: user._id },
-                        'Failed to create withdrawal notification');
-                }
-
-                return reply.send({
-                    success: true,
-                    message: 'Withdrawal initiated successfully. Funds will be sent to your bank account.',
-                    data: {
-                        newBalance: result.newBalance / 100,
-                        pendingBalance: result.pendingBalance / 100,
-                        transferCode,
-                        reference: transferCode
-                    }
-                });
-            } else if (method === 'mpesa' && phoneNumber) {
-                await PayoutDetail.encryptAndSave(
-                    user._id,
-                    { phoneNumber },
-                    method,
-                    encryptionKey
-                );
-
-                return reply.code(400).send({
-                    success: false,
-                    error: 'M-Pesa withdrawals are not yet available'
-                });
-            } else if (method === 'airtime' && phoneNumber) {
-                await PayoutDetail.encryptAndSave(
-                    user._id,
-                    { phoneNumber },
-                    method,
-                    encryptionKey
-                );
-
-                return reply.code(400).send({
-                    success: false,
-                    error: 'Airtime withdrawals are not yet available'
-                });
-            } else {
-                return reply.code(400).send({
-                    success: false,
-                    error: 'Invalid withdrawal method or missing required fields'
-                });
-            }
+            });
         } catch (error) {
             req.log.error({ error: error.message, userId: user._id, method, amount },
                 'Withdrawal failed');
