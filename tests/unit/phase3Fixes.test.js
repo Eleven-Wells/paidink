@@ -4,6 +4,7 @@ const LedgerEntry = require('../../src/models/LedgerEntry');
 const ReadSession = require('../../src/models/ReadSession');
 const Post = require('../../src/models/Post');
 const Transaction = require('../../src/models/Transaction');
+const WalletService = require('../../src/services/WalletService');
 
 describe('Phase 3 - Bug Fixes', () => {
     let testUser;
@@ -38,7 +39,7 @@ describe('Phase 3 - Bug Fixes', () => {
 
     describe('Bug Fix 1: Stale balanceBefore/After in addReward()', () => {
         test('should record correct balanceBefore from fresh DB read', async () => {
-            await testUser.addReward(5, 'achievement', 'Test achievement');
+            await WalletService.addReward(testUser, 5, 'achievement', 'Test achievement');
 
             const ledgerEntry = await LedgerEntry.findOne({ user: testUser._id, type: 'achievement' });
             expect(ledgerEntry).not.toBeNull();
@@ -47,8 +48,8 @@ describe('Phase 3 - Bug Fixes', () => {
         });
 
         test('should record correct balanceBefore after multiple rewards', async () => {
-            await testUser.addReward(5, 'achievement', 'First achievement');
-            await testUser.addReward(10, 'achievement', 'Second achievement');
+            await WalletService.addReward(testUser, 5, 'achievement', 'First achievement');
+            await WalletService.addReward(testUser, 10, 'achievement', 'Second achievement');
 
             const entries = await LedgerEntry.find({ user: testUser._id }).sort({ createdAt: 1 });
 
@@ -61,7 +62,7 @@ describe('Phase 3 - Bug Fixes', () => {
         test('should update user.wallet.balance to correct value after addReward', async () => {
             const initialBalance = testUser.wallet.balance;
 
-            await testUser.addReward(25, 'achievement', 'Achievement reward');
+            await WalletService.addReward(testUser, 25, 'achievement', 'Achievement reward');
 
             const updatedUser = await User.findById(testUser._id);
             expect(updatedUser.wallet.balance).toBe(initialBalance + 25);

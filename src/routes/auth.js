@@ -3,6 +3,7 @@ const Transaction = require('../models/Transaction');
 const LedgerEntry = require('../models/LedgerEntry');
 const crypto = require('crypto');
 const ClerkService = require('../services/ClerkService');
+const WalletService = require('../services/WalletService');
 
 const SIGNUP_BONUS = 100;
 
@@ -59,7 +60,7 @@ module.exports = async function authRoutes(fastify) {
             await user.save();
 
             if (referredByUser) {
-                await referredByUser.addReward(50, 'referral_bonus', 'Referral bonus for inviting a friend');
+                await WalletService.addReward(referredByUser, 50, 'referral_bonus', 'Referral bonus for inviting a friend');
 
                 try {
                     const NotificationService = require('../services/NotificationService');
@@ -73,7 +74,7 @@ module.exports = async function authRoutes(fastify) {
                 }
             }
 
-            await user.addReward(SIGNUP_BONUS, 'signup_bonus', 'Welcome bonus for joining PaidInk Rewards');
+            await WalletService.addReward(user, SIGNUP_BONUS, 'signup_bonus', 'Welcome bonus for joining PaidInk Rewards');
 
             const token = fastify.jwt.sign({
                 id: user._id,
@@ -154,7 +155,7 @@ module.exports = async function authRoutes(fastify) {
                 if (latestEntry && latestEntry.createdAt > user.wallet.balanceLastSynced) {
                     setImmediate(async () => {
                         try {
-                            await user.reconcileWallet();
+                            await WalletService.reconcileWallet(user);
                         } catch (err) {
                             console.error('Auto-reconciliation failed on login:', err.message);
                         }
