@@ -59,41 +59,91 @@
 </script>
 
     <div class="post-page">
-        <!-- Back Button -->
-        <div class="max-w-4xl mx-auto px-6 pt-24 fade-up">
-            <button type="button" id="postBackButton" class="post-back-btn pt-24" aria-label="Go back to previous page">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    aria-hidden="true">
-                    <path d="m15 18-6-6 6-6" />
-                    <path d="M21 12H9" />
-                </svg>
-                <span>Back</span>
-            </button>
-        </div>
-
         <div id="scrollProgressPost" class="post-progress-bar"></div>
 
-        <main class="post-main" id="article-main">
-            <div class="max-w-5xl mx-auto px-6 py-8 sm:py-12">
-
-                <!-- Post Image -->
-                <% if (post.image) { %>
-                    <div class="post-media-wrap mb-10 relative">
-                        <div class="post-media-frame">
-                            <img src="<%= post.image %>" alt="<%= metaTitle %>" loading="eager" fetchpriority="high"
-                                decoding="async" class="post-hero-image">
-                        </div>
-                    </div>
+        <header class="post-hero">
+            <div class="post-hero-inner">
+                <nav class="post-breadcrumb fade-up" aria-label="Article breadcrumb">
+                    <button type="button" id="postBackButton" class="post-back-btn" aria-label="Go back to previous page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="m15 18-6-6 6-6" />
+                            <path d="M21 12H9" />
+                        </svg>
+                        <span>Back</span>
+                    </button>
+                    <a href="/browse">Explore</a>
+                    <% if (post.category) { %>
+                        <span aria-hidden="true">/</span>
+                        <a href="/category/<%= post.category %>">
+                            <%= typeof categoryNames !== 'undefined' && categoryNames[post.category] ? categoryNames[post.category] : post.category %>
+                        </a>
                     <% } %>
+                </nav>
+
+                <div class="post-hero-grid <%= post.image ? '' : 'post-hero-grid--text-only' %>">
+                    <div class="post-hero-copy fade-up">
+                        <% if (post.category) { %>
+                            <a href="/category/<%= post.category %>" class="post-category-pill">
+                                <%= typeof categoryNames !== 'undefined' && categoryNames[post.category] ? categoryNames[post.category] : post.category %>
+                            </a>
+                        <% } %>
 
                         <% if (post.title) { %>
-                            <h1
-                                class="font-heading text-3xl sm:text-4xl md:text-5xl leading-tight mb-8 fade-up post-hero-title">
+                            <h1 class="post-hero-title">
                                 <%= post.title %>
                             </h1>
-                            <% } %>
+                        <% } %>
 
+                        <% if (post.summary) { %>
+                            <p class="post-hero-summary">
+                                <%= post.summary %>
+                            </p>
+                        <% } %>
+
+                        <div class="post-hero-meta">
+                            <div class="post-hero-author">
+                                <div class="post-hero-avatar" aria-hidden="true">
+                                    <%= (post.author && (post.author.displayName || post.author.username) ? (post.author.displayName || post.author.username) : 'P').charAt(0).toUpperCase() %>
+                                </div>
+                                <div>
+                                    <span class="post-meta-label">Written by</span>
+                                    <strong>
+                                        <%= post.author && (post.author.displayName || post.author.username)
+                                            ? (post.author.displayName || post.author.username) : 'PaidInk' %>
+                                    </strong>
+                                </div>
+                            </div>
+                            <div class="post-hero-stat">
+                                <span class="post-meta-label">Published</span>
+                                <strong>
+                                    <%= formatDate ? formatDate(post.publishedAt) : new
+                                        Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric' ,
+                                        month: 'long' , day: 'numeric' }) %>
+                                </strong>
+                            </div>
+                            <div class="post-hero-stat">
+                                <span class="post-meta-label">Reading time</span>
+                                <strong><%= post.readTime %></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <% if (post.image) { %>
+                        <div class="post-media-wrap fade-up">
+                            <div class="post-media-frame">
+                                <img src="<%= post.image %>" alt="<%= metaTitle %>" loading="eager" fetchpriority="high"
+                                    decoding="async" class="post-hero-image">
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </header>
+
+        <main class="post-main" id="article-main">
+            <div class="max-w-5xl mx-auto px-6 py-12 sm:py-16">
                                 <!-- Post Content -->
                                 <article class="post-article-shell">
                                     <div class="article-content" id="article-content">
@@ -338,11 +388,10 @@
         .post-page .post-hero {
             position: relative;
             overflow: hidden;
-            padding-top: 8rem;
-            padding-bottom: 5rem;
+            padding: 8.5rem 0 4.75rem;
             background:
-                radial-gradient(circle at top center, rgba(109, 10, 10, 0.12), transparent 38%),
-                linear-gradient(180deg, #fffdfb 0%, #ffffff 58%, #faf6f2 100%);
+                linear-gradient(115deg, rgba(109, 10, 10, 0.08) 0%, rgba(255, 255, 255, 0) 42%),
+                linear-gradient(180deg, #fffdfb 0%, #ffffff 55%, #fbf5f1 100%);
             border-bottom: 1px solid rgba(109, 10, 10, 0.08);
         }
 
@@ -359,33 +408,104 @@
             pointer-events: none;
         }
 
-        .post-page .post-hero-title {
-            color: var(--post-heading);
-            letter-spacing: -0.03em;
+        .post-page .post-hero-inner {
+            position: relative;
+            z-index: 1;
+            width: min(100% - 2rem, 1240px);
+            margin: 0 auto;
         }
 
-        .post-page .post-back-row {
+        .post-page .post-breadcrumb {
             display: flex;
-            justify-content: flex-start;
-            margin-bottom: 2.25rem;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            color: var(--post-copy-soft);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+
+        .post-page .post-breadcrumb a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .post-page .post-breadcrumb a:hover {
+            color: var(--post-accent);
+        }
+
+        .post-page .post-hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.94fr) minmax(360px, 0.76fr);
+            gap: clamp(2rem, 5vw, 5rem);
+            align-items: center;
+        }
+
+        .post-page .post-hero-copy {
+            max-width: 780px;
+        }
+
+        .post-page .post-hero-grid--text-only {
+            grid-template-columns: minmax(0, 1fr);
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .post-page .post-hero-grid--text-only .post-hero-copy {
+            max-width: 900px;
+        }
+
+        .post-page .post-hero-grid--text-only .post-hero-title {
+            max-width: 14ch;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .post-page .post-hero-grid--text-only .post-hero-summary {
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .post-page .post-hero-grid--text-only .post-hero-meta {
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .post-page .post-hero-grid--text-only .post-hero-author {
+            justify-content: center;
+        }
+
+        .post-page .post-hero-title {
+            max-width: 13ch;
+            margin: 1.4rem 0 1.2rem;
+            color: var(--post-heading);
+            font-family: 'Abhaya Libre', serif;
+            font-size: 6.3rem;
+            font-weight: 800;
+            line-height: 0.92;
+            letter-spacing: 0;
         }
 
         .post-page .post-back-btn {
             display: inline-flex;
             align-items: center;
             gap: 0.55rem;
-            padding: 0.75rem 1rem;
+            padding: 0.58rem 0.82rem;
             border-radius: 999px;
             border: 1px solid rgba(109, 10, 10, 0.12);
             background: rgba(255, 255, 255, 0.88);
             color: var(--post-accent);
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
             font-weight: 700;
-            letter-spacing: 0.08em;
+            letter-spacing: 0;
             text-transform: uppercase;
             backdrop-filter: blur(10px);
-            box-shadow: 0 14px 34px rgba(109, 10, 10, 0.08);
+            box-shadow: 0 12px 28px rgba(109, 10, 10, 0.07);
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
 
@@ -398,7 +518,70 @@
         }
 
         .post-page .post-hero-summary {
+            max-width: 42rem;
             color: var(--post-copy);
+            font-family: 'Abhaya Libre', serif;
+            font-size: 1.58rem;
+            line-height: 1.35;
+            margin: 0;
+        }
+
+        .post-page .post-hero-meta {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(8.5rem, 1fr));
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(109, 10, 10, 0.1);
+        }
+
+        .post-page .post-hero-author,
+        .post-page .post-hero-stat {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .post-page .post-hero-stat {
+            display: block;
+        }
+
+        .post-page .post-hero-avatar {
+            width: 2.65rem;
+            height: 2.65rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            background: #130f0e;
+            color: #fffdfb;
+            font-family: 'Abhaya Libre', serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            box-shadow: 0 12px 26px rgba(19, 15, 14, 0.16);
+        }
+
+        .post-page .post-meta-label {
+            display: block;
+            margin-bottom: 0.16rem;
+            color: var(--post-copy-soft);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.66rem;
+            text-transform: uppercase;
+            letter-spacing: 0;
+        }
+
+        .post-page .post-hero-meta strong {
+            display: block;
+            overflow: hidden;
+            color: var(--post-heading);
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.25;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .post-page .post-category-pill {
@@ -406,22 +589,23 @@
             align-items: center;
             justify-content: center;
             gap: 0.35rem;
-            padding: 0.7rem 1.1rem;
+            padding: 0.58rem 0.86rem;
             border-radius: 999px;
             background: var(--post-accent);
             color: #ffffff;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
             font-weight: 700;
-            letter-spacing: 0.14em;
+            letter-spacing: 0;
             text-transform: uppercase;
+            text-decoration: none;
             box-shadow: 0 12px 35px rgba(109, 10, 10, 0.18);
         }
 
         .post-page .post-category-pill--small {
             padding: 0.45rem 0.8rem;
             font-size: 0.65rem;
-            letter-spacing: 0.12em;
+            letter-spacing: 0;
             box-shadow: none;
         }
 
@@ -499,15 +683,26 @@
 
         .post-page .post-media-frame {
             overflow: hidden;
-            border-radius: 1.75rem;
+            position: relative;
+            border-radius: 8px;
             border: 1px solid rgba(109, 10, 10, 0.1);
-            box-shadow: var(--post-shadow);
+            box-shadow: 0 32px 86px rgba(72, 42, 28, 0.16);
             background: #f5eeea;
+        }
+
+        .post-page .post-media-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 32%),
+                linear-gradient(0deg, rgba(19, 15, 14, 0.18), transparent 38%);
         }
 
         .post-page .post-hero-image {
             width: 100%;
-            height: 400px;
+            height: clamp(360px, 40vw, 560px);
             object-fit: cover;
             display: block;
         }
@@ -540,7 +735,7 @@
             margin-top: 2.75rem;
             margin-bottom: 1rem;
             line-height: 1.2;
-            letter-spacing: -0.03em;
+            letter-spacing: 0;
             font-family: 'Space Grotesk', sans-serif;
         }
 
@@ -759,13 +954,13 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.72rem;
             font-weight: 500;
-            letter-spacing: 0.2em;
+            letter-spacing: 0;
             text-transform: uppercase;
         }
 
         .post-page .post-section-title {
             color: var(--post-heading);
-            letter-spacing: -0.03em;
+            letter-spacing: 0;
         }
 
         .post-page .post-comment-composer,
@@ -813,7 +1008,7 @@
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.14em;
+            letter-spacing: 0;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
@@ -1036,7 +1231,7 @@
             font-family: 'Space Grotesk', sans-serif;
             font-size: 0.82rem;
             font-weight: 700;
-            letter-spacing: 0.08em;
+            letter-spacing: 0;
             text-transform: uppercase;
         }
 
@@ -1060,21 +1255,57 @@
 
         @media (max-width: 640px) {
             .post-page .post-hero {
-                padding-top: 7rem;
-                padding-bottom: 4rem;
+                padding-top: 6.7rem;
+                padding-bottom: 3.25rem;
             }
 
-            .post-page .post-back-row {
-                margin-bottom: 1.6rem;
+            .post-page .post-hero-inner {
+                width: min(100% - 1.25rem, 1240px);
+            }
+
+            .post-page .post-breadcrumb {
+                gap: 0.6rem;
+                margin-bottom: 1.25rem;
+                overflow-x: auto;
+                padding-bottom: 0.15rem;
+                white-space: nowrap;
+            }
+
+            .post-page .post-hero-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+                align-items: stretch;
+            }
+
+            .post-page .post-hero-title {
+                max-width: none;
+                font-size: 3.25rem;
+                line-height: 0.96;
+            }
+
+            .post-page .post-hero-grid--text-only .post-hero-title,
+            .post-page .post-hero-grid--text-only .post-hero-summary,
+            .post-page .post-hero-grid--text-only .post-hero-meta {
+                max-width: none;
+            }
+
+            .post-page .post-hero-summary {
+                font-size: 1.22rem;
+            }
+
+            .post-page .post-hero-meta {
+                grid-template-columns: 1fr;
+                gap: 1rem;
             }
 
             .post-page .post-back-btn {
-                padding: 0.68rem 0.9rem;
-                font-size: 0.76rem;
+                padding: 0.56rem 0.76rem;
+                font-size: 0.7rem;
             }
 
             .post-page .post-hero-image {
-                height: 280px;
+                height: min(74vw, 340px);
             }
 
             .post-page .article-content {
@@ -1114,8 +1345,27 @@
         }
 
         @media (min-width: 641px) {
-            .post-page .post-hero-image {
-                height: 500px;
+            .post-page .post-main {
+                margin-top: 0;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 980px) {
+            .post-page .post-hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .post-page .post-hero-title {
+                max-width: 14ch;
+                font-size: 4.65rem;
+            }
+
+            .post-page .post-hero-grid--text-only {
+                max-width: 760px;
+            }
+
+            .post-page .post-media-wrap {
+                max-width: 720px;
             }
         }
     </style>
