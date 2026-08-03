@@ -1488,6 +1488,9 @@ async function pagesRoutes(fastify) {
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null,
             isLightTheme: true,
+            navVariant: 'article',
+            articleNavTitle: post.title,
+            articleNavMeta: post.readTime,
             hideFooter: true
         });
     });
