@@ -22,12 +22,13 @@ jobs:
           CLICKUP_TOKEN: ${{ secrets.CLICKUP_API_TOKEN }}
           EXPECTED_SPACE_ID: "901511649704"
         run: |
-          # 1. Extract commit messages being checked
+          # 1. Extract commit messages being checked (only commits unique to this branch, not inherited from the base branch)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            COMMITS=$(git log --no-merges --format="%s" origin/${{ github.base_ref }}..HEAD)
+            BASE_REF="origin/${{ github.base_ref }}"
           else
-            COMMITS=$(git log --no-merges --format="%s" -n 5)
+            BASE_REF="origin/${{ github.event.repository.default_branch }}"
           fi
+          COMMITS=$(git log --no-merges --format="%s" "${BASE_REF}..HEAD")
 
           echo "Checking commits..."
           FAILED=0
