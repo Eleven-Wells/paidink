@@ -7,6 +7,7 @@ const User = require('../../models/User');
 const ReadSession = require('../../models/ReadSession');
 const { distributeAdRevenue } = require('./AdRevenueService');
 const { AD_EVENTS } = require('../../config/ads');
+const WalletService = require('../WalletService');
 
 const AD_TYPE_REVENUE = {
     banner: { baseCpm: 2, baseCpc: 0.1 },
@@ -352,7 +353,7 @@ async function triggerRewardedAd(userId, slot, sessionId, userMetadata = {}) {
             const UserModel = require('../models/User');
             const user = await UserModel.findById(userId);
             if (user) {
-                await user.addReward(result.userReward, 'ad_reward', 'Rewarded ad completion');
+                await WalletService.addReward(user, result.userReward, 'ad_reward', 'Rewarded ad completion');
             }
         } catch (err) {
             console.error('Failed to credit ad reward:', err.message);

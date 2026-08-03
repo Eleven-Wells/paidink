@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../../src/models/User');
 const LedgerEntry = require('../../src/models/LedgerEntry');
+const WalletService = require('../../src/services/WalletService');
 
 describe('Phase 4 - Wallet Reconciliation', () => {
     let testUser;
@@ -42,7 +43,7 @@ describe('Phase 4 - Wallet Reconciliation', () => {
                 status: 'completed'
             });
 
-            const result = await testUser.reconcileWallet();
+            const result = await WalletService.reconcileWallet(testUser);
 
             const updated = await User.findById(testUser._id);
             expect(updated.wallet.balance).toBe(15);
@@ -62,7 +63,7 @@ describe('Phase 4 - Wallet Reconciliation', () => {
                 status: 'completed'
             });
 
-            const result = await testUser.reconcileWallet();
+            const result = await WalletService.reconcileWallet(testUser);
 
             expect(result.drift).toBe(95);
             expect(result.driftSignificant).toBe(true);
@@ -83,7 +84,7 @@ describe('Phase 4 - Wallet Reconciliation', () => {
 
             expect(testUser.wallet.balanceLastSynced).toBeNull();
 
-            await testUser.reconcileWallet();
+            await WalletService.reconcileWallet(testUser);
 
             const updated = await User.findById(testUser._id);
             expect(updated.wallet.balanceLastSynced).not.toBeNull();
@@ -107,14 +108,14 @@ describe('Phase 4 - Wallet Reconciliation', () => {
                 status: 'completed'
             });
 
-            await testUser.reconcileWallet();
+            await WalletService.reconcileWallet(testUser);
 
             const updated = await User.findById(testUser._id);
             expect(updated.wallet.lifetimeEarned).toBe(10);
         });
 
         test('should handle empty ledger entries', async () => {
-            const result = await testUser.reconcileWallet();
+            const result = await WalletService.reconcileWallet(testUser);
 
             const updated = await User.findById(testUser._id);
             expect(updated.wallet.balance).toBe(0);
@@ -173,7 +174,7 @@ describe('Phase 4 - Wallet Reconciliation', () => {
                 status: 'completed'
             });
 
-            const result = await testUser.reconcileWallet();
+            const result = await WalletService.reconcileWallet(testUser);
 
             expect(result.reconciled).toBe(5);
             expect(result.drift).toBe(5);
