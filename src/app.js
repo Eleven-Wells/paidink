@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 mongoose.set('bufferTimeoutMS', 60000);
 
+const { instrumentMongoose } = require('./plugins/perf');
+instrumentMongoose(mongoose);
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 const fastify = require('fastify')({
@@ -48,6 +51,7 @@ const auditPlugin = require('./plugins/audit');
 const cachePlugin = require('./plugins/cache');
 const swaggerPlugin = require('./plugins/swagger');
 const authPlugin = require('./plugins/auth');
+const perfPlugin = require('./plugins/perf');
 
 async function buildApp() {
     loadConfig();
@@ -208,6 +212,7 @@ async function buildApp() {
     await fastify.register(adminSessionPlugin);
     await fastify.register(auditPlugin);
     await fastify.register(authPlugin);
+    await fastify.register(perfPlugin);
     await fastify.register(errorHandlerPlugin);
     await fastify.register(swaggerPlugin);
 

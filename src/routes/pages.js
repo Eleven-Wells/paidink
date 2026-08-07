@@ -259,12 +259,12 @@ async function pagesRoutes(fastify) {
     }, async (req, reply) => {
 
         const userId = req.user.id;
-        const user = await User.findById(userId);
+        const user = await fastify.perf.measure('user:fetch', () => User.findById(userId));
 
 
         const [summary, recentReads, referredCount, currentRate] = await Promise.all([
-            DashboardService.getDashboardSummary(userId),
-            ReadSession.find({ user: userId })
+            fastify.perf.measure('dashboard:summary', () => DashboardService.getDashboardSummary(userId)),
+            fastify.perf.measure('dashboard:readSession', () => ReadSession.find({ user: userId })
                 .sort({ startedAt: -1 })
                 .limit(5)
                 .populate('post', 'title slug summary image')
@@ -272,22 +272,22 @@ async function pagesRoutes(fastify) {
                 .then(sessions => sessions.map(s => ({
                     ...s,
                     rewardAmount: s.rewardAmount / 100
-                }))),
-            User.countDocuments({ referredBy: userId }),
-            RewardRateService.getCurrentRate()
+                })))),
+            fastify.perf.measure('dashboard:referrals', () => User.countDocuments({ referredBy: userId })),
+            fastify.perf.measure('dashboard:rewardRate', () => RewardRateService.getCurrentRate())
         ]);
 
         const readsToNextMilestone = Math.max(0, 50 - (user?.stats?.totalReads || 0) % 50);
 
         let rewardedAd = null;
         try {
-            const rewardedAds = await getAd({ placement: 'reward_wall', user: { id: userId }, session: null });
+            const rewardedAds = await fastify.perf.measure('ads:reward_wall', () => getAd({ placement: 'reward_wall', user: { id: userId }, session: null }));
             rewardedAd = rewardedAds.length > 0 ? rewardedAds[0] : null;
         } catch (e) {
             // Ads not available
         }
 
-        return reply.view('pages/dashboard.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('pages/dashboard.ejs', {
             user: user.toPublicJSON(),
             pageTitle: 'Dashboard',
             readsThisWeek: summary.reads.last7Days,
@@ -314,7 +314,7 @@ async function pagesRoutes(fastify) {
             balanceLastSynced: user.wallet.balanceLastSynced,
             rewardedAd,
             currentRate
-        });
+        }));
     });
 
     fastify.get('/profile', {
@@ -322,42 +322,42 @@ async function pagesRoutes(fastify) {
     }, async (req, reply) => {
         const userId = req.user.id;
 
-        const fullUser = await User.findById(userId)
+        const fullUser = await fastify.perf.measure('profile:user', () => User.findById(userId)
             .select('displayName username email bio phone country avatar wallet stats createdAt referralCode savedPosts following role publisherStatus')
-            .lean();
+            .lean());
 
         const savedPostIds = (fullUser && fullUser.savedPosts) ? fullUser.savedPosts : [];
         const followingIds = (fullUser && fullUser.following) ? fullUser.following : [];
 
         const [savedPosts, followingUsers, followersUsers, followersCount] = await Promise.all([
-            savedPostIds.length
+            fastify.perf.measure('profile:savedPosts', () => savedPostIds.length
                 ? Post.find({ _id: { $in: savedPostIds } })
                     .sort({ publishedAt: -1 })
                     .limit(24)
                     .populate('author', 'displayName username avatar role')
                     .lean()
-                : [],
-            followingIds.length
+                : Promise.resolve([])),
+            fastify.perf.measure('profile:following', () => followingIds.length
                 ? User.find({ _id: { $in: followingIds } })
                     .select('displayName username avatar role bio')
                     .sort({ displayName: 1 })
                     .lean()
-                : [],
-            User.find({ following: userId })
+                : Promise.resolve([])),
+            fastify.perf.measure('profile:followers', () => User.find({ following: userId })
                 .select('displayName username avatar role bio')
                 .sort({ displayName: 1 })
                 .limit(50)
-                .lean(),
-            User.countDocuments({ following: userId })
+                .lean()),
+            fastify.perf.measure('profile:followersCount', () => User.countDocuments({ following: userId }))
         ]);
 
-        const savedPostsPrepared = savedPosts.map((post) => {
+        const savedPostsPrepared = await fastify.perf.measure('profile:readTime', () => savedPosts.map((post) => {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
             post.readTime = getReadTime(post.content).display;
             return post;
-        });
+        }));
 
         const mapPerson = (person) => ({
             ...person,
@@ -369,7 +369,7 @@ async function pagesRoutes(fastify) {
             publicUser.avatar = getAvatarWithFallback(publicUser);
         }
 
-        return reply.view('pages/profile.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('pages/profile.ejs', {
             user: publicUser,
             pageTitle: 'Profile',
             isLoggedIn: true,
@@ -386,7 +386,7 @@ async function pagesRoutes(fastify) {
                 followersCount,
                 savedCount: savedPostIds.length
             }
-        });
+        }));
     });
 
     fastify.get('/reads', {
@@ -964,60 +964,72 @@ async function pagesRoutes(fastify) {
 
             const currentUserId = req.currentUser.id;
 
-            const posts = isFeatureEnabled('content', 'recommendationEngine')
-                ? await recommendationService.getFeed(currentUserId, { limit: 5 })
-                : await Post.find()
-                    .sort({ publishedAt: -1 })
-                    .limit(5)
+            const posts = await fastify.perf.measure('feed:recommendations', async () => {
+                return isFeatureEnabled('content', 'recommendationEngine')
+                    ? recommendationService.getFeed(currentUserId, { limit: 5 })
+                    : Post.find()
+                        .sort({ publishedAt: -1 })
+                        .limit(5)
+                        .populate('author', 'displayName avatar role')
+                        .lean();
+            });
+
+            const trendingPosts = await fastify.perf.measure('feed:trending', async () => {
+                return Post.find()
+                    .sort({ 'stats.views': -1 })
+                    .limit(3)
                     .populate('author', 'displayName avatar role')
                     .lean();
+            });
 
-            const trendingPosts = await Post.find()
-                .sort({ 'stats.views': -1 })
-                .limit(3)
-                .populate('author', 'displayName avatar role')
-                .lean();
-
-            const followedIds = await User.distinct('following', { _id: currentUserId });
-            const suggestedUsers = await User.find({
-                _id: { $ne: currentUserId, $nin: followedIds },
-                isActive: true
-            })
-                .select('displayName avatar role')
-                .limit(6)
-                .lean();
+            const followedIds = await fastify.perf.measure('feed:followedIds', async () => {
+                return User.distinct('following', { _id: currentUserId });
+            });
+            const suggestedUsers = await fastify.perf.measure('feed:suggestions', async () => {
+                return User.find({
+                    _id: { $ne: currentUserId, $nin: followedIds },
+                    isActive: true
+                })
+                    .select('displayName avatar role')
+                    .limit(6)
+                    .lean();
+            });
 
             const feedSuggestions = suggestedUsers.slice(0, 3);
             const sidebarSuggestions = suggestedUsers;
 
-            const postsWithPublicAuthors = posts.map(post => {
-                if (post.author && typeof post.author.toPublicJSON === 'function') {
-                    post.author = post.author.toPublicJSON();
-                }
-                if (post.author) {
-                    post.author.avatar = getAvatarWithFallback(post.author);
-                }
-                post.readTime = getReadTime(post.content).display;
-                return post;
+            const postsWithPublicAuthors = await fastify.perf.measure('feed:readTime', async () => {
+                return posts.map(post => {
+                    if (post.author && typeof post.author.toPublicJSON === 'function') {
+                        post.author = post.author.toPublicJSON();
+                    }
+                    if (post.author) {
+                        post.author.avatar = getAvatarWithFallback(post.author);
+                    }
+                    post.readTime = getReadTime(post.content).display;
+                    return post;
+                });
             });
 
-            const trendingWithAuthors = trendingPosts.map(post => {
-                if (post.author && typeof post.author.toPublicJSON === 'function') {
-                    post.author = post.author.toPublicJSON();
-                }
-                // ensure avatar fallback for trending items as well
-                if (post.author) {
-                    post.author.avatar = getAvatarWithFallback(post.author);
-                }
-                post.readTime = getReadTime(post.content).display;
-                return post;
+            const trendingWithAuthors = await fastify.perf.measure('feed:readTimeTrending', async () => {
+                return trendingPosts.map(post => {
+                    if (post.author && typeof post.author.toPublicJSON === 'function') {
+                        post.author = post.author.toPublicJSON();
+                    }
+                    // ensure avatar fallback for trending items as well
+                    if (post.author) {
+                        post.author.avatar = getAvatarWithFallback(post.author);
+                    }
+                    post.readTime = getReadTime(post.content).display;
+                    return post;
+                });
             });
 
             let feedAds = [];
             let sidebarAd = null;
             try {
-                feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 });
-                const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null });
+                feedAds = await fastify.perf.measure('ads:feed', () => getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 }));
+                const sidebarAds = await fastify.perf.measure('ads:sidebar', () => getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }));
                 sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
                 try {
                     req.log.debug({ feedAds }, 'Fetched feedAds');
@@ -1029,7 +1041,7 @@ async function pagesRoutes(fastify) {
                 req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable');
             }
 
-            return reply.view('pages/home-logged-in.ejs', {
+            return fastify.perf.measure('render:view', () => reply.view('pages/home-logged-in.ejs', {
                 posts: postsWithPublicAuthors,
                 pageTitle: 'Home',
                 trendingPosts: trendingWithAuthors,
@@ -1046,7 +1058,7 @@ async function pagesRoutes(fastify) {
                 description: 'Stay ahead with the latest in AI, web development, cloud computing, and technology innovation.',
                 canonical: `${process.env.BASE_URL || ''}/`,
                 ogImage: '/public/images/og-default.png'
-            });
+            }));
         }
 
         const { page = 1, limit = 12, category } = req.query;
@@ -1063,10 +1075,10 @@ async function pagesRoutes(fastify) {
             });
         }
 
-        const result = await postService.getPosts({ page, limit, category });
+        const result = await fastify.perf.measure('home:getPosts', () => postService.getPosts({ page, limit, category }));
         const categoryName = category ? CATEGORY_NAMES[lang]?.[category] || category : null;
 
-        const pageContent = renderPage('home', {
+        const pageContent = await fastify.perf.measure('render:body', () => renderPage('home', {
             blogs: result.posts,
             pagination: result.pagination,
             category,
@@ -1075,9 +1087,9 @@ async function pagesRoutes(fastify) {
             lang,
             formatDate,
             formatRelativeTime
-        });
+        }));
 
-        return reply.view('layouts/default.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('layouts/default.ejs', {
             body: pageContent,
             activeCategory: category,
             lang,
@@ -1089,7 +1101,7 @@ async function pagesRoutes(fastify) {
             isLoggedIn: req.isLoggedIn,
             user: req.currentUser ? req.currentUser.toPublicJSON() : null,
             isLightTheme: !category
-        });
+        }));
     });
 
     fastify.get('/browse', async (req, reply) => {
@@ -1116,49 +1128,61 @@ async function pagesRoutes(fastify) {
             return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><circle cx="40" cy="40" r="40" fill="#e5e5e5"/><text x="40" y="52" text-anchor="middle" fill="#6d0a0a" font-size="36" font-family="sans-serif">' + initial + '</text></svg>');
         }
 
-        const posts = await Post.find(filterQuery)
-            .sort(sortField)
-            .limit(5)
-            .populate('author', 'displayName avatar role')
-            .lean();
+        const posts = await fastify.perf.measure('browse:posts', async () => {
+            return Post.find(filterQuery)
+                .sort(sortField)
+                .limit(5)
+                .populate('author', 'displayName avatar role')
+                .lean();
+        });
 
-        const trendingPosts = await Post.find()
-            .sort({ 'stats.views': -1 })
-            .limit(3)
-            .populate('author', 'displayName avatar role')
-            .lean();
+        const trendingPosts = await fastify.perf.measure('browse:trending', async () => {
+            return Post.find()
+                .sort({ 'stats.views': -1 })
+                .limit(3)
+                .populate('author', 'displayName avatar role')
+                .lean();
+        });
 
         const currentUserId = req.currentUser?.id || null;
         let followedIds = [];
         if (currentUserId) {
-            followedIds = await User.distinct('following', { _id: currentUserId });
+            followedIds = await fastify.perf.measure('browse:followedIds', async () => {
+                return User.distinct('following', { _id: currentUserId });
+            });
         }
 
-        const suggestedUsers = await User.find({
-            _id: { $ne: currentUserId, $nin: followedIds },
-            isActive: true
-        })
-            .select('displayName avatar role')
-            .limit(6)
-            .lean();
+        const suggestedUsers = await fastify.perf.measure('browse:suggestions', async () => {
+            return User.find({
+                _id: { $ne: currentUserId, $nin: followedIds },
+                isActive: true
+            })
+                .select('displayName avatar role')
+                .limit(6)
+                .lean();
+        });
 
         const feedSuggestions = suggestedUsers.slice(0, 3);
         const sidebarSuggestions = suggestedUsers;
 
-        const postsWithPublicAuthors = posts.map(post => {
-            if (post.author) {
-                post.author.avatar = getAvatarWithFallback(post.author);
-            }
-            post.readTime = getReadTime(post.content).display;
-            return post;
+        const postsWithPublicAuthors = await fastify.perf.measure('browse:readTime', async () => {
+            return posts.map(post => {
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
+                }
+                post.readTime = getReadTime(post.content).display;
+                return post;
+            });
         });
 
-        const trendingWithAuthors = trendingPosts.map(post => {
-            if (post.author) {
-                post.author.avatar = getAvatarWithFallback(post.author);
-            }
-            post.readTime = getReadTime(post.content).display;
-            return post;
+        const trendingWithAuthors = await fastify.perf.measure('browse:readTimeTrending', async () => {
+            return trendingPosts.map(post => {
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
+                }
+                post.readTime = getReadTime(post.content).display;
+                return post;
+            });
         });
 
         const feedSuggestionsWithAvatar = feedSuggestions.map(user => {
@@ -1179,8 +1203,8 @@ async function pagesRoutes(fastify) {
         let feedAds = [];
         let sidebarAd = null;
         try {
-            feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 });
-            const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null });
+            feedAds = await fastify.perf.measure('ads:feed', () => getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 }));
+            const sidebarAds = await fastify.perf.measure('ads:sidebar', () => getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }));
             sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
             try {
                 req.log.debug({ feedAds }, 'Fetched feedAds for explore');
@@ -1192,7 +1216,7 @@ async function pagesRoutes(fastify) {
             req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable for explore');
         }
 
-        return reply.view('pages/explore.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('pages/explore.ejs', {
             activeTab: tab || 'explore',
             pageTitle: 'Explore',
             posts: postsWithPublicAuthors,
@@ -1212,7 +1236,7 @@ async function pagesRoutes(fastify) {
             description: 'Discover trending stories, fresh perspectives, and the latest in technology on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/browse`,
             ogImage: '/public/images/og-default.png'
-        });
+        }));
     });
 
     fastify.get('/activity', async (req, reply) => {
