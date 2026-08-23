@@ -26,6 +26,18 @@
         <rect class="nav-icon-tile nav-icon-tile-3" x="13.5" y="13.5" width="7" height="7" rx="1.2" />
         <rect class="nav-icon-tile nav-icon-tile-4" x="3.5" y="13.5" width="7" height="7" rx="1.2" />
     </svg>
+<% } else if (icon === 'subscription') { %>
+    <svg class="animated-nav-icon animated-nav-icon-subscription" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path class="nav-icon-path nav-icon-subscription-book" d="M6.2 4.2h9.4a2 2 0 0 1 2 2v13.4l-4.3-2.6-4.3 2.6-4.3-2.6-1.7 1V6.2a2 2 0 0 1 2-2Z" />
+        <path class="nav-icon-path nav-icon-subscription-page" d="M9.2 8.6h5.4M9.2 12h5.4" />
+    </svg>
+<% } else if (icon === 'chat') { %>
+    <svg class="animated-nav-icon animated-nav-icon-chat" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path class="nav-icon-path nav-icon-chat-bubble" d="M4 6.4a2.2 2.2 0 0 1 2.2-2.2h11.6A2.2 2.2 0 0 1 20 6.4v8.2a2.2 2.2 0 0 1-2.2 2.2H9.6L5 20.4v-3.6H6.2A2.2 2.2 0 0 1 4 14.6Z" />
+        <circle class="nav-icon-chat-dot nav-icon-chat-dot-1" cx="8.6" cy="10.5" r="0.9" fill="currentColor" stroke="none" />
+        <circle class="nav-icon-chat-dot nav-icon-chat-dot-2" cx="12" cy="10.5" r="0.9" fill="currentColor" stroke="none" />
+        <circle class="nav-icon-chat-dot nav-icon-chat-dot-3" cx="15.4" cy="10.5" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
 <% } else if (icon === 'profile') { %>
     <svg class="animated-nav-icon animated-nav-icon-profile" width="<%= iconSize %>" height="<%= iconSize %>" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
         <circle class="nav-icon-path nav-icon-profile-head" cx="12" cy="7.4" r="3.6" />

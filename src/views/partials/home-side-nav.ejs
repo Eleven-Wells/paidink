@@ -8,6 +8,14 @@
             <%- include('./animated-nav-icon', { icon: 'explore', size: 38 }) %>
             <span>Explore</span>
         </a>
+        <a href="/subscriptions" aria-label="Subscription">
+            <%- include('./animated-nav-icon', { icon: 'subscription', size: 38 }) %>
+            <span>Subscription</span>
+        </a>
+        <a href="/chat" aria-label="Chat">
+            <%- include('./animated-nav-icon', { icon: 'chat', size: 38 }) %>
+            <span>Chat</span>
+        </a>
         <a href="/activity" aria-label="Activity"
             style="position: relative; display: inline-flex; align-items: center; gap: 15px;">
             <%- include('./animated-nav-icon', { icon: 'activity', size: 38 }) %>
@@ -36,7 +44,7 @@
     .home-side-nav {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 28px;
         padding: 12px 14px;
@@ -96,7 +104,9 @@
     .animated-nav-icon-activity .nav-icon-bell-cap,
     .animated-nav-icon-activity .nav-icon-bell-clapper,
     .animated-nav-icon-profile .nav-icon-profile-head,
-    .animated-nav-icon-profile .nav-icon-profile-shoulders {
+    .animated-nav-icon-profile .nav-icon-profile-shoulders,
+    .animated-nav-icon-subscription .nav-icon-subscription-book,
+    .animated-nav-icon-chat .nav-icon-chat-bubble {
         stroke-dasharray: var(--nav-icon-draw);
         stroke-dashoffset: 0;
     }
@@ -111,7 +121,8 @@
     }
 
     .nav-icon-bell-ring,
-    .nav-icon-profile-spark {
+    .nav-icon-profile-spark,
+    .nav-icon-chat-dot {
         opacity: 0;
         vector-effect: non-scaling-stroke;
     }
@@ -198,6 +209,24 @@
     .home-side-nav>nav>a:focus .nav-icon-profile-spark,
     .home-side-nav>nav>a.is-pressing .nav-icon-profile-spark {
         animation: navIconSpark 0.6s ease both;
+    }
+
+    .home-side-nav>nav>a:hover .nav-icon-subscription-book,
+    .home-side-nav>nav>a:focus .nav-icon-subscription-book,
+    .home-side-nav>nav>a.is-pressing .nav-icon-subscription-book {
+        animation: navIconDraw 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .home-side-nav>nav>a:hover .nav-icon-chat-bubble,
+    .home-side-nav>nav>a:focus .nav-icon-chat-bubble,
+    .home-side-nav>nav>a.is-pressing .nav-icon-chat-bubble {
+        animation: navIconDraw 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .home-side-nav>nav>a:hover .nav-icon-chat-dot,
+    .home-side-nav>nav>a:focus .nav-icon-chat-dot,
+    .home-side-nav>nav>a.is-pressing .nav-icon-chat-dot {
+        animation: navIconRing 0.72s ease both;
     }
 
     .side-nav-cta {
