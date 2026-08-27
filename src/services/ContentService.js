@@ -35,6 +35,7 @@ const { generatePostFromSource } = require('../content/ai');
 const { fetchImage } = require('../content/imageFetcher');
 const { sourceContent } = require('../content/contentSourcer');
 const Post = require('../models/Post');
+const debug = require('../logger/debug');
 const JobLog = require('../models/JobLog');
 const { AppError, AIError, ContentError } = require('../errors/errors');
 const { captureError, captureMessage } = require('../plugins/sentry');
@@ -95,7 +96,7 @@ class ContentService {
 
     async generateContent(rawContent, category, sourceUrl, options = {}) {
         if (!isFeatureEnabled('content', 'aiGeneration')) {
-            console.log('[ContentService] AI generation disabled, skipping');
+            debug('[ContentService] AI generation disabled, skipping');
             return {
                 success: false,
                 skipped: true,
@@ -123,7 +124,7 @@ class ContentService {
                     const delay = error.message?.includes('rate limit') 
                         ? 60000 // 1 minute for rate limits
                         : Math.pow(2, attempt) * 1000;
-                    console.log(`[ContentService] Retry ${attempt}/${maxRetries} in ${delay}ms - ${error.message}`);
+                    debug(`[ContentService] Retry ${attempt}/${maxRetries} in ${delay}ms - ${error.message}`);
                     await this.sleep(delay);
                 }
             }

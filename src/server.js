@@ -7,6 +7,25 @@ const cronPlugin = require('./plugins/cron-plugin');
 let dbConnected = false;
 let paymentWorkerInstance = null;
 const servicesReady = { database: false, redis: false };
+const STARTED_AT = Date.now();
+
+function printStartupBanner({ port, env, startedAt }) {
+    if (process.env.NODE_ENV === 'production') return;
+    const C = {
+        reset: '\x1b[0m', bold: '\x1b[1m', dim: '\x1b[2m',
+        cyan: '\x1b[36m', green: '\x1b[32m', gray: '\x1b[90m'
+    };
+    const addr = `http://localhost:${port}`;
+    const readyMs = Math.round(Date.now() - startedAt);
+    process.stdout.write(
+        `${C.bold}${C.cyan}${C.reset}\n` +
+        `${C.bold}${C.cyan}▲${C.reset} PaidInk 1.0.0\n` +
+        `${C.green}-${C.reset} Local:        ${C.cyan}${addr}${C.reset}\n` +
+        `${C.green}-${C.reset} Environments: ${C.dim}.env${C.reset}\n` +
+        `${C.green}-${C.reset} Node:         ${C.dim}${process.version} (${env})${C.reset}\n` +
+        `${C.green}✓${C.reset} ${readyMs < 0 ? 0 : readyMs}ms\n\n`
+    );
+}
 
 async function initializeRedis() {
     fastify.log.info({ component: 'redis' }, 'Connecting Redis');
@@ -164,6 +183,8 @@ async function start() {
         });
 
         fastify.log.info({ component: 'server', port: PORT, environment: process.env.NODE_ENV }, `Server running on port ${PORT}`);
+
+        printStartupBanner({ port: PORT, env: process.env.NODE_ENV, startedAt: STARTED_AT });
 
         (async () => {
             try {

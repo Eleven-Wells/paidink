@@ -1,6 +1,7 @@
 const Redis = require('ioredis');
 const { Redis: UpstashRedis } = require('@upstash/redis');
 const dotenv = require('dotenv');
+const debug = require('../logger/debug');
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -33,19 +34,19 @@ function createRedisConnection(options = {}) {
     });
 
     connection.on('connect', () => {
-        console.log('[Redis] Connected successfully');
+        debug('[Redis] Connected successfully');
     });
 
     connection.on('ready', () => {
-        console.log('[Redis] Ready to accept commands');
+        debug('[Redis] Ready to accept commands');
     });
 
     connection.on('close', () => {
-        console.log('[Redis] Connection closed');
+        debug('[Redis] Connection closed');
     });
 
     connection.on('reconnecting', () => {
-        console.log('[Redis] Reconnecting...');
+        debug('[Redis] Reconnecting...');
     });
 
     return connection;
@@ -71,19 +72,19 @@ function createRedisConnectionFromUrl(url, options = {}) {
     });
 
     connection.on('connect', () => {
-        console.log('[Redis] Connected successfully');
+        debug('[Redis] Connected successfully');
     });
 
     connection.on('ready', () => {
-        console.log('[Redis] Ready to accept commands');
+        debug('[Redis] Ready to accept commands');
     });
 
     connection.on('close', () => {
-        console.log('[Redis] Connection closed');
+        debug('[Redis] Connection closed');
     });
 
     connection.on('reconnecting', () => {
-        console.log('[Redis] Reconnecting...');
+        debug('[Redis] Reconnecting...');
     });
 
     return connection;

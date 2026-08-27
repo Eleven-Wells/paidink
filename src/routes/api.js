@@ -23,6 +23,9 @@ const AppReview = require('../models/AppReview');
 const { sendReviewToDiscord } = require('../services/ReviewNotificationService');
 const WalletService = require('../services/WalletService');
 const PayoutService = require('../services/PayoutService');
+const { getReadTime } = require('../services/ReadTimeService');
+const { getAds } = require('../services/ads/ProviderService');
+const { getAvatarWithFallback } = require('./viewUtils');
 
 async function apiRoutes(fastify) {
     fastify.get('/health', async (req, reply) => {
@@ -1234,6 +1237,64 @@ async function apiRoutes(fastify) {
                 success: false,
                 error: 'Failed to get current reward rate'
             });
+        }
+    });
+
+    fastify.get('/v1/feed/trending', async (req, reply) => {
+        try {
+            const trendingPosts = await Post.find()
+                .sort({ 'stats.views': -1 })
+                .limit(3)
+                .populate('author', 'displayName avatar role')
+                .lean();
+
+            const data = trendingPosts.map(post => {
+                if (post.author && typeof post.author.toPublicJSON === 'function') {
+                    post.author = post.author.toPublicJSON();
+                }
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
+                }
+                post.readTime = getReadTime(post.content).display;
+                return post;
+            });
+
+            return {
+                success: true,
+                data
+            };
+        } catch (error) {
+            req.log.error({ error: error && error.message ? error.message : String(error) }, 'Trending feed failed');
+            return reply.code(500).send({
+                success: false,
+                data: []
+            });
+        }
+    });
+
+    fastify.get('/v1/feed/ads', async (req, reply) => {
+        const currentUserId = req.currentUser && req.currentUser.id ? req.currentUser.id : null;
+        try {
+            const [feedResults, sidebarResults] = await Promise.all([
+                getAds({ placement: 'feed_native', user: currentUserId ? { id: currentUserId } : null, session: null, count: 2 }),
+                getAds({ placement: 'sidebar', user: currentUserId ? { id: currentUserId } : null, session: null })
+            ]);
+
+            const feedAds = feedResults;
+            const sidebarAd = sidebarResults.length > 0 ? sidebarResults[0] : null;
+
+            return {
+                success: true,
+                feedAds,
+                sidebarAd
+            };
+        } catch (error) {
+            req.log.warn({ error: error && error.message ? error.message : String(error) }, 'Ad service unavailable');
+            return {
+                success: false,
+                feedAds: [],
+                sidebarAd: null
+            };
         }
     });
 }
