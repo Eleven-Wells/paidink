@@ -1,26 +1,33 @@
 const mongoose = require('mongoose');
 mongoose.set('bufferTimeoutMS', 60000);
 
-const isProduction = process.env.NODE_ENV === 'production';
+const { instrumentMongoose } = require('./plugins/perf');
+instrumentMongoose(mongoose);
 
-const fastify = require('fastify')({
-    trustProxy: true,
-    logger: isProduction ? {
-        level: 'error'
-    } : {
-        level: 'info',
-        transport: {
-            target: 'pino-pretty'
+function buildInstance() {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const createNextStream = require('./logger/next-transport');
+
+    return require('fastify')({
+        trustProxy: true,
+        disableRequestLogging: true,
+        logger: isProduction ? {
+            level: 'error'
+        } : {
+            level: 'info',
+            stream: createNextStream()
+        },
+        routerOptions: {
+            ignoreTrailingSlash: true
+        },
+        genReqId: (req) => {
+            const crypto = require('crypto');
+            return `${Date.now().toString(36)}-${crypto.randomBytes(8).toString('hex')}`;
         }
-    },
-    routerOptions: {
-        ignoreTrailingSlash: true
-    },
-    genReqId: (req) => {
-        const crypto = require('crypto');
-        return `${Date.now().toString(36)}-${crypto.randomBytes(8).toString('hex')}`;
-    }
-});
+    });
+}
+
+const fastify = buildInstance();
 
 const fastifyView = require('@fastify/view');
 const fastifyStatic = require('@fastify/static');
@@ -48,8 +55,9 @@ const auditPlugin = require('./plugins/audit');
 const cachePlugin = require('./plugins/cache');
 const swaggerPlugin = require('./plugins/swagger');
 const authPlugin = require('./plugins/auth');
+const perfPlugin = require('./plugins/perf');
 
-async function buildApp() {
+async function registerApp(fastify) {
     loadConfig();
     ClerkService.initClerk();
 
@@ -208,6 +216,7 @@ async function buildApp() {
     await fastify.register(adminSessionPlugin);
     await fastify.register(auditPlugin);
     await fastify.register(authPlugin);
+    await fastify.register(perfPlugin);
     await fastify.register(errorHandlerPlugin);
     await fastify.register(swaggerPlugin);
 
@@ -243,6 +252,11 @@ async function buildApp() {
     fastify.register(require('./routes/webhook'));
     fastify.register(require('./routes/push'), { prefix: '/api/push' });
 
+    const adRequestContext = require('./services/ads/AdRequestContext');
+    fastify.addHook('onRequest', (request, reply, hookDone) => {
+        adRequestContext.run(new Map(), hookDone);
+    });
+
     const adsRoutes = require('./routes/ads');
     fastify.register(adsRoutes, { prefix: '/api/ads' });
     adsRoutes.setEventBus(eventBus);
@@ -255,12 +269,49 @@ async function buildApp() {
     AdSimulationService.subscribeToEventBus(eventBus);
     AnalyticsService.subscribeToEventBus(eventBus);
 
+    // Test-only capture of the per-request perf span/db-op profile. Gated by an
+    // env flag so production behavior is unchanged when unset. No-op otherwise.
+    if (process.env.PERF_CAPTURE === 'true') {
+        fastify._perfCaptures = [];
+        fastify.addHook('onResponse', (request, reply, hookDone) => {
+            const store = request._perfStore;
+            if (store) {
+                fastify._perfCaptures.push({
+                    route: store.route,
+                    method: store.method,
+                    status: store.status,
+                    isLoggedIn: store.isLoggedIn,
+                    cookies: request.cookies,
+                    rawCookie: request.headers && request.headers.cookie,
+                    rawAuth: request.headers && request.headers.authorization,
+                    spans: store.spans,
+                    dbOps: store.dbOps,
+                    dbOpCount: store.dbOpCount
+                });
+            }
+            hookDone();
+        });
+    }
+
     await fastify.after();
 }
 
-fastify.buildApp = buildApp;
-fastify.fastify = fastify;
+function attachBuildApp(app) {
+    async function buildApp() {
+        await registerApp(app);
+    }
+    app.buildApp = buildApp;
+    app.fastify = app;
+    return app;
+}
+
+async function createApp() {
+    return attachBuildApp(buildInstance());
+}
+
+attachBuildApp(fastify);
 
 module.exports = fastify;
 module.exports.default = fastify;
 module.exports.__esModule = true;
+module.exports.createApp = createApp;

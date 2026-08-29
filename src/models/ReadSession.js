@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Credit = require('./Credit');
+const debug = require('../logger/debug');
 
 const READ_REWARD = 500;
 
@@ -202,7 +203,7 @@ readSessionSchema.methods.markCompleted = async function () {
     try {
         const newAchievements = await AchievementService.checkReadingAchievements(this.user);
         for (const ach of newAchievements) {
-            console.log(`User ${this.user} earned achievement: ${ach.achievement.name}`);
+            debug(`User ${this.user} earned achievement: ${ach.achievement.name}`);
         }
     } catch (err) {
         console.error('[ReadSession] Failed to check achievements:', err.message);

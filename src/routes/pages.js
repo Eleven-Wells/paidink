@@ -16,6 +16,7 @@ const ejs = require('ejs');
 const markdownIt = require('markdown-it');
 const md = markdownIt({ html: true, breaks: true, linkify: true });
 const Post = require('../models/Post');
+const HomeController = require('../controllers/HomeController');
 const ReadSession = require('../models/ReadSession');
 const RewardRateService = require('../services/RewardRateService');
 const Notification = require('../models/Notification');
@@ -259,12 +260,12 @@ async function pagesRoutes(fastify) {
     }, async (req, reply) => {
 
         const userId = req.user.id;
-        const user = await User.findById(userId);
+        const user = await fastify.perf.measure('user:fetch', () => User.findById(userId));
 
 
         const [summary, recentReads, referredCount, currentRate] = await Promise.all([
-            DashboardService.getDashboardSummary(userId),
-            ReadSession.find({ user: userId })
+            fastify.perf.measure('dashboard:summary', () => DashboardService.getDashboardSummary(userId)),
+            fastify.perf.measure('dashboard:readSession', () => ReadSession.find({ user: userId })
                 .sort({ startedAt: -1 })
                 .limit(5)
                 .populate('post', 'title slug summary image')
@@ -272,22 +273,22 @@ async function pagesRoutes(fastify) {
                 .then(sessions => sessions.map(s => ({
                     ...s,
                     rewardAmount: s.rewardAmount / 100
-                }))),
-            User.countDocuments({ referredBy: userId }),
-            RewardRateService.getCurrentRate()
+                })))),
+            fastify.perf.measure('dashboard:referrals', () => User.countDocuments({ referredBy: userId })),
+            fastify.perf.measure('dashboard:rewardRate', () => RewardRateService.getCurrentRate())
         ]);
 
         const readsToNextMilestone = Math.max(0, 50 - (user?.stats?.totalReads || 0) % 50);
 
         let rewardedAd = null;
         try {
-            const rewardedAds = await getAd({ placement: 'reward_wall', user: { id: userId }, session: null });
+            const rewardedAds = await fastify.perf.measure('ads:reward_wall', () => getAd({ placement: 'reward_wall', user: { id: userId }, session: null }));
             rewardedAd = rewardedAds.length > 0 ? rewardedAds[0] : null;
         } catch (e) {
             // Ads not available
         }
 
-        return reply.view('pages/dashboard.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('pages/dashboard.ejs', {
             user: user.toPublicJSON(),
             pageTitle: 'Dashboard',
             readsThisWeek: summary.reads.last7Days,
@@ -314,7 +315,7 @@ async function pagesRoutes(fastify) {
             balanceLastSynced: user.wallet.balanceLastSynced,
             rewardedAd,
             currentRate
-        });
+        }));
     });
 
     fastify.get('/profile', {
@@ -322,42 +323,42 @@ async function pagesRoutes(fastify) {
     }, async (req, reply) => {
         const userId = req.user.id;
 
-        const fullUser = await User.findById(userId)
+        const fullUser = await fastify.perf.measure('profile:user', () => User.findById(userId)
             .select('displayName username email bio phone country avatar wallet stats createdAt referralCode savedPosts following role publisherStatus')
-            .lean();
+            .lean());
 
         const savedPostIds = (fullUser && fullUser.savedPosts) ? fullUser.savedPosts : [];
         const followingIds = (fullUser && fullUser.following) ? fullUser.following : [];
 
         const [savedPosts, followingUsers, followersUsers, followersCount] = await Promise.all([
-            savedPostIds.length
+            fastify.perf.measure('profile:savedPosts', () => savedPostIds.length
                 ? Post.find({ _id: { $in: savedPostIds } })
                     .sort({ publishedAt: -1 })
                     .limit(24)
                     .populate('author', 'displayName username avatar role')
                     .lean()
-                : [],
-            followingIds.length
+                : Promise.resolve([])),
+            fastify.perf.measure('profile:following', () => followingIds.length
                 ? User.find({ _id: { $in: followingIds } })
                     .select('displayName username avatar role bio')
                     .sort({ displayName: 1 })
                     .lean()
-                : [],
-            User.find({ following: userId })
+                : Promise.resolve([])),
+            fastify.perf.measure('profile:followers', () => User.find({ following: userId })
                 .select('displayName username avatar role bio')
                 .sort({ displayName: 1 })
                 .limit(50)
-                .lean(),
-            User.countDocuments({ following: userId })
+                .lean()),
+            fastify.perf.measure('profile:followersCount', () => User.countDocuments({ following: userId }))
         ]);
 
-        const savedPostsPrepared = savedPosts.map((post) => {
+        const savedPostsPrepared = await fastify.perf.measure('profile:readTime', () => savedPosts.map((post) => {
             if (post.author) {
                 post.author.avatar = getAvatarWithFallback(post.author);
             }
             post.readTime = getReadTime(post.content).display;
             return post;
-        });
+        }));
 
         const mapPerson = (person) => ({
             ...person,
@@ -369,7 +370,7 @@ async function pagesRoutes(fastify) {
             publicUser.avatar = getAvatarWithFallback(publicUser);
         }
 
-        return reply.view('pages/profile.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('pages/profile.ejs', {
             user: publicUser,
             pageTitle: 'Profile',
             isLoggedIn: true,
@@ -386,7 +387,7 @@ async function pagesRoutes(fastify) {
                 followersCount,
                 savedCount: savedPostIds.length
             }
-        });
+        }));
     });
 
     fastify.get('/reads', {
@@ -957,141 +958,7 @@ async function pagesRoutes(fastify) {
         return reply.redirect('/');
     });
 
-    fastify.get('/', async (req, reply) => {
-        const lang = getLanguage(req);
-
-        if (req.isLoggedIn) {
-
-            const currentUserId = req.currentUser.id;
-
-            const posts = isFeatureEnabled('content', 'recommendationEngine')
-                ? await recommendationService.getFeed(currentUserId, { limit: 5 })
-                : await Post.find()
-                    .sort({ publishedAt: -1 })
-                    .limit(5)
-                    .populate('author', 'displayName avatar role')
-                    .lean();
-
-            const trendingPosts = await Post.find()
-                .sort({ 'stats.views': -1 })
-                .limit(3)
-                .populate('author', 'displayName avatar role')
-                .lean();
-
-            const followedIds = await User.distinct('following', { _id: currentUserId });
-            const suggestedUsers = await User.find({
-                _id: { $ne: currentUserId, $nin: followedIds },
-                isActive: true
-            })
-                .select('displayName avatar role')
-                .limit(6)
-                .lean();
-
-            const feedSuggestions = suggestedUsers.slice(0, 3);
-            const sidebarSuggestions = suggestedUsers;
-
-            const postsWithPublicAuthors = posts.map(post => {
-                if (post.author && typeof post.author.toPublicJSON === 'function') {
-                    post.author = post.author.toPublicJSON();
-                }
-                if (post.author) {
-                    post.author.avatar = getAvatarWithFallback(post.author);
-                }
-                post.readTime = getReadTime(post.content).display;
-                return post;
-            });
-
-            const trendingWithAuthors = trendingPosts.map(post => {
-                if (post.author && typeof post.author.toPublicJSON === 'function') {
-                    post.author = post.author.toPublicJSON();
-                }
-                // ensure avatar fallback for trending items as well
-                if (post.author) {
-                    post.author.avatar = getAvatarWithFallback(post.author);
-                }
-                post.readTime = getReadTime(post.content).display;
-                return post;
-            });
-
-            let feedAds = [];
-            let sidebarAd = null;
-            try {
-                feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 });
-                const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null });
-                sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
-                try {
-                    req.log.debug({ feedAds }, 'Fetched feedAds');
-                    req.log.debug({ sidebarAd }, 'Fetched sidebarAd');
-                } catch (logErr) {
-                    console.debug('Ad debug log failed', logErr);
-                }
-            } catch (e) {
-                req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable');
-            }
-
-            return reply.view('pages/home-logged-in.ejs', {
-                posts: postsWithPublicAuthors,
-                pageTitle: 'Home',
-                trendingPosts: trendingWithAuthors,
-                suggestedUsers: sidebarSuggestions,
-                feedSuggestions,
-                feedAds,
-                sidebarAd,
-                user: req.currentUser ? req.currentUser.toPublicJSON() : null,
-                unreadCount: req.unreadCount,
-                CATEGORY_ENUM,
-                CATEGORY_NAMES,
-                categoryNames: CATEGORY_NAMES[lang],
-                title: 'PaidInk - Read. Write. Engage.',
-                description: 'Stay ahead with the latest in AI, web development, cloud computing, and technology innovation.',
-                canonical: `${process.env.BASE_URL || ''}/`,
-                ogImage: '/public/images/og-default.png'
-            });
-        }
-
-        const { page = 1, limit = 12, category } = req.query;
-
-        if (category && !CATEGORY_ENUM.includes(category)) {
-            return reply.code(400).view('layouts/default.ejs', {
-                body: renderErrorPage('404', req),
-                activeCategory: null,
-                lang,
-                theme: req.cookies?.theme || 'light',
-                title: '404 - Page Not Found | PaidInk',
-                description: 'The page you are looking for could not be found on PaidInk.',
-                canonical: `${process.env.BASE_URL || ''}${req.url}`
-            });
-        }
-
-        const result = await postService.getPosts({ page, limit, category });
-        const categoryName = category ? CATEGORY_NAMES[lang]?.[category] || category : null;
-
-        const pageContent = renderPage('home', {
-            blogs: result.posts,
-            pagination: result.pagination,
-            category,
-            categoryName,
-            categoryNames: CATEGORY_NAMES[lang],
-            lang,
-            formatDate,
-            formatRelativeTime
-        });
-
-        return reply.view('layouts/default.ejs', {
-            body: pageContent,
-            activeCategory: category,
-            lang,
-            theme: req.cookies?.theme || 'light',
-            title: categoryName ? `${categoryName} - PaidInk` : 'PaidInk - Read. Write. Engage.',
-            description: categoryName ? `Latest ${categoryName.toLowerCase()} news` : 'Read. Write. Engage. On PaidInk, attention isn\'t wasted, it\'s returned.',
-            ogImage: '/public/images/og-default.png',
-            canonical: `${process.env.BASE_URL || ''}${req.url.split('?')[0]}`,
-            isLoggedIn: req.isLoggedIn,
-            user: req.currentUser ? req.currentUser.toPublicJSON() : null,
-            isLightTheme: !category
-        });
-    });
-
+    fastify.get('/', HomeController.create(fastify).index);
     fastify.get('/browse', async (req, reply) => {
         const lang = getLanguage(req);
         const { tab } = req.query;
@@ -1116,49 +983,61 @@ async function pagesRoutes(fastify) {
             return 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><circle cx="40" cy="40" r="40" fill="#e5e5e5"/><text x="40" y="52" text-anchor="middle" fill="#6d0a0a" font-size="36" font-family="sans-serif">' + initial + '</text></svg>');
         }
 
-        const posts = await Post.find(filterQuery)
-            .sort(sortField)
-            .limit(5)
-            .populate('author', 'displayName avatar role')
-            .lean();
+        const posts = await fastify.perf.measure('browse:posts', async () => {
+            return Post.find(filterQuery)
+                .sort(sortField)
+                .limit(5)
+                .populate('author', 'displayName avatar role')
+                .lean();
+        });
 
-        const trendingPosts = await Post.find()
-            .sort({ 'stats.views': -1 })
-            .limit(3)
-            .populate('author', 'displayName avatar role')
-            .lean();
+        const trendingPosts = await fastify.perf.measure('browse:trending', async () => {
+            return Post.find()
+                .sort({ 'stats.views': -1 })
+                .limit(3)
+                .populate('author', 'displayName avatar role')
+                .lean();
+        });
 
         const currentUserId = req.currentUser?.id || null;
         let followedIds = [];
         if (currentUserId) {
-            followedIds = await User.distinct('following', { _id: currentUserId });
+            followedIds = await fastify.perf.measure('browse:followedIds', async () => {
+                return User.distinct('following', { _id: currentUserId });
+            });
         }
 
-        const suggestedUsers = await User.find({
-            _id: { $ne: currentUserId, $nin: followedIds },
-            isActive: true
-        })
-            .select('displayName avatar role')
-            .limit(6)
-            .lean();
+        const suggestedUsers = await fastify.perf.measure('browse:suggestions', async () => {
+            return User.find({
+                _id: { $ne: currentUserId, $nin: followedIds },
+                isActive: true
+            })
+                .select('displayName avatar role')
+                .limit(6)
+                .lean();
+        });
 
         const feedSuggestions = suggestedUsers.slice(0, 3);
         const sidebarSuggestions = suggestedUsers;
 
-        const postsWithPublicAuthors = posts.map(post => {
-            if (post.author) {
-                post.author.avatar = getAvatarWithFallback(post.author);
-            }
-            post.readTime = getReadTime(post.content).display;
-            return post;
+        const postsWithPublicAuthors = await fastify.perf.measure('browse:readTime', async () => {
+            return posts.map(post => {
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
+                }
+                post.readTime = getReadTime(post.content).display;
+                return post;
+            });
         });
 
-        const trendingWithAuthors = trendingPosts.map(post => {
-            if (post.author) {
-                post.author.avatar = getAvatarWithFallback(post.author);
-            }
-            post.readTime = getReadTime(post.content).display;
-            return post;
+        const trendingWithAuthors = await fastify.perf.measure('browse:readTimeTrending', async () => {
+            return trendingPosts.map(post => {
+                if (post.author) {
+                    post.author.avatar = getAvatarWithFallback(post.author);
+                }
+                post.readTime = getReadTime(post.content).display;
+                return post;
+            });
         });
 
         const feedSuggestionsWithAvatar = feedSuggestions.map(user => {
@@ -1179,9 +1058,12 @@ async function pagesRoutes(fastify) {
         let feedAds = [];
         let sidebarAd = null;
         try {
-            feedAds = await getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 });
-            const sidebarAds = await getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null });
-            sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
+            const [feedResults, sidebarResults] = await Promise.all([
+                fastify.perf.measure('ads:feed', () => getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 })),
+                fastify.perf.measure('ads:sidebar', () => getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }))
+            ]);
+            feedAds = feedResults;
+            sidebarAd = sidebarResults.length > 0 ? sidebarResults[0] : null;
             try {
                 req.log.debug({ feedAds }, 'Fetched feedAds for explore');
                 req.log.debug({ sidebarAd }, 'Fetched sidebarAd for explore');
@@ -1192,7 +1074,7 @@ async function pagesRoutes(fastify) {
             req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable for explore');
         }
 
-        return reply.view('pages/explore.ejs', {
+        return fastify.perf.measure('render:view', () => reply.view('pages/explore.ejs', {
             activeTab: tab || 'explore',
             pageTitle: 'Explore',
             posts: postsWithPublicAuthors,
@@ -1212,7 +1094,7 @@ async function pagesRoutes(fastify) {
             description: 'Discover trending stories, fresh perspectives, and the latest in technology on PaidInk.',
             canonical: `${process.env.BASE_URL || ''}/browse`,
             ogImage: '/public/images/og-default.png'
-        });
+        }));
     });
 
     fastify.get('/activity', async (req, reply) => {
@@ -1370,7 +1252,6 @@ async function pagesRoutes(fastify) {
     });
 
     fastify.get('/post/:slug', async (req, reply) => {
-        console.log('[POST-ROUTE] req.isLoggedIn:', req.isLoggedIn, 'cookies:', JSON.stringify(Object.keys(req.cookies || {})));
         const lang = getLanguage(req);
         const { slug } = req.params;
 
@@ -1519,6 +1400,7 @@ async function pagesRoutes(fastify) {
             category,
             categoryName,
             categoryNames: CATEGORY_NAMES[lang],
+            CATEGORY_ENUM,
             lang,
             formatDate,
             formatRelativeTime
@@ -1528,6 +1410,8 @@ async function pagesRoutes(fastify) {
             body: pageContent,
             activeCategory: category,
             lang,
+            CATEGORY_ENUM,
+            CATEGORY_NAMES,
             theme: req.cookies?.theme || 'light',
             title: `${categoryName} | PaidInk`,
             description: `Latest ${categoryName.toLowerCase()} news, articles, and insights on PaidInk.`,
@@ -1548,7 +1432,7 @@ async function pagesRoutes(fastify) {
             return reply.code(404).send('Not Found');
         }
 
-        return reply.redirect(301, `/post/${blog.slug}`);
+        return reply.redirect(`/post/${blog.slug}`, 301);
     });
 
     fastify.get('/search', async (req, reply) => {

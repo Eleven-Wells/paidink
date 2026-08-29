@@ -8,6 +8,7 @@ const ReadSession = require('../../models/ReadSession');
 const { distributeAdRevenue } = require('./AdRevenueService');
 const { AD_EVENTS } = require('../../config/ads');
 const WalletService = require('../WalletService');
+const adRequestContext = require('./AdRequestContext');
 
 const AD_TYPE_REVENUE = {
     banner: { baseCpm: 2, baseCpc: 0.1 },
@@ -65,7 +66,7 @@ function computeUserReward(adType) {
 }
 
 async function getActiveABTestForUser(userId) {
-    const test = await ABTest.findOne({ status: 'running' }).lean();
+    const test = await adRequestContext.memoize('abTest', () => ABTest.findOne({ status: 'running' }).lean());
     if (!test) return null;
 
     const variant = selectVariant(test.variants);
@@ -88,7 +89,10 @@ async function selectAdConfig(slot, variant = null) {
         query._id = { $in: variant.adConfigIds };
     }
 
-    const configs = await AdConfig.find(query).lean();
+    const configKey = variant && variant.adConfigIds && variant.adConfigIds.length > 0
+        ? variant.adConfigIds.join(',')
+        : 'all';
+    const configs = await adRequestContext.memoize('adConfigs:' + configKey, () => AdConfig.find(query).lean());
     if (configs.length === 0) return null;
 
     const totalWeight = configs.reduce((sum, c) => sum + (c.weight || 1), 0);
@@ -101,7 +105,7 @@ async function selectAdConfig(slot, variant = null) {
 }
 
 async function checkFrequencyLimit(userId, slot, sessionId) {
-    const rule = await FrequencyRule.findOne({ slot, active: true }).lean();
+    const rule = await adRequestContext.memoize('frequencyRule:' + slot, () => FrequencyRule.findOne({ slot, active: true }).lean());
     if (!rule) return true;
 
     const thirtySecondsAgo = new Date(Date.now() - (rule.minIntervalSeconds * 1000));
@@ -155,7 +159,7 @@ async function checkFrequencyLimit(userId, slot, sessionId) {
 }
 
 async function getPlacementsForSlot(slot) {
-    return AdPlacement.find({ slot, active: true }).sort({ position: 1 }).lean();
+    return adRequestContext.memoize('placement:' + slot, () => AdPlacement.find({ slot, active: true }).sort({ position: 1 }).lean());
 }
 
 async function simulateImpression(userId, adConfig, placement, sessionId, metadata = {}) {
