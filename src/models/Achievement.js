@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const debug = require('../logger/debug');
 
 const achievementSchema = new mongoose.Schema({
     slug: {
@@ -160,7 +161,7 @@ achievementSchema.statics.initialize = async function() {
 
     if (existing === 0) {
         await this.insertMany(definitions);
-        console.log('Achievements initialized');
+        debug('Achievements initialized');
     }
 };
 

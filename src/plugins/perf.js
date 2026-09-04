@@ -131,6 +131,14 @@ function perfPlugin(fastify, opts, done) {
             store.status = reply.statusCode;
             store.isLoggedIn = Boolean(request.isLoggedIn);
             store.totalMs = roundMs(elapsedMs(store.startTime));
+            request.log.info({
+                nextRequest: {
+                    method: store.method,
+                    url: store.route,
+                    status: store.status,
+                    ms: store.totalMs
+                }
+            }, '');
             if (perfEnabled() && request.log && request.log.info) {
                 const shouldLog = store.dbOpCount > 0 || store.spans.length > 0;
                 if (shouldLog) {

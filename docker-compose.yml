@@ -1,5 +1,10 @@
 version: "3.8"
 
+x-mongo-creds: &mongo-creds
+  MONGO_INITDB_ROOT_USERNAME: admin
+  MONGO_INITDB_ROOT_PASSWORD: password
+  MONGO_INITDB_DATABASE: simpleblog
+
 services:
   mongodb:
     image: mongo:7
@@ -8,11 +13,9 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: Nook
+      <<: *mongo-creds
     volumes:
-      - mongodb_data:/data/db
+      - nook_mongo_data_v2:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
       - Nook-Network
@@ -32,7 +35,7 @@ services:
     pull_policy: never
 
 volumes:
-  mongodb_data:
+  nook_mongo_data_v2:
   redis_data:
 
 networks:

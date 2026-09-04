@@ -5,6 +5,7 @@ const CacheManager = require('./providers/CacheManager');
 const AdsSettingsService = require('./AdsSettingsService');
 const ProviderManagementService = require('./ProviderManagementService');
 const AdEvent = require('../../models/ads/AdEvent');
+const adRequestContext = require('./AdRequestContext');
 
 const cacheManager = new CacheManager();
 const healthCache = new Map();
@@ -24,7 +25,7 @@ function isRoleAllowed(user, config) {
 async function isFrequencyCapped(context) {
     if (!context.user || !context.user.id) return false;
     try {
-        const rule = await FrequencyRule.findOne({ slot: context.placement, active: true });
+        const rule = await adRequestContext.memoize('frequencyRule:' + context.placement, () => FrequencyRule.findOne({ slot: context.placement, active: true }).lean());
         if (!rule) return false;
         const since = new Date(Date.now() - (rule.minIntervalSeconds || 30) * 1000);
         const recent = await AdEvent.countDocuments({
@@ -85,7 +86,7 @@ async function resolveProvider(adsSettings) {
         const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
         if (isObjectId) {
             try {
-                const p = await ProviderManagementService.getProvider(id);
+                const p = await adRequestContext.memoize('provider:' + id, () => ProviderManagementService.getProvider(id));
                 if (p && p.enabled) {
                     candidates = [p.type];
                     configs[p.type] = p.config || {};

@@ -1,5 +1,6 @@
 const fp = require('fastify-plugin');
 const Sentry = require('@sentry/node');
+const debug = require('../logger/debug');
 
 let sentryInitialized = false;
 
@@ -49,7 +50,7 @@ const sentryPlugin = fp(async (fastify) => {
     const dsn = process.env.SENTRY_DSN;
 
     if (!dsn) {
-        console.log('[Sentry] DSN not configured, error tracking disabled');
+        debug('[Sentry] DSN not configured, error tracking disabled');
         sentryInitialized = false;
     } else {
         Sentry.init({
@@ -60,7 +61,7 @@ const sentryPlugin = fp(async (fastify) => {
             profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
             beforeSend(event) {
                 if (process.env.NODE_ENV === 'development') {
-                    console.log('[Sentry] Event would be sent:', event.event_id);
+                    debug('[Sentry] Event would be sent:', event.event_id);
                     return null;
                 }
                 return event;
@@ -68,7 +69,7 @@ const sentryPlugin = fp(async (fastify) => {
         });
 
         sentryInitialized = true;
-        console.log('[Sentry] Initialized successfully');
+        debug('[Sentry] Initialized successfully');
 
         fastify.addHook('onRequest', async (request) => {
             if (sentryInitialized) {

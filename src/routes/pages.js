@@ -16,6 +16,7 @@ const ejs = require('ejs');
 const markdownIt = require('markdown-it');
 const md = markdownIt({ html: true, breaks: true, linkify: true });
 const Post = require('../models/Post');
+const HomeController = require('../controllers/HomeController');
 const ReadSession = require('../models/ReadSession');
 const RewardRateService = require('../services/RewardRateService');
 const Notification = require('../models/Notification');
@@ -957,153 +958,7 @@ async function pagesRoutes(fastify) {
         return reply.redirect('/');
     });
 
-    fastify.get('/', async (req, reply) => {
-        const lang = getLanguage(req);
-
-        if (req.isLoggedIn) {
-
-            const currentUserId = req.currentUser.id;
-
-            const posts = await fastify.perf.measure('feed:recommendations', async () => {
-                return isFeatureEnabled('content', 'recommendationEngine')
-                    ? recommendationService.getFeed(currentUserId, { limit: 5 })
-                    : Post.find()
-                        .sort({ publishedAt: -1 })
-                        .limit(5)
-                        .populate('author', 'displayName avatar role')
-                        .lean();
-            });
-
-            const trendingPosts = await fastify.perf.measure('feed:trending', async () => {
-                return Post.find()
-                    .sort({ 'stats.views': -1 })
-                    .limit(3)
-                    .populate('author', 'displayName avatar role')
-                    .lean();
-            });
-
-            const followedIds = await fastify.perf.measure('feed:followedIds', async () => {
-                return User.distinct('following', { _id: currentUserId });
-            });
-            const suggestedUsers = await fastify.perf.measure('feed:suggestions', async () => {
-                return User.find({
-                    _id: { $ne: currentUserId, $nin: followedIds },
-                    isActive: true
-                })
-                    .select('displayName avatar role')
-                    .limit(6)
-                    .lean();
-            });
-
-            const feedSuggestions = suggestedUsers.slice(0, 3);
-            const sidebarSuggestions = suggestedUsers;
-
-            const postsWithPublicAuthors = await fastify.perf.measure('feed:readTime', async () => {
-                return posts.map(post => {
-                    if (post.author && typeof post.author.toPublicJSON === 'function') {
-                        post.author = post.author.toPublicJSON();
-                    }
-                    if (post.author) {
-                        post.author.avatar = getAvatarWithFallback(post.author);
-                    }
-                    post.readTime = getReadTime(post.content).display;
-                    return post;
-                });
-            });
-
-            const trendingWithAuthors = await fastify.perf.measure('feed:readTimeTrending', async () => {
-                return trendingPosts.map(post => {
-                    if (post.author && typeof post.author.toPublicJSON === 'function') {
-                        post.author = post.author.toPublicJSON();
-                    }
-                    // ensure avatar fallback for trending items as well
-                    if (post.author) {
-                        post.author.avatar = getAvatarWithFallback(post.author);
-                    }
-                    post.readTime = getReadTime(post.content).display;
-                    return post;
-                });
-            });
-
-            let feedAds = [];
-            let sidebarAd = null;
-            try {
-                feedAds = await fastify.perf.measure('ads:feed', () => getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 }));
-                const sidebarAds = await fastify.perf.measure('ads:sidebar', () => getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }));
-                sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
-                try {
-                    req.log.debug({ feedAds }, 'Fetched feedAds');
-                    req.log.debug({ sidebarAd }, 'Fetched sidebarAd');
-                } catch (logErr) {
-                    console.debug('Ad debug log failed', logErr);
-                }
-            } catch (e) {
-                req.log.warn({ error: e && e.message ? e.message : String(e) }, 'Ad service unavailable');
-            }
-
-            return fastify.perf.measure('render:view', () => reply.view('pages/home-logged-in.ejs', {
-                posts: postsWithPublicAuthors,
-                pageTitle: 'Home',
-                trendingPosts: trendingWithAuthors,
-                suggestedUsers: sidebarSuggestions,
-                feedSuggestions,
-                feedAds,
-                sidebarAd,
-                user: req.currentUser ? req.currentUser.toPublicJSON() : null,
-                unreadCount: req.unreadCount,
-                CATEGORY_ENUM,
-                CATEGORY_NAMES,
-                categoryNames: CATEGORY_NAMES[lang],
-                title: 'PaidInk - Read. Write. Engage.',
-                description: 'Stay ahead with the latest in AI, web development, cloud computing, and technology innovation.',
-                canonical: `${process.env.BASE_URL || ''}/`,
-                ogImage: '/public/images/og-default.png'
-            }));
-        }
-
-        const { page = 1, limit = 12, category } = req.query;
-
-        if (category && !CATEGORY_ENUM.includes(category)) {
-            return reply.code(400).view('layouts/default.ejs', {
-                body: renderErrorPage('404', req),
-                activeCategory: null,
-                lang,
-                theme: req.cookies?.theme || 'light',
-                title: '404 - Page Not Found | PaidInk',
-                description: 'The page you are looking for could not be found on PaidInk.',
-                canonical: `${process.env.BASE_URL || ''}${req.url}`
-            });
-        }
-
-        const result = await fastify.perf.measure('home:getPosts', () => postService.getPosts({ page, limit, category }));
-        const categoryName = category ? CATEGORY_NAMES[lang]?.[category] || category : null;
-
-        const pageContent = await fastify.perf.measure('render:body', () => renderPage('home', {
-            blogs: result.posts,
-            pagination: result.pagination,
-            category,
-            categoryName,
-            categoryNames: CATEGORY_NAMES[lang],
-            lang,
-            formatDate,
-            formatRelativeTime
-        }));
-
-        return fastify.perf.measure('render:view', () => reply.view('layouts/default.ejs', {
-            body: pageContent,
-            activeCategory: category,
-            lang,
-            theme: req.cookies?.theme || 'light',
-            title: categoryName ? `${categoryName} - PaidInk` : 'PaidInk - Read. Write. Engage.',
-            description: categoryName ? `Latest ${categoryName.toLowerCase()} news` : 'Read. Write. Engage. On PaidInk, attention isn\'t wasted, it\'s returned.',
-            ogImage: '/public/images/og-default.png',
-            canonical: `${process.env.BASE_URL || ''}${req.url.split('?')[0]}`,
-            isLoggedIn: req.isLoggedIn,
-            user: req.currentUser ? req.currentUser.toPublicJSON() : null,
-            isLightTheme: !category
-        }));
-    });
-
+    fastify.get('/', HomeController.create(fastify).index);
     fastify.get('/browse', async (req, reply) => {
         const lang = getLanguage(req);
         const { tab } = req.query;
@@ -1203,9 +1058,12 @@ async function pagesRoutes(fastify) {
         let feedAds = [];
         let sidebarAd = null;
         try {
-            feedAds = await fastify.perf.measure('ads:feed', () => getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 }));
-            const sidebarAds = await fastify.perf.measure('ads:sidebar', () => getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }));
-            sidebarAd = sidebarAds.length > 0 ? sidebarAds[0] : null;
+            const [feedResults, sidebarResults] = await Promise.all([
+                fastify.perf.measure('ads:feed', () => getAd({ placement: 'feed_native', user: { id: currentUserId }, session: null, count: 2 })),
+                fastify.perf.measure('ads:sidebar', () => getAd({ placement: 'sidebar', user: { id: currentUserId }, session: null }))
+            ]);
+            feedAds = feedResults;
+            sidebarAd = sidebarResults.length > 0 ? sidebarResults[0] : null;
             try {
                 req.log.debug({ feedAds }, 'Fetched feedAds for explore');
                 req.log.debug({ sidebarAd }, 'Fetched sidebarAd for explore');
@@ -1394,7 +1252,6 @@ async function pagesRoutes(fastify) {
     });
 
     fastify.get('/post/:slug', async (req, reply) => {
-        console.log('[POST-ROUTE] req.isLoggedIn:', req.isLoggedIn, 'cookies:', JSON.stringify(Object.keys(req.cookies || {})));
         const lang = getLanguage(req);
         const { slug } = req.params;
 
@@ -1543,6 +1400,7 @@ async function pagesRoutes(fastify) {
             category,
             categoryName,
             categoryNames: CATEGORY_NAMES[lang],
+            CATEGORY_ENUM,
             lang,
             formatDate,
             formatRelativeTime
@@ -1552,6 +1410,8 @@ async function pagesRoutes(fastify) {
             body: pageContent,
             activeCategory: category,
             lang,
+            CATEGORY_ENUM,
+            CATEGORY_NAMES,
             theme: req.cookies?.theme || 'light',
             title: `${categoryName} | PaidInk`,
             description: `Latest ${categoryName.toLowerCase()} news, articles, and insights on PaidInk.`,
@@ -1572,7 +1432,7 @@ async function pagesRoutes(fastify) {
             return reply.code(404).send('Not Found');
         }
 
-        return reply.redirect(301, `/post/${blog.slug}`);
+        return reply.redirect(`/post/${blog.slug}`, 301);
     });
 
     fastify.get('/search', async (req, reply) => {
