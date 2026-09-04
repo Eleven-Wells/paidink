@@ -26,8 +26,10 @@ const PayoutService = require('../services/PayoutService');
 const { getReadTime } = require('../services/ReadTimeService');
 const { getAds } = require('../services/ads/ProviderService');
 const { getAvatarWithFallback } = require('./viewUtils');
+const HomeController = require('../controllers/HomeController');
 
 async function apiRoutes(fastify) {
+    const homeController = HomeController.create(fastify);
     fastify.get('/health', async (req, reply) => {
         const detailed = req.query.detailed === 'true';
         const health = detailed
@@ -1239,6 +1241,10 @@ async function apiRoutes(fastify) {
             });
         }
     });
+
+    fastify.get('/v1/feed/posts', {
+        preHandler: [fastify.authenticate]
+    }, homeController.getPaginatedFeed);
 
     fastify.get('/v1/feed/trending', async (req, reply) => {
         try {

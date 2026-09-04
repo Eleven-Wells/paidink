@@ -225,6 +225,62 @@ describe('pages.js golden contract', () => {
             expect(spans).not.toContain('ads:sidebar');
         });
 
+        test('GET /api/v1/feed/posts requires active session auth', async () => {
+            const res = await goldenRequest({ url: '/api/v1/feed/posts' });
+            expect(res.statusCode).toBe(401);
+        });
+
+        test('GET /api/v1/feed/posts returns first cursor page with nextCursor when more posts exist', async () => {
+            await seedFixtures();
+            for (let i = 0; i < 12; i++) {
+                await createPost({
+                    author: fixtures.publisher._id,
+                    slug: `feed-cursor-${Date.now()}-${i}`,
+                    publishedAt: new Date(Date.now() - i * 60 * 1000)
+                });
+            }
+
+            const res = await goldenRequest({ url: '/api/v1/feed/posts' }, { auth: 'reader' });
+            expect(res.statusCode).toBe(200);
+            const body = JSON.parse(res.body);
+            expect(body.success).toBe(true);
+            expect(Array.isArray(body.data)).toBe(true);
+            expect(body.data.length).toBe(10);
+            expect(body.nextCursor).toBeTruthy();
+        });
+
+        test('GET /api/v1/feed/posts respects a historical cursor timestamp', async () => {
+            await seedFixtures();
+            const fixedCursor = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+            for (let i = 0; i < 12; i++) {
+                await createPost({
+                    author: fixtures.publisher._id,
+                    slug: `feed-cursor-history-${Date.now()}-${i}`,
+                    publishedAt: new Date(Date.now() - (i + 2) * 60 * 1000)
+                });
+            }
+
+            const res = await goldenRequest({ url: `/api/v1/feed/posts?cursor=${encodeURIComponent(fixedCursor)}` }, { auth: 'reader' });
+            expect(res.statusCode).toBe(200);
+            const body = JSON.parse(res.body);
+            expect(body.success).toBe(true);
+            expect(Array.isArray(body.data)).toBe(true);
+            for (const post of body.data) {
+                expect(new Date(post.publishedAt).getTime()).toBeLessThan(new Date(fixedCursor).getTime());
+            }
+        });
+
+        test('GET /api/v1/feed/posts returns nextCursor null at the tail end', async () => {
+            await seedFixtures();
+
+            const res = await goldenRequest({ url: '/api/v1/feed/posts' }, { auth: 'reader' });
+            expect(res.statusCode).toBe(200);
+            const body = JSON.parse(res.body);
+            expect(body.success).toBe(true);
+            expect(Array.isArray(body.data)).toBe(true);
+            expect(body.nextCursor).toBeNull();
+        });
+
         test('GET /api/v1/feed/trending returns JSON trending posts', async () => {
             const res = await goldenRequest({ url: '/api/v1/feed/trending' });
             expect(res.statusCode).toBe(200);

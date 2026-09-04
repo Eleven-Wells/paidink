@@ -3,6 +3,7 @@
 const Post = require('../models/Post');
 const postService = require('../services/PostService');
 const recommendationService = require('../services/RecommendationService');
+const FeedService = require('../services/feed/FeedService');
 const { isFeatureEnabled } = require('../config/features');
 const { getLanguage } = require('../i18n/i18n');
 const { getReadTime } = require('../services/ReadTimeService');
@@ -100,8 +101,42 @@ function create(fastify) {
         }));
     }
 
+    async function paginatedFeedHandler(req, reply) {
+        try {
+            const { cursor } = req.query || {};
+            const { data, nextCursor } = await FeedService.getPaginatedFeed({
+                cursor,
+                limit: 10
+            });
+
+            return reply.send({
+                success: true,
+                data,
+                nextCursor
+            });
+        } catch (error) {
+            if (error && error.statusCode === 400) {
+                return reply.code(400).send({
+                    success: false,
+                    data: [],
+                    nextCursor: null,
+                    error: error.message
+                });
+            }
+
+            req.log.error({ error: error && error.message ? error.message : String(error) }, 'Paginated feed failed');
+            return reply.code(500).send({
+                success: false,
+                data: [],
+                nextCursor: null,
+                error: 'Failed to load feed'
+            });
+        }
+    }
+
     return {
-        index: indexHandler
+        index: indexHandler,
+        getPaginatedFeed: paginatedFeedHandler
     };
 }
 
