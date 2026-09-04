@@ -959,7 +959,6 @@ async function pagesRoutes(fastify) {
     });
 
     fastify.get('/', HomeController.create(fastify).index);
-
     fastify.get('/browse', async (req, reply) => {
         const lang = getLanguage(req);
         const { tab } = req.query;
