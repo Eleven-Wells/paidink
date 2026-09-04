@@ -28,6 +28,7 @@ const { getAds } = require('../services/ads/ProviderService');
 const { getAvatarWithFallback } = require('./viewUtils');
 
 async function apiRoutes(fastify) {
+    const homeController = HomeController.create(fastify);
     fastify.get('/health', async (req, reply) => {
         const detailed = req.query.detailed === 'true';
         const health = detailed

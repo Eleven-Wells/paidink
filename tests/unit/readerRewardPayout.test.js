@@ -16,6 +16,7 @@ const {
     MAX_REWARD
 } = require('../../src/services/ads/ReaderRewardService');
 const { seedDefaultData } = require('../../src/services/ads/AdSimulationService');
+const { completeSession } = require('../../src/services/ReadService');
 
 describe('ReaderRewardService', () => {
     let testUser;
@@ -126,7 +127,7 @@ describe('ReaderRewardService', () => {
         });
     });
 
-    describe('ReadSession.markCompleted integration', () => {
+    describe('ReadService.completeSession integration', () => {
         test('should complete and award reward at current rate', async () => {
             const session = await ReadSession.create({
                 user: testUser._id,
@@ -135,11 +136,12 @@ describe('ReaderRewardService', () => {
             });
             session.timeSpentSeconds = 60;
 
-            const reward = await session.markCompleted();
-            expect(reward).toBeGreaterThanOrEqual(10);
+            const result = await completeSession({ userId: testUser._id, sessionId: session._id });
+            expect(result.rewardAwarded).toBe(true);
+            expect(result.rewardAmount).toBeGreaterThanOrEqual(10);
 
             const updatedUser = await User.findById(testUser._id);
-            expect(updatedUser.wallet.balance).toBe(reward);
+            expect(updatedUser.wallet.balance).toBe(result.rewardAmount);
 
             const ledgerEntries = await LedgerEntry.find({ user: testUser._id, type: 'read_reward' });
             expect(ledgerEntries.length).toBeGreaterThanOrEqual(1);
@@ -153,8 +155,9 @@ describe('ReaderRewardService', () => {
             });
             session.timeSpentSeconds = 5;
 
-            const reward = await session.markCompleted();
-            expect(reward).toBe(0);
+            const result = await completeSession({ userId: testUser._id, sessionId: session._id });
+            expect(result.rewardAwarded).toBe(false);
+            expect(result.rewardAmount).toBe(0);
         });
     });
 });

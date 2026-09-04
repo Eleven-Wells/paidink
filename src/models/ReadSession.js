@@ -4,22 +4,6 @@ const debug = require('../logger/debug');
 
 const READ_REWARD = 500;
 
-let User;
-let Post;
-let Transaction;
-let LedgerEntry;
-let NotificationService;
-let AchievementService;
-
-function getModels() {
-    if (!User) User = mongoose.model('User');
-    if (!Post) Post = mongoose.model('Post');
-    if (!Transaction) Transaction = mongoose.model('Transaction');
-    if (!LedgerEntry) LedgerEntry = mongoose.model('LedgerEntry');
-    if (!NotificationService) NotificationService = require('../services/NotificationService');
-    if (!AchievementService) AchievementService = require('../services/AchievementService');
-}
-
 const readSessionSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -107,9 +91,7 @@ readSessionSchema.methods.calculateReward = function () {
     return 0;
 };
 
-readSessionSchema.methods.markCompleted = async function () {
-    getModels();
-
+readSessionSchema.methods.markCompleted = async function ({ rewardAwarded = false, rewardAmount = 0 } = {}) {
     this.completed = true;
     this.endedAt = new Date();
 
@@ -225,7 +207,7 @@ readSessionSchema.methods.markCompleted = async function () {
     }
 
     await this.save();
-    return paidReward;
+    return rewardAmount;
 };
 
 readSessionSchema.statics.getTodayReads = async function (userId) {
